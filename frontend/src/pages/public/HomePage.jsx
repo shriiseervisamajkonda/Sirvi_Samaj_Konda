@@ -229,6 +229,86 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Welcome / Samaj Introduction & Aai Mataji Section */}
+      <section className="py-20 bg-slate-800/10 border-b border-slate-700/50">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative rounded-2xl overflow-hidden shadow-2xl border border-amber-500/20 bg-slate-900"
+            >
+              <img src="/aai_mataji_portrait.png" alt="Shri Aai Mataji" className="w-full max-h-[500px] object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-6"
+            >
+              <span className="inline-block px-4 py-1.5 bg-primary/20 text-primary text-xs font-bold rounded-full uppercase tracking-wider">
+                श्री आई माताजी की असीम कृपा
+              </span>
+              <h2 className="text-4xl font-extrabold text-white leading-tight">
+                श्री आई माताजी एवं सिर्वी समाज धरोहर
+              </h2>
+              <p className="text-gray-300 leading-relaxed text-lg">
+                सिर्वी समाज संगठन कोणदा, धार (मध्य प्रदेश) का यह डिजिटल मंच समाज के परिवारों, गौरवशाली इतिहास, संस्कारों और विकास कार्यों को एक सूत्र में पिरोने का विनम्र प्रयास है। 
+              </p>
+              <div className="border-l-4 border-accent pl-4 py-2 italic text-gray-400">
+                "आई पंथ के ११ नियम हमारे जीवन का मार्गदर्शन करते हैं और समाज की एकता ही हमारी सबसे बड़ी शक्ति है।"
+              </div>
+              <div className="flex gap-4">
+                <Link
+                  to="/about"
+                  className="px-6 py-2.5 bg-secondary text-white font-bold rounded-xl shadow-md hover:bg-secondary/80 transition-all text-sm cursor-pointer"
+                >
+                  समाज के बारे में जानें
+                </Link>
+                <Link
+                  to="/members"
+                  className="px-6 py-2.5 border border-amber-500/30 text-amber-400 hover:border-amber-500 hover:bg-amber-500/10 font-bold rounded-xl transition-all text-sm cursor-pointer"
+                >
+                  सदस्य देखें
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Temple Feature Section */}
+      <section className="relative py-32 overflow-hidden border-b border-slate-700/50">
+        {/* Full-width background image with dark gradient overlay */}
+        <div className="absolute inset-0">
+          <img src="/aai_mata_temple.png" alt="Aai Mata Temple" className="w-full h-full object-cover opacity-25" />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent" />
+        </div>
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-xl space-y-6"
+          >
+            <span className="text-accent font-bold text-sm tracking-wider uppercase">हमारी आस्था, हमारी पहचान</span>
+            <h2 className="text-5xl font-extrabold leading-tight">श्री आई जी मंदिर (बडेर) कोणदा</h2>
+            <p className="text-gray-300 leading-relaxed text-lg">
+              कोणदा ग्राम में स्थित माँ भगवती स्वरूप श्री आई माताजी का मंदिर समाज की भक्ति, सेवा और अटूट आस्था का मुख्य केंद्र है। यहाँ प्रतिदिन ज्योति ज्योत दर्शन, सामाजिक चर्चाएँ और धार्मिक उत्सव आयोजित किए जाते हैं।
+            </p>
+            <Link
+              to="/gallery"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+            >
+              और जानें <FiArrowRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Statistics */}
       <section className="py-20 bg-white dark:bg-slate-900">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
