@@ -1,0 +1,134 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { FiHeart, FiLock } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { marriageAPI } from '../../services/api';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import EmptyState from '../../components/common/EmptyState';
+import Pagination from '../../components/common/Pagination';
+import Badge from '../../components/common/Badge';
+
+const MarriageBiodataPage = () => {
+  const { user } = useAuth();
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    setLoading(true);
+    const params = { page, limit: 12, status: 'approved' };
+    if (filter !== 'all') params.gender = filter;
+    marriageAPI.getAll(params)
+      .then(res => {
+        setProfiles(res.data.data || []);
+        setTotalPages(res.data.pagination?.pages || 1);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [user, page, filter]);
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center p-4">
+        <div className="max-w-md text-center bg-white dark:bg-slate-800 rounded-3xl p-12 shadow-xl border border-gray-100 dark:border-slate-700">
+          <div className="w-20 h-20 bg-pink-100 dark:bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <FiLock className="w-10 h-10 text-pink-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Login Required</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-8">
+            Marriage biodata is only accessible to registered community members. Please login or create an account.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <Link to="/login" className="px-6 py-3 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors">Login</Link>
+            <Link to="/register" className="px-6 py-3 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">Register</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gray-50 dark:bg-slate-900 min-h-screen">
+      <div className="bg-gradient-to-br from-pink-500 to-rose-700 py-16 text-white relative overflow-hidden">
+        <div className="relative max-w-4xl mx-auto px-4 text-center">
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiHeart className="w-8 h-8" />
+            </div>
+            <h1 className="text-4xl lg:text-5xl font-bold mb-3">Marriage Biodata</h1>
+            <p className="text-pink-100 text-lg">Find your life partner within our community</p>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="mb-8 flex gap-3">
+          {['all', 'Male', 'Female'].map(f => (
+            <button
+              key={f}
+              onClick={() => { setFilter(f); setPage(1); }}
+              className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+                filter === f ? 'bg-pink-500 border-pink-500 text-white' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-pink-300'
+              }`}
+            >
+              {f === 'all' ? 'All Profiles' : f === 'Male' ? '👨 Groom' : '👩 Bride'}
+            </button>
+          ))}
+        </div>
+
+        {loading ? <LoadingSpinner /> : profiles.length === 0 ? (
+          <EmptyState icon={FiHeart} title="No profiles yet" description="Marriage biodata profiles will appear here once approved." />
+        ) : (
+          <>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {profiles.map((profile, i) => (
+                <motion.div
+                  key={profile._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05 }}
+                  className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div className="bg-gradient-to-br from-pink-400 to-rose-600 h-32 flex items-center justify-center">
+                    {profile.photo ? (
+                      <img src={profile.photo} alt={profile.member?.firstName} className="w-20 h-20 rounded-full object-cover border-4 border-white" />
+                    ) : (
+                      <div className="w-20 h-20 rounded-full bg-white/30 flex items-center justify-center text-white text-3xl font-bold">
+                        {profile.member?.firstName?.charAt(0) || '👤'}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-5">
+                    <div className="text-center mb-4">
+                      <h3 className="font-bold text-gray-900 dark:text-white">{profile.member?.firstName} {profile.member?.lastName}</h3>
+                      <Badge variant={profile.gender === 'Male' ? 'info' : 'purple'} size="xs">
+                        {profile.gender === 'Male' ? '👨 Groom' : '👩 Bride'}
+                      </Badge>
+                    </div>
+                    <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                      {profile.dob && <p>📅 Age: {new Date().getFullYear() - new Date(profile.dob).getFullYear()} years</p>}
+                      {profile.education && <p>📚 {profile.education}</p>}
+                      {profile.occupation && <p>💼 {profile.occupation}</p>}
+                      {profile.height && <p>📏 {profile.height}</p>}
+                    </div>
+                    <button className="mt-4 w-full py-2 bg-pink-50 dark:bg-pink-500/10 text-pink-600 dark:text-pink-400 rounded-xl text-sm font-medium hover:bg-pink-100 dark:hover:bg-pink-500/20 transition-colors">
+                      View Full Profile
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MarriageBiodataPage;
