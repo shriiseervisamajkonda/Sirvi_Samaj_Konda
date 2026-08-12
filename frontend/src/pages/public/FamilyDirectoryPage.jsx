@@ -94,7 +94,7 @@ const FamilyDirectoryPage = () => {
       <div className="relative py-20 text-white overflow-hidden">
         {/* Background image overlay */}
         <div className="absolute inset-0">
-          <img src="/hero_background.png" alt="Header Background" className="w-full h-full object-cover opacity-20" />
+          <img src="/hero_background.webp" alt="Header Background" className="w-full h-full object-cover opacity-20" />
           <div className="absolute inset-0 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]" />
         </div>
 

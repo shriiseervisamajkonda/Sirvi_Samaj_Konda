@@ -51,7 +51,7 @@ const AdminLayout = () => {
           <div className="p-4 border-b border-gray-200 dark:border-slate-700">
             <Link to="/" className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center bg-white shadow-sm">
-                <img src="/Logo.png" alt="Logo" className="w-full h-full object-cover" />
+                <img src="/Logo.webp" alt="Logo" className="w-full h-full object-cover" />
               </div>
               <div>
                 <p className="font-bold text-sm text-gray-900 dark:text-white">Admin Panel</p>

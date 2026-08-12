@@ -44,7 +44,7 @@ const LoginPage = () => {
       <div className="hidden lg:flex flex-col justify-center items-center flex-1 bg-slate-900 p-12 text-white relative overflow-hidden">
         {/* Full background image overlay */}
         <div className="absolute inset-0">
-          <img src="/hero_background.png" alt="Heritage background" className="w-full h-full object-cover opacity-20" />
+          <img src="/hero_background.webp" alt="Heritage background" className="w-full h-full object-cover opacity-20" />
           <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900/90 to-slate-950" />
         </div>
 
@@ -55,7 +55,7 @@ const LoginPage = () => {
           className="relative z-10 text-center"
         >
           <div className="w-24 h-24 bg-white rounded-3xl overflow-hidden flex items-center justify-center shadow-lg border border-amber-500/20 mx-auto mb-8">
-            <img src="/Logo.png" alt="Logo" className="w-full h-full object-cover" />
+            <img src="/Logo.webp" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-4xl font-bold mb-4">Shri Seervi Samaj</h1>
           <p className="text-xl font-medium text-orange-100 mb-2">Konda, Kukshi, Dhar</p>
@@ -88,7 +88,7 @@ const LoginPage = () => {
         >
           <div className="text-center mb-8 lg:hidden">
             <div className="w-16 h-16 bg-white rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-4 shadow-lg border border-amber-500/10">
-              <img src="/Logo.png" alt="Logo" className="w-full h-full object-cover" />
+              <img src="/Logo.webp" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-xl font-bold text-gray-950 dark:text-white">Shri Seervi Samaj Konda</h1>
           </div>

@@ -64,7 +64,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md bg-white">
-              <img src="/Logo.png" alt="Logo" className="w-full h-full object-cover" />
+              <img src="/Logo.webp" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <div className="hidden sm:block">
               <p className="font-bold text-gray-900 dark:text-white text-sm leading-tight">{t('hero_title_1')} {t('hero_title_2')}</p>

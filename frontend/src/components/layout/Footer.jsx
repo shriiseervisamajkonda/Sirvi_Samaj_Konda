@@ -14,7 +14,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md bg-white border border-[#D4AF37]/30">
-                <img src="/Logo.png" alt="Logo" className="w-full h-full object-cover" />
+                <img src="/Logo.webp" alt="Logo" className="w-full h-full object-cover" />
               </div>
               <div>
                 <p className="font-bold text-[#FFF3DD] leading-tight">{t('hero_title_1')} {t('hero_title_2')}</p>
