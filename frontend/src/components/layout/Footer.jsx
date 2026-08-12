@@ -13,7 +13,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center text-white font-bold shadow-md shadow-primary/20">SS</div>
+              <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md bg-white">
+                <img src="/Logo.png" alt="Logo" className="w-full h-full object-cover" />
+              </div>
               <div>
                 <p className="font-bold text-white leading-tight">{t('hero_title_1')} {t('hero_title_2')}</p>
                 <p className="text-primary text-xs font-semibold">{t('hero_title_3')}</p>

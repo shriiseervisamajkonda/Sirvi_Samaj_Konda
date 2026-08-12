@@ -39,12 +39,14 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-orange-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen flex bg-slate-950 text-gray-100">
       {/* Left panel */}
-      <div className="hidden lg:flex flex-col justify-center items-center flex-1 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 p-12 text-white relative overflow-hidden">
-        {/* Background circles */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-80 h-80 bg-white/10 rounded-full translate-x-1/3 translate-y-1/3" />
+      <div className="hidden lg:flex flex-col justify-center items-center flex-1 bg-slate-900 p-12 text-white relative overflow-hidden">
+        {/* Full background image overlay */}
+        <div className="absolute inset-0">
+          <img src="/hero_background.png" alt="Heritage background" className="w-full h-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900/90 to-slate-950" />
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -52,15 +54,15 @@ const LoginPage = () => {
           transition={{ delay: 0.2 }}
           className="relative z-10 text-center"
         >
-          <div className="w-24 h-24 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center text-4xl font-bold mx-auto mb-8">
-            SS
+          <div className="w-24 h-24 bg-white rounded-3xl overflow-hidden flex items-center justify-center shadow-lg border border-amber-500/20 mx-auto mb-8">
+            <img src="/Logo.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-4xl font-bold mb-4">Shri Seervi Samaj</h1>
           <p className="text-xl font-medium text-orange-100 mb-2">Konda, Kukshi, Dhar</p>
           <p className="text-orange-200 text-base max-w-xs mx-auto leading-relaxed">
             Your community, your heritage — all in one place.
           </p>
-
+ 
           <div className="mt-10 grid grid-cols-2 gap-4">
             {[
               { label: 'Families', value: '500+' },
@@ -68,7 +70,7 @@ const LoginPage = () => {
               { label: 'Students', value: '300+' },
               { label: 'Businesses', value: '100+' },
             ].map(({ label, value }) => (
-              <div key={label} className="bg-white/15 backdrop-blur rounded-xl p-4">
+              <div key={label} className="bg-slate-900/40 backdrop-blur border border-white/5 rounded-xl p-4">
                 <p className="text-2xl font-bold">{value}</p>
                 <p className="text-orange-200 text-sm">{label}</p>
               </div>
@@ -76,7 +78,7 @@ const LoginPage = () => {
           </div>
         </motion.div>
       </div>
-
+ 
       {/* Right panel - Form */}
       <div className="flex-1 flex flex-col justify-center items-center p-8 lg:p-12">
         <motion.div
@@ -85,10 +87,10 @@ const LoginPage = () => {
           className="w-full max-w-md"
         >
           <div className="text-center mb-8 lg:hidden">
-            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4 shadow-lg shadow-orange-500/30">
-              SS
+            <div className="w-16 h-16 bg-white rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-4 shadow-lg border border-amber-500/10">
+              <img src="/Logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Shri Seervi Samaj Konda</h1>
+            <h1 className="text-xl font-bold text-gray-950 dark:text-white">Shri Seervi Samaj Konda</h1>
           </div>
 
           <div className="mb-8">
