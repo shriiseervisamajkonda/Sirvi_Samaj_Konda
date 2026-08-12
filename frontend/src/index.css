@@ -5,34 +5,34 @@
   --color-primary: #C85A17; /* Saffron / Bhagwa */
   --color-primary-dark: #A5450F;
   --color-secondary: #7A2525; /* Temple Maroon */
-  --color-accent: #C9A44C; /* Antique Gold */
+  --color-accent: #D4AF37; /* Antique Gold */
   --font-sans: 'Poppins', 'Noto Sans Devanagari', system-ui, sans-serif;
   --font-serif: 'Noto Sans Devanagari', 'Georgia', serif;
   --font-display: 'Yatra One', cursive;
 
   /* Force standard orange and blue variables to Saffron and Maroon */
   --color-orange-500: #C85A17;
-  --color-orange-600: #A5450F;
-  --color-orange-100: #FFEFE0;
+  --color-orange-600: #E27620; /* Rich Saffron */
+  --color-orange-100: #351313; /* Saffron on Dark card */
   --color-blue-500: #7A2525;
   --color-blue-600: #5C1919;
-  --color-blue-100: #FFF0F0;
+  --color-blue-100: #2A1010;
 
   /* Custom palette overrides matching user specs */
-  --color-slate-950: #2B211B; /* Deep Brown Text */
-  --color-slate-900: #44372F;
-  --color-slate-800: #FFFFFF; /* White Surface */
-  --color-slate-700: #E8DCC8; /* Cream Border */
-  --color-slate-600: #766A60; /* Muted Text */
-  --color-slate-500: #A89B8F;
+  --color-slate-950: #160D08; /* Primary Background - Deep Brown */
+  --color-slate-900: #2A1010; /* Secondary Background - Dark Maroon */
+  --color-slate-800: #351313; /* Section Background - Deep Burgundy */
+  --color-slate-700: #4E2A1E; /* Dark Temple Border */
+  --color-slate-600: #CDBBA4; /* Secondary Text - Cream */
+  --color-slate-500: #766A60;
 
-  --color-gray-900: #2B211B;
-  --color-gray-800: #44372F;
-  --color-gray-750: #FFFFFF;
-  --color-gray-700: #766A60;
-  --color-gray-600: #A89B8F;
-  --color-gray-200: #E8DCC8;
-  --color-gray-100: #FFF8EC; /* Warm Ivory Background */
+  --color-gray-900: #FFF3DD; /* Primary Text */
+  --color-gray-800: #FFF3DD;
+  --color-gray-750: #351313; /* Surface Background */
+  --color-gray-700: #CDBBA4; /* Secondary Text */
+  --color-gray-600: #766A60;
+  --color-gray-200: #4E2A1E; /* Border */
+  --color-gray-100: #2A1010;
 }
 
 html {
@@ -41,8 +41,8 @@ html {
 
 body {
   font-family: 'Poppins', 'Noto Sans Devanagari', system-ui, sans-serif;
-  background-color: #FFF9F0; /* Warm Ivory */
-  color: #241A14; /* Dark Text */
+  background-color: #160D08 !important; /* Deep Brown Background */
+  color: #FFF3DD !important; /* Primary Text */
   -webkit-font-smoothing: antialiased;
 }
 

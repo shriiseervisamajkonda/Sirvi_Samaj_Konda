@@ -133,8 +133,6 @@ const Navbar = () => {
               <span>{language === 'en' ? 'हिन्दी' : 'English'}</span>
             </button>
 
-
-            
             {isAdmin ? (
               <Link to="/admin" className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-dark transition shadow-md shadow-primary/20">
                 <FiUser className="w-4 h-4" /> {t('nav_admin')}
