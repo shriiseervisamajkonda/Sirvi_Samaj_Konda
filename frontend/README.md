@@ -1,16 +1,51 @@
-# React + Vite
+# Shri Sirvi Samaj Konda — Frontend Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the client-side single-page application (SPA) for the **Shri Seervi Samaj Konda Portal**, built using React, Vite, and TailwindCSS.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🛠️ Technology Stack
 
-## React Compiler
+- **Framework**: [ReactJS 19](https://react.dev/)
+- **Build Tool**: [Vite](https://vite.dev/)
+- **Styling**: [TailwindCSS v4](https://tailwindcss.com/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Forms**: [React Hook Form](https://react-hook-form.com/)
+- **Icons**: [React Icons](https://react-icons.github.io/react-icons/)
+- **Routing**: [React Router DOM v7](https://reactrouter.com/)
+- **API Client**: [Axios](https://axios-http.com/)
+- **Notifications**: [React Hot Toast](https://react-hot-toast.com/)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 📦 Navigation & Public Directories
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The client application includes public directories and admin controls:
+- **Directory**: View Family list, Members, Student directory, Business listing, and Blood donors.
+- **समिती एवं संकल पंच**: Toggle views for Executive Committee, Sangathan, and traditional Sankal Panch.
+- **न्यायिक समझौते**: View arbitration agreements signed by local Panchs.
+- **लेखा-जोखा (Accounts Ledger)**: Inspect Aaiji Relief Fund, Annapurna Bhawan, Temple Construction, and Talent Honor accounts.
+- **Donation Gateway**: Pay securely online using Razorpay checkout (or simulator mode in local testing).
+
+---
+
+## 🚀 Commands
+
+In the `frontend` folder, run:
+
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Run Local Dev Server**:
+   ```bash
+   npm run dev
+   ```
+   *By default, this launches at [http://localhost:5173](http://localhost:5173) and proxies `/api` calls to port `5000`.*
+
+3. **Build for Production**:
+   ```bash
+   npm run build
+   ```
+   *Compiles clean static HTML/CSS/JS assets inside the `/dist` output folder.*
