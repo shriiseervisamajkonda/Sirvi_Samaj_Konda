@@ -109,9 +109,6 @@ const AdminLayout = () => {
               <FiChevronLeft className="w-4 h-4" /> Back to Website
             </Link>
           </div>
-          <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700">
-            {darkMode ? <FiSun className="w-5 h-5 text-yellow-400" /> : <FiMoon className="w-5 h-5" />}
-          </button>
         </header>
 
         <main className="flex-1 p-4 md:p-6 overflow-auto">
