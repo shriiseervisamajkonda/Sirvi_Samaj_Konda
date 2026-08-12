@@ -11,12 +11,12 @@ const FamilyCard = ({ family }) => (
     initial={{ opacity: 0, scale: 0.95 }}
     whileInView={{ opacity: 1, scale: 1 }}
     viewport={{ once: true }}
-    className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-gray-100 dark:border-slate-700 hover:shadow-xl hover:border-orange-200 dark:hover:border-orange-500/30 hover:-translate-y-1 transition-all duration-300"
+    className="bg-white rounded-3xl p-6 border border-[#E8DCC8] shadow-md hover:shadow-xl hover:border-[#C9A44C]/50 hover:-translate-y-1 transition-all duration-300"
   >
     <div className="flex items-start gap-4">
-      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-orange-500/20 shrink-0">
+      <div className="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#C85A17] to-[#C9A44C] text-white text-lg font-bold shadow-lg shadow-orange-500/10 shrink-0 bg-white">
         {family.familyPhoto ? (
-          <img src={family.familyPhoto} alt="Family" className="w-full h-full rounded-2xl object-cover" />
+          <img src={family.familyPhoto} alt="Family" className="w-full h-full object-cover" />
         ) : (
           family.surname?.charAt(0) || 'F'
         )}
@@ -24,29 +24,29 @@ const FamilyCard = ({ family }) => (
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="font-bold text-gray-900 dark:text-white">{family.headOfFamily}</p>
-            <p className="text-orange-500 text-sm font-medium">{family.surname} Family</p>
+            <p className="font-bold text-[#2B211B] text-base leading-tight">{family.headOfFamily}</p>
+            <p className="text-[#C85A17] text-xs font-semibold mt-0.5">{family.surname} परिवार</p>
           </div>
-          <span className="shrink-0 text-xs px-2.5 py-1 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-full font-medium">
+          <span className="shrink-0 text-[10px] px-2 py-0.5 bg-[#FFF8EC] border border-[#E8DCC8] text-[#C85A17] rounded-full font-bold">
             ID: {family.familyId}
           </span>
         </div>
-        <div className="mt-3 space-y-1.5">
+        <div className="mt-4 space-y-1.5 border-t border-[#E8DCC8]/40 pt-3 text-xs">
           {family.village && (
-            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
-              <FiMapPin className="w-3.5 h-3.5 text-orange-400" />
+            <div className="flex items-center gap-2 text-[#766A60] font-medium">
+              <FiMapPin className="w-3.5 h-3.5 text-[#C9A44C]" />
               {[family.village, family.district, family.state].filter(Boolean).join(', ')}
             </div>
           )}
           {family.mobileNumber && (
-            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
-              <FiPhone className="w-3.5 h-3.5 text-orange-400" />
+            <div className="flex items-center gap-2 text-[#766A60] font-medium">
+              <FiPhone className="w-3.5 h-3.5 text-[#C9A44C]" />
               {family.mobileNumber}
             </div>
           )}
-          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
-            <FiUsers className="w-3.5 h-3.5 text-orange-400" />
-            {family.numberOfMembers || 0} members
+          <div className="flex items-center gap-2 text-[#766A60] font-medium">
+            <FiUsers className="w-3.5 h-3.5 text-[#C9A44C]" />
+            {family.numberOfMembers || 0} सदस्य (Members)
           </div>
         </div>
       </div>
@@ -70,13 +70,18 @@ const FamilyDirectoryPage = () => {
       setTotalPages(res.data.pagination?.pages || 1);
       setTotal(res.data.pagination?.total || 0);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to fetch families:', err);
+      setFamilies([]); // Fallback to prevent rendering crashes
+      setTotalPages(1);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
   }, [page, search]);
 
-  useEffect(() => { fetchFamilies(); }, [fetchFamilies]);
+  useEffect(() => {
+    fetchFamilies();
+  }, [fetchFamilies]);
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
@@ -84,60 +89,65 @@ const FamilyDirectoryPage = () => {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-slate-900 min-h-screen">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-orange-500 to-orange-700 py-16 text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full translate-x-1/2 -translate-y-1/2" />
+    <div className="bg-[#FFF8EC] min-h-screen text-[#2B211B]">
+      {/* Header Banner */}
+      <div className="relative py-20 text-white overflow-hidden">
+        {/* Background image overlay */}
+        <div className="absolute inset-0">
+          <img src="/hero_background.png" alt="Header Background" className="w-full h-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]" />
         </div>
-        <div className="relative max-w-4xl mx-auto px-4 text-center">
+
+        <div className="relative max-w-4xl mx-auto px-4 text-center z-10">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="inline-block px-4 py-1.5 bg-white/20 border border-white/30 rounded-full text-sm font-medium mb-4">
-              Community Directory
+            <span className="inline-block px-4 py-1.5 bg-white/20 border border-amber-400/30 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
+              समाज निर्देशिका
             </span>
-            <h1 className="text-4xl lg:text-5xl font-bold mb-3">Family Directory</h1>
-            <p className="text-orange-100 text-lg">Explore all registered families of Shri Seervi Samaj Konda</p>
+            <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">परिवार निर्देशिका (Family Directory)</h1>
+            <p className="text-orange-100 text-lg font-medium">श्री सीरवी समाज कोणदा के सभी पंजीकृत परिवारों की सूची</p>
           </motion.div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        {/* Search bar */}
-        <div className="mb-8 flex flex-col sm:flex-row gap-4 items-center">
-          <div className="relative flex-1 max-w-xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Search and Filters */}
+        <div className="mb-10 flex flex-col sm:flex-row gap-4 items-center">
+          <div className="relative flex-1 max-w-xl w-full">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
               value={search}
               onChange={handleSearch}
-              placeholder="Search by family name, head of family..."
-              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 shadow-sm transition-all"
+              placeholder="परिवार का नाम, मुखिया का नाम खोजें..."
+              className="w-full pl-12 pr-4 py-3.5 bg-white border border-[#E8DCC8] rounded-2xl text-[#2B211B] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C85A17]/20 focus:border-[#C85A17] shadow-sm transition-all"
             />
           </div>
           {!loading && (
-            <p className="text-gray-500 dark:text-gray-400 text-sm shrink-0">
-              {total} families found
+            <p className="text-[#766A60] text-sm font-semibold shrink-0">
+              कुल {total} परिवार मिले
             </p>
           )}
         </div>
 
-        {/* Grid */}
+        {/* List Content */}
         {loading ? (
           <LoadingSpinner />
         ) : families.length === 0 ? (
           <EmptyState
             icon={FiUsers}
-            title="No families found"
-            description={search ? `No results for "${search}"` : 'No families registered yet.'}
+            title="कोई परिवार नहीं मिला"
+            description={search ? `"${search}" के लिए कोई परिणाम नहीं मिले।` : 'अभी तक कोई परिवार पंजीकृत नहीं किया गया है।'}
           />
         ) : (
           <>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {families.map((family) => (
                 <FamilyCard key={family._id} family={family} />
               ))}
             </div>
-            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            <div className="mt-10">
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            </div>
           </>
         )}
       </div>
