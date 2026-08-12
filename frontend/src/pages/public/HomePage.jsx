@@ -109,7 +109,7 @@ const HomePage = () => {
       <section className="relative min-h-[92vh] flex items-center">
         {/* Full-width background image with dark gradient overlay */}
         <div className="absolute inset-0">
-          <img src="/hero_background.png" alt="Hero Background" className="w-full h-full object-cover opacity-25" />
+          <img src="/hero_background.webp" alt="Hero Background" className="w-full h-full object-cover opacity-25" />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
         </div>
 
@@ -239,7 +239,7 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="relative rounded-2xl overflow-hidden shadow-2xl border border-amber-500/20 bg-slate-900"
             >
-              <img src="/aai_mataji_portrait.png" alt="Shri Aai Mataji" className="w-full max-h-[500px] object-cover" />
+              <img src="/aai_mataji_portrait.webp" alt="Shri Aai Mataji" className="w-full max-h-[500px] object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
             </motion.div>
             
@@ -284,7 +284,7 @@ const HomePage = () => {
       <section className="relative py-32 overflow-hidden border-b border-slate-700/50">
         {/* Full-width background image with dark gradient overlay */}
         <div className="absolute inset-0">
-          <img src="/aai_mata_temple.png" alt="Aai Mata Temple" className="w-full h-full object-cover opacity-25" />
+          <img src="/aai_mata_temple.webp" alt="Aai Mata Temple" className="w-full h-full object-cover opacity-25" />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent" />
         </div>
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
