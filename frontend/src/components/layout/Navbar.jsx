@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMenu, FiX, FiSun, FiMoon, FiUser, FiGlobe } from 'react-icons/fi';
 import { useTheme } from '../../context/ThemeContext';
@@ -9,10 +9,19 @@ import { useLanguage } from '../../context/LanguageContext';
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdown, setDropdown] = useState(null);
+  const [scrolled, setScrolled] = useState(false);
   const { darkMode, toggleTheme } = useTheme();
   const { user, isAdmin } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navLinks = [
     { label: t('nav_home'), path: '/' },
@@ -46,7 +55,11 @@ const Navbar = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 glass dark:bg-slate-900/80 border-b border-gray-200/50 dark:border-slate-700/50">
+    <nav className={`sticky top-0 z-50 transition-all duration-300 ${
+      scrolled 
+        ? 'bg-slate-900/90 border-b border-amber-500/25 shadow-lg backdrop-blur-md py-1.5' 
+        : 'bg-slate-900/30 border-b border-white/5 py-3'
+    }`}>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-3">

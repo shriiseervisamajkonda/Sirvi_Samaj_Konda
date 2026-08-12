@@ -41,15 +41,15 @@ const StatCard = ({ icon: Icon, value, label, color, delay }) => (
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
     transition={{ delay, duration: 0.5 }}
-    className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+    className="card-glow rounded-2xl p-6 shadow-md transition-all duration-300"
   >
-    <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center mb-4`}>
+    <div className="w-12 h-12 bg-gradient-to-br from-primary to-amber-500 rounded-xl flex items-center justify-center mb-4 shadow-md shadow-primary/20">
       <Icon className="w-6 h-6 text-white" />
     </div>
-    <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+    <p className="text-3xl font-bold text-gray-100 mb-1">
       <Counter target={value} suffix="+" />
     </p>
-    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{label}</p>
+    <p className="text-gray-400 text-sm font-medium">{label}</p>
   </motion.div>
 );
 
@@ -104,16 +104,18 @@ const HomePage = () => {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="overflow-hidden bg-gray-50 dark:bg-slate-900">
+    <div className="overflow-hidden bg-slate-950 text-gray-100">
       {/* Hero Section */}
       <section className="relative min-h-[92vh] flex items-center">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-600 via-orange-500 to-orange-400 dark:from-slate-900 dark:via-orange-950 dark:to-slate-900" />
+        {/* Full-width background image with dark gradient overlay */}
+        <div className="absolute inset-0">
+          <img src="/hero_background.png" alt="Hero Background" className="w-full h-full object-cover opacity-25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
+        </div>
 
-        {/* Decorative circles */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-white/10 rounded-full translate-x-1/3 -translate-y-1/3" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-white/10 rounded-full -translate-x-1/3 translate-y-1/3" />
-        <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] translate-x-1/3 -translate-y-1/3" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-secondary/10 rounded-full blur-[100px] -translate-x-1/3 translate-y-1/3" />
 
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-white">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -122,28 +124,28 @@ const HomePage = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7 }}
             >
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur border border-white/30 rounded-full px-4 py-1.5 text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 bg-slate-850/60 backdrop-blur border border-amber-500/30 rounded-full px-4 py-1.5 text-xs font-semibold mb-6">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                 {t('hero_address')}
               </div>
               <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-6">
-                {t('hero_title_1')}
-                <span className="block text-orange-200">{t('hero_title_2')}</span>
-                <span className="block text-4xl lg:text-5xl text-orange-100 font-semibold">{t('hero_title_3')}</span>
+                <span className="block text-gray-100">{t('hero_title_1')}</span>
+                <span className="block text-primary leading-tight">{t('hero_title_2')}</span>
+                <span className="block text-3xl lg:text-4xl text-amber-400 font-semibold mt-2">{t('hero_title_3')}</span>
               </h1>
-              <p className="text-xl text-orange-100 leading-relaxed mb-8 max-w-lg">
+              <p className="text-lg text-gray-300 leading-relaxed mb-8 max-w-lg">
                 {t('hero_subtitle')}
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
                   to="/families"
-                  className="flex items-center gap-2 px-6 py-3 bg-white text-orange-600 font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200"
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-orange-600 text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 >
                   {t('btn_explore')} <FiArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   to="/events"
-                  className="flex items-center gap-2 px-6 py-3 bg-white/20 backdrop-blur border border-white/40 text-white font-semibold rounded-xl hover:bg-white/30 transition-all duration-200"
+                  className="flex items-center gap-2 px-6 py-3 bg-slate-800/80 backdrop-blur border border-slate-700 hover:border-amber-500/30 text-white font-bold rounded-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 >
                   {t('btn_upcoming')}
                 </Link>
