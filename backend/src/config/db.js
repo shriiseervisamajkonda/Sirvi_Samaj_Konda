@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
 
+// Disable query buffering when DB connection is not established to prevent server hangs/crashes
+mongoose.set('bufferCommands', false);
+
 // Catch database connection event errors to prevent process crashes
 mongoose.connection.on('error', (err) => {
   console.error(`MongoDB connection event error: ${err.message}`);
