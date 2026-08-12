@@ -252,13 +252,13 @@ const HomePage = () => {
               <span className="inline-block px-4 py-1.5 bg-primary/20 text-primary text-xs font-bold rounded-full uppercase tracking-wider">
                 श्री आई माताजी की असीम कृपा
               </span>
-              <h2 className="text-4xl font-extrabold text-white leading-tight">
+              <h2 className="text-4xl font-extrabold text-[#FFF3DD] leading-tight">
                 श्री आई माताजी एवं सिर्वी समाज धरोहर
               </h2>
-              <p className="text-gray-300 leading-relaxed text-lg">
+              <p className="text-[#CDBBA4] leading-relaxed text-lg">
                 सिर्वी समाज संगठन कोणदा, धार (मध्य प्रदेश) का यह डिजिटल मंच समाज के परिवारों, गौरवशाली इतिहास, संस्कारों और विकास कार्यों को एक सूत्र में पिरोने का विनम्र प्रयास है। 
               </p>
-              <div className="border-l-4 border-accent pl-4 py-2 italic text-gray-400">
+              <div className="border-l-4 border-accent pl-4 py-2 italic text-[#766A60]">
                 "आई पंथ के ११ नियम हमारे जीवन का मार्गदर्शन करते हैं और समाज की एकता ही हमारी सबसे बड़ी शक्ति है।"
               </div>
               <div className="flex gap-4">
@@ -295,8 +295,8 @@ const HomePage = () => {
             className="max-w-xl space-y-6"
           >
             <span className="text-accent font-bold text-sm tracking-wider uppercase">हमारी आस्था, हमारी पहचान</span>
-            <h2 className="text-5xl font-extrabold leading-tight">श्री आई जी मंदिर (बडेर) कोणदा</h2>
-            <p className="text-gray-300 leading-relaxed text-lg">
+            <h2 className="text-5xl font-extrabold leading-tight text-[#FFF3DD]">श्री आई जी मंदिर (बडेर) कोणदा</h2>
+            <p className="text-[#CDBBA4] leading-relaxed text-lg">
               कोणदा ग्राम में स्थित माँ भगवती स्वरूप श्री आई माताजी का मंदिर समाज की भक्ति, सेवा और अटूट आस्था का मुख्य केंद्र है। यहाँ प्रतिदिन ज्योति ज्योत दर्शन, सामाजिक चर्चाएँ और धार्मिक उत्सव आयोजित किए जाते हैं।
             </p>
             <Link
@@ -321,10 +321,10 @@ const HomePage = () => {
             <span className="inline-block px-4 py-1.5 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-semibold rounded-full mb-4 uppercase tracking-wider">
               {t('stats_badge')}
             </span>
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-4xl font-bold text-[#FFF3DD] mb-4">
               {t('stats_title')}
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto text-sm font-medium">
+            <p className="text-[#CDBBA4] max-w-xl mx-auto text-sm font-medium">
               {t('stats_desc')}
             </p>
           </motion.div>
@@ -356,7 +356,7 @@ const HomePage = () => {
             <span className="inline-block px-4 py-1.5 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-semibold rounded-full mb-4 uppercase tracking-wider">
               {t('quick_badge')}
             </span>
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-4xl font-bold text-[#FFF3DD] mb-4">
               {t('quick_title')}
             </h2>
           </motion.div>
@@ -396,7 +396,7 @@ const HomePage = () => {
                   <span className="inline-block px-3 py-1 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-semibold rounded-full mb-2 uppercase tracking-wider">
                     {t('news_badge')}
                   </span>
-                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{t('news_title')}</h2>
+                  <h2 className="text-3xl font-bold text-[#FFF3DD]">{t('news_title')}</h2>
                 </div>
                 <Link to="/news" className="flex items-center gap-1 text-orange-500 text-sm font-bold hover:gap-2 transition-all">
                   {t('news_view_all')} <FiChevronRight className="w-4 h-4" />
@@ -417,10 +417,10 @@ const HomePage = () => {
                       📰
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate group-hover:text-orange-500 transition-colors">
+                      <h3 className="font-semibold text-[#FFF3DD] text-sm mb-1 truncate group-hover:text-orange-500 transition-colors">
                         {item.title}
                       </h3>
-                      <p className="text-gray-500 dark:text-gray-400 text-xs line-clamp-2 leading-relaxed">
+                      <p className="text-[#CDBBA4] text-xs line-clamp-2 leading-relaxed">
                         {item.content?.replace(/<[^>]*>/g, '') || item.excerpt}
                       </p>
                       <p className="text-orange-500 text-xs mt-2 font-semibold">
@@ -444,7 +444,7 @@ const HomePage = () => {
                   <span className="inline-block px-3 py-1 bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-semibold rounded-full mb-2 uppercase tracking-wider">
                     {t('events_badge')}
                   </span>
-                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{t('events_title')}</h2>
+                  <h2 className="text-3xl font-bold text-[#FFF3DD]">{t('events_title')}</h2>
                 </div>
                 <Link to="/events" className="flex items-center gap-1 text-orange-500 text-sm font-bold hover:gap-2 transition-all">
                   {t('events_view_all')} <FiChevronRight className="w-4 h-4" />
@@ -459,27 +459,27 @@ const HomePage = () => {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 }}
-                    className="flex gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-2xl hover:bg-green-50 dark:hover:bg-green-500/5 transition-colors"
+                    className="flex gap-4 p-4 bg-[#2A1010] border border-[#D4AF37]/10 rounded-2xl hover:bg-[#351313] transition-colors"
                   >
-                    <div className="w-14 h-14 bg-green-100 dark:bg-green-500/20 rounded-xl flex items-center justify-center shrink-0">
+                    <div className="w-14 h-14 bg-[#7A2525]/20 rounded-xl flex items-center justify-center shrink-0">
                       <div className="text-center">
-                        <p className="text-lg font-bold text-green-600 leading-none">
+                        <p className="text-lg font-bold text-[#C85A17] leading-none">
                           {new Date(event.date || event.startDate).getDate()}
                         </p>
-                        <p className="text-xs text-green-500 font-semibold uppercase mt-0.5">
+                        <p className="text-xs text-[#C85A17] font-semibold uppercase mt-0.5">
                           {new Date(event.date || event.startDate).toLocaleString('en-IN', { month: 'short' })}
                         </p>
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate">{event.title}</h3>
-                      <p className="text-gray-500 dark:text-gray-400 text-xs flex items-center gap-1 font-medium">
+                      <h3 className="font-semibold text-[#FFF3DD] text-sm mb-1 truncate">{event.title}</h3>
+                      <p className="text-[#CDBBA4] text-xs flex items-center gap-1 font-medium">
                         <FiMapPin className="w-3.5 h-3.5 text-primary shrink-0" /> {event.location || 'Konda'}
                       </p>
                     </div>
                   </motion.div>
                 )) : (
-                  <div className="text-center py-12 text-gray-400 border border-dashed border-gray-200 dark:border-slate-700 rounded-2xl">
+                  <div className="text-center py-12 text-[#766A60] border border-dashed border-[#D4AF37]/10 rounded-2xl">
                     <div className="text-4xl mb-3">📅</div>
                     <p className="text-sm font-medium">{t('events_empty')}</p>
                   </div>
@@ -492,7 +492,7 @@ const HomePage = () => {
 
       {/* Committee Section */}
       {committee.length > 0 && (
-        <section className="py-20 bg-gray-50 dark:bg-slate-800/50">
+        <section className="py-20 bg-[#160D08] border-b border-[#D4AF37]/10">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -500,10 +500,10 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <span className="inline-block px-4 py-1.5 bg-purple-100 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 text-xs font-semibold rounded-full mb-4 uppercase tracking-wider">
+              <span className="inline-block px-4 py-1.5 bg-[#7A2525]/20 text-[#C85A17] text-xs font-bold rounded-full mb-4 uppercase tracking-wider">
                 {t('committee_badge')}
               </span>
-              <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('committee_title')}</h2>
+              <h2 className="text-4xl font-bold text-[#FFF3DD] mb-4">{t('committee_title')}</h2>
             </motion.div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -514,13 +514,13 @@ const HomePage = () => {
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.05 }}
-                  className="bg-white dark:bg-slate-800 rounded-2xl p-4 text-center border border-gray-100 dark:border-slate-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                  className="bg-[#2A1010] rounded-2xl p-4 text-center border border-[#D4AF37]/10 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
                 >
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xl font-bold mx-auto mb-3">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#C85A17] to-[#D4AF37] flex items-center justify-center text-white text-xl font-bold mx-auto mb-3">
                     {member.name?.charAt(0) || 'M'}
                   </div>
-                  <p className="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate">{member.name}</p>
-                  <p className="text-orange-500 text-xs font-semibold truncate">{member.designation}</p>
+                  <p className="font-semibold text-[#FFF3DD] text-sm mb-1 truncate">{member.name}</p>
+                  <p className="text-[#C85A17] text-xs font-semibold truncate">{member.designation}</p>
                 </motion.div>
               ))}
             </div>
@@ -528,7 +528,7 @@ const HomePage = () => {
             <div className="text-center mt-8">
               <Link
                 to="/committee"
-                className="inline-flex items-center gap-2 px-6 py-3 border border-orange-200 dark:border-orange-500/30 text-orange-500 rounded-xl hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors font-bold"
+                className="inline-flex items-center gap-2 px-6 py-3 border border-[#C85A17]/30 text-[#C85A17] rounded-xl hover:bg-[#C85A17]/10 transition-colors font-bold"
               >
                 {t('committee_view_full')} <FiArrowRight className="w-4 h-4" />
               </Link>
