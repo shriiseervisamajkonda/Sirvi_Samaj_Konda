@@ -1,12 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Noto+Serif+Devanagari:wght@400;500;600;700;800&family=Yatra+One&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #FF6B00;
-  --color-primary-dark: #E55A00;
-  --color-secondary: #0D6EFD;
-  --color-accent: #198754;
-  --font-sans: 'Poppins', system-ui, sans-serif;
+  --color-primary: #FF6F00; /* Sacred Saffron Orange */
+  --color-primary-dark: #E65100; /* Deep Saffron */
+  --color-secondary: #FFC107; /* Golden Yellow / Marigold */
+  --color-accent: #D50000; /* Kumkum Red / Vermilion */
+  --font-sans: 'Poppins', 'Noto Serif Devanagari', system-ui, sans-serif;
+  --font-serif: 'Noto Serif Devanagari', 'Georgia', serif;
+  --font-display: 'Yatra One', cursive;
 }
 
 html {
@@ -14,8 +16,21 @@ html {
 }
 
 body {
-  font-family: 'Poppins', system-ui, sans-serif;
+  font-family: 'Poppins', 'Noto Serif Devanagari', system-ui, sans-serif;
+  background-color: #FFFDF7; /* Sandalwood Cream */
+  color: #2D2219; /* Warm dark brown text */
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Noto Serif Devanagari', 'Georgia', serif !important;
+  font-weight: 700;
+}
+
+/* Yatra One style for headings/headers */
+.spiritual-title {
+  font-family: 'Yatra One', cursive !important;
+  letter-spacing: 0.05em;
 }
 
 /* Custom container class to guarantee perfect centering and responsive padding */
