@@ -43,13 +43,13 @@ const StatCard = ({ icon: Icon, value, label, color, delay }) => (
     transition={{ delay, duration: 0.5 }}
     className="card-glow rounded-2xl p-6 shadow-md transition-all duration-300"
   >
-    <div className="w-12 h-12 bg-gradient-to-br from-primary to-amber-500 rounded-xl flex items-center justify-center mb-4 shadow-md shadow-primary/20">
+    <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center mb-4 shadow-md shadow-primary/20">
       <Icon className="w-6 h-6 text-white" />
     </div>
-    <p className="text-3xl font-bold text-gray-100 mb-1">
+    <p className="text-3xl font-bold text-accent mb-1">
       <Counter target={value} suffix="+" />
     </p>
-    <p className="text-gray-400 text-sm font-medium">{label}</p>
+    <p className="text-[#CDBBA4] text-sm font-semibold">{label}</p>
   </motion.div>
 );
 
