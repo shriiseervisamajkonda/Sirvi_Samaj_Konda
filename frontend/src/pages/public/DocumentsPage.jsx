@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiDownload, FiFileText, FiFile } from 'react-icons/fi';
+import { FiDownload, FiFileText } from 'react-icons/fi';
 import { documentAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import EmptyState from '../../components/common/EmptyState';
@@ -36,25 +36,37 @@ const DocumentsPage = () => {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-slate-900 min-h-screen">
-      <div className="bg-gradient-to-br from-teal-600 to-teal-800 py-16 text-white relative overflow-hidden">
-        <div className="relative max-w-4xl mx-auto px-4 text-center">
+    <div className="bg-[#160D08] min-h-screen text-[#FFF3DD]">
+      {/* Header Banner */}
+      <div className="relative py-20 text-white overflow-hidden border-b border-[#D4AF37]/20">
+        {/* Background image overlay */}
+        <div className="absolute inset-0">
+          <img src="/hero_background.webp" alt="Header Background" className="w-full h-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]" />
+        </div>
+
+        <div className="relative max-w-4xl mx-auto px-4 text-center z-10">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="text-4xl lg:text-5xl font-bold mb-3">Documents</h1>
-            <p className="text-teal-100 text-lg">Download forms, certificates, and community documents</p>
+            <span className="inline-block px-4 py-1.5 bg-white/10 border border-[#D4AF37]/35 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
+              संसाधन एवं प्रपत्र
+            </span>
+            <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">महत्वपूर्ण दस्तावेज (Documents)</h1>
+            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">समाज के नियम-कायदे, प्रपत्र, प्रमाण-पत्र और आधिकारिक सूचियां डाउनलोड करें</p>
           </motion.div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Category filters */}
         <div className="flex flex-wrap gap-2 mb-8">
           {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
-                category === cat ? 'bg-teal-500 border-teal-500 text-white' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-teal-300'
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-all cursor-pointer ${
+                category === cat 
+                  ? 'bg-[#7A2525] border-[#D4AF37]/40 text-[#D4AF37] shadow-lg' 
+                  : 'bg-[#2A1010] border-[#D4AF37]/15 text-[#CDBBA4] hover:border-[#D4AF37]/45'
               }`}
             >
               {cat}
@@ -62,8 +74,12 @@ const DocumentsPage = () => {
           ))}
         </div>
 
-        {loading ? <LoadingSpinner /> : filtered.length === 0 ? (
-          <EmptyState icon={FiFileText} title="No documents" description="Documents will be uploaded soon." />
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <LoadingSpinner />
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState icon={FiFileText} title="कोई दस्तावेज उपलब्ध नहीं" description="वर्तमान में कोई दस्तावेज अपलोड नहीं किया गया है।" />
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((doc, i) => {
@@ -75,14 +91,14 @@ const DocumentsPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.04 }}
-                  className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-100 dark:border-slate-700 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex gap-4"
+                  className="bg-[#2A1010] rounded-2xl p-5 border border-[#D4AF37]/15 hover:border-[#D4AF37]/40 hover:shadow-xl transition-all duration-300 flex gap-4"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-teal-50 dark:bg-teal-500/10 flex items-center justify-center text-2xl shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-[#7A2525]/30 flex items-center justify-center text-2xl shrink-0">
                     {docTypeIcons[ext]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate">{doc.title}</h3>
-                    {doc.description && <p className="text-gray-500 dark:text-gray-400 text-xs mb-2 line-clamp-2">{doc.description}</p>}
+                    <h3 className="font-bold text-[#FFF3DD] text-sm mb-1 truncate">{doc.title}</h3>
+                    {doc.description && <p className="text-[#CDBBA4] text-xs mb-2 line-clamp-2 leading-relaxed">{doc.description}</p>}
                     <div className="flex items-center gap-2">
                       {doc.category && <Badge variant="success" size="xs">{doc.category}</Badge>}
                       {doc.fileUrl && (
@@ -91,7 +107,7 @@ const DocumentsPage = () => {
                           target="_blank"
                           rel="noopener noreferrer"
                           download
-                          className="ml-auto flex items-center gap-1 text-xs text-teal-500 hover:text-teal-700 font-medium transition-colors"
+                          className="ml-auto flex items-center gap-1 text-xs text-[#C85A17] hover:text-[#D4AF37] font-bold transition-colors"
                         >
                           <FiDownload className="w-3.5 h-3.5" /> Download
                         </a>
