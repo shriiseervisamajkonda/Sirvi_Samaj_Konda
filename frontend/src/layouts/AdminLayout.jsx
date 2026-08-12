@@ -66,10 +66,10 @@ const AdminLayout = () => {
                 key={path}
                 to={path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition ${
                   location.pathname === path
-                    ? 'bg-primary text-white'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
+                    ? 'bg-gradient-to-r from-primary to-orange-600 text-white shadow-md shadow-primary/10 border-l-4 border-accent'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700/50'
                 }`}
               >
                 <Icon className="w-5 h-5" />
