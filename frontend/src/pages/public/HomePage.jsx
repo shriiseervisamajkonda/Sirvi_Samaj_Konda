@@ -124,16 +124,16 @@ const HomePage = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7 }}
             >
-              <div className="inline-flex items-center gap-2 bg-slate-850/60 backdrop-blur border border-amber-500/30 rounded-full px-4 py-1.5 text-xs font-semibold mb-6">
+              <div className="inline-flex items-center gap-2 bg-[#2A1010]/60 backdrop-blur border border-[#D4AF37]/30 rounded-full px-4 py-1.5 text-xs font-bold text-[#FFF3DD] mb-6">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                 {t('hero_address')}
               </div>
-              <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-6">
-                <span className="block text-gray-100">{t('hero_title_1')}</span>
+              <h1 className="text-5xl lg:text-7xl font-extrabold leading-tight mb-6">
+                <span className="block text-[#FFF3DD]">{t('hero_title_1')}</span>
                 <span className="block text-primary leading-tight">{t('hero_title_2')}</span>
-                <span className="block text-3xl lg:text-4xl text-amber-400 font-semibold mt-2">{t('hero_title_3')}</span>
+                <span className="block text-3xl lg:text-4xl text-accent font-semibold mt-2">{t('hero_title_3')}</span>
               </h1>
-              <p className="text-lg text-gray-300 leading-relaxed mb-8 max-w-lg">
+              <p className="text-lg text-[#CDBBA4] leading-relaxed mb-8 max-w-lg">
                 {t('hero_subtitle')}
               </p>
               <div className="flex flex-wrap gap-4">
@@ -145,20 +145,20 @@ const HomePage = () => {
                 </Link>
                 <Link
                   to="/events"
-                  className="flex items-center gap-2 px-6 py-3 bg-slate-800/80 backdrop-blur border border-slate-700 hover:border-amber-500/30 text-white font-bold rounded-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                  className="flex items-center gap-2 px-6 py-3 bg-[#2A1010]/80 backdrop-blur border border-[#4E2A1E] hover:border-[#D4AF37]/30 text-white font-bold rounded-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 >
                   {t('btn_upcoming')}
                 </Link>
               </div>
 
               {/* Key info */}
-              <div className="flex flex-wrap gap-6 mt-10 pt-8 border-t border-white/20">
+              <div className="flex flex-wrap gap-6 mt-10 pt-8 border-t border-[#4E2A1E]">
                 {[
                   { icon: FiMapPin, text: t('hero_center_title') },
                   { icon: FiPhone, text: t('emergency_president') + ': +91 98765 43210' },
                 ].map(({ icon: Icon, text }) => (
-                  <div key={text} className="flex items-center gap-2 text-orange-100 text-sm font-medium">
-                    <Icon className="w-4 h-4 text-orange-200" />
+                  <div key={text} className="flex items-center gap-2 text-[#CDBBA4] text-sm font-semibold">
+                    <Icon className="w-4 h-4 text-primary" />
                     {text}
                   </div>
                 ))}
