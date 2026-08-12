@@ -1,29 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Noto+Serif+Devanagari:wght@400;500;600;700;800&family=Yatra+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@300;400;500;600;700;800;900&family=Yatra+One&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #FF6F00; /* Sacred Saffron Orange */
-  --color-primary-dark: #E65100; /* Deep Saffron */
-  --color-secondary: #FFC107; /* Golden Yellow / Marigold */
-  --color-accent: #D50000; /* Kumkum Red / Vermilion */
-  --font-sans: 'Poppins', 'Noto Serif Devanagari', system-ui, sans-serif;
-  --font-serif: 'Noto Serif Devanagari', 'Georgia', serif;
+  --color-primary: #C85A17; /* Saffron / Bhagwa */
+  --color-primary-dark: #A5450F;
+  --color-secondary: #7A2525; /* Temple Maroon */
+  --color-accent: #C9A44C; /* Antique Gold */
+  --font-sans: 'Poppins', 'Noto Sans Devanagari', system-ui, sans-serif;
+  --font-serif: 'Noto Sans Devanagari', 'Georgia', serif;
   --font-display: 'Yatra One', cursive;
 
-  /* Premium Spiritual Dark Theme Overrides */
-  --color-slate-950: #05070A;
-  --color-slate-900: #0B0E14; /* Deep Midnight Space Black */
-  --color-slate-800: #141A29; /* Saffron-Glass Card background */
-  --color-slate-700: #251D14; /* Deep Saffron-Brown borders */
-  --color-slate-600: #3E3224;
-  --color-slate-500: #94A3B8;
+  /* Force standard orange and blue variables to Saffron and Maroon */
+  --color-orange-500: #C85A17;
+  --color-orange-600: #A5450F;
+  --color-orange-100: #FFEFE0;
+  --color-blue-500: #7A2525;
+  --color-blue-600: #5C1919;
+  --color-blue-100: #FFF0F0;
 
-  --color-gray-900: #F1F5F9; /* Invert light-mode text colors */
-  --color-gray-800: #E2E8F0;
-  --color-gray-700: #CBD5E1;
-  --color-gray-600: #94A3B8;
-  --color-gray-200: #251D14;
-  --color-gray-100: #141A29;
+  /* Custom palette overrides matching user specs */
+  --color-slate-950: #2B211B; /* Deep Brown Text */
+  --color-slate-900: #44372F;
+  --color-slate-800: #FFFFFF; /* White Surface */
+  --color-slate-700: #E8DCC8; /* Cream Border */
+  --color-slate-600: #766A60; /* Muted Text */
+  --color-slate-500: #A89B8F;
+
+  --color-gray-900: #2B211B;
+  --color-gray-800: #44372F;
+  --color-gray-750: #FFFFFF;
+  --color-gray-700: #766A60;
+  --color-gray-600: #A89B8F;
+  --color-gray-200: #E8DCC8;
+  --color-gray-100: #FFF8EC; /* Warm Ivory Background */
 }
 
 html {
@@ -31,9 +40,9 @@ html {
 }
 
 body {
-  font-family: 'Poppins', 'Noto Serif Devanagari', system-ui, sans-serif;
-  background-color: #FFFDF7; /* Sandalwood Cream */
-  color: #2D2219; /* Warm dark brown text */
+  font-family: 'Poppins', 'Noto Sans Devanagari', system-ui, sans-serif;
+  background-color: #FFF9F0; /* Warm Ivory */
+  color: #241A14; /* Dark Text */
   -webkit-font-smoothing: antialiased;
 }
 
@@ -159,39 +168,39 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Premium Dark Mode Styling */
 .dark body {
-  background-color: #0B0E14 !important; /* Deep midnight-space charcoal */
-  color: #F1F5F9 !important;
+  background-color: #200D09 !important; /* Deep Maroon / Temple Charcoal */
+  color: #FFF9F0 !important;
 }
 
 /* Devotional dark hero background */
 .dark .gradient-hero {
-  background: radial-gradient(circle at 50% 0%, #3a220a 0%, #0b0e14 70%) !important;
+  background: radial-gradient(circle at 50% 0%, #3e1212 0%, #200D09 70%) !important;
 }
 
 /* Golden Saffron Glowing Glass effect */
 .dark .glass {
-  background: rgba(15, 20, 32, 0.7) !important;
+  background: rgba(32, 13, 9, 0.7) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 111, 0, 0.18) !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(198, 90, 22, 0.2) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Dynamic Glowing Card Frame */
 .dark .card-glow {
   position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: rgba(20, 26, 40, 0.4);
-  border: 1px solid rgba(255, 111, 0, 0.12);
+  background: rgba(48, 20, 15, 0.4);
+  border: 1px solid rgba(198, 90, 22, 0.15);
 }
 
 .dark .card-glow:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(255, 111, 0, 0.1);
-  border-color: rgba(255, 193, 7, 0.3);
+  box-shadow: 0 12px 30px rgba(198, 90, 22, 0.15);
+  border-color: rgba(201, 162, 39, 0.4);
 }
 
 .dark .gradient-primary {
-  background: linear-gradient(135deg, #FF6F00 0%, #FFC107 100%) !important;
+  background: linear-gradient(135deg, #C65A16 0%, #C9A227 100%) !important;
 }
 
