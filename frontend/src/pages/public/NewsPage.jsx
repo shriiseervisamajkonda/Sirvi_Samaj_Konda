@@ -32,33 +32,47 @@ const NewsPage = () => {
   }, [page, search]);
 
   return (
-    <div className="bg-gray-50 dark:bg-slate-900 min-h-screen">
-      <div className="bg-gradient-to-br from-blue-600 to-blue-800 py-16 text-white relative overflow-hidden">
-        <div className="relative max-w-4xl mx-auto px-4 text-center">
+    <div className="bg-[#160D08] min-h-screen text-[#FFF3DD]">
+      {/* Header Banner */}
+      <div className="relative py-20 text-white overflow-hidden border-b border-[#D4AF37]/20">
+        {/* Background image overlay */}
+        <div className="absolute inset-0">
+          <img src="/hero_background.webp" alt="Header Background" className="w-full h-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]" />
+        </div>
+
+        <div className="relative max-w-4xl mx-auto px-4 text-center z-10">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="text-4xl lg:text-5xl font-bold mb-3">News & Announcements</h1>
-            <p className="text-blue-100 text-lg">Stay updated with the latest from our community</p>
+            <span className="inline-block px-4 py-1.5 bg-white/10 border border-[#D4AF37]/35 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
+              सूचना एवं समाचार
+            </span>
+            <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">समाचार और घोषणाएँ</h1>
+            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">सीरवी समाज कोणदा की गतिविधियों और समाचारों से जुड़े रहें</p>
           </motion.div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-8 flex flex-col sm:flex-row gap-4 items-center">
-          <div className="relative flex-1 max-w-md">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-8 flex flex-col sm:flex-row gap-4 items-center justify-between border-b border-[#D4AF37]/10 pb-6">
+          <div className="relative flex-1 max-w-md w-full">
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#CDBBA4]/60" />
             <input
               type="text"
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Search news..."
-              className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 shadow-sm"
+              placeholder="खोजें (Search news)..."
+              className="w-full pl-11 pr-4 py-2.5 bg-[#2A1010] border border-[#D4AF37]/15 rounded-xl text-sm text-[#FFF3DD] placeholder-[#CDBBA4]/40 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 shadow-inner"
             />
           </div>
-          {!loading && <p className="text-gray-500 text-sm shrink-0">{total} articles</p>}
+          {!loading && <p className="text-[#CDBBA4] text-sm font-semibold shrink-0">{total} लेख (Articles)</p>}
         </div>
 
-        {loading ? <LoadingSpinner /> : news.length === 0 ? (
-          <EmptyState icon={FiFileText} title="No news found" description="No articles have been published yet." />
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <LoadingSpinner />
+          </div>
+        ) : news.length === 0 ? (
+          <EmptyState icon={FiFileText} title="कोई समाचार नहीं मिला" description="वर्तमान में कोई समाचार प्रकाशित नहीं किया गया है।" />
         ) : (
           <>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -69,31 +83,32 @@ const NewsPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.05 }}
-                  className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  className="bg-[#2A1010] rounded-2xl overflow-hidden border border-[#D4AF37]/15 hover:border-[#D4AF37]/45 hover:shadow-2xl transition-all duration-300 flex flex-col shadow-lg"
                 >
-                  {item.image && (
-                    <img src={item.image} alt={item.title} className="w-full h-48 object-cover" />
+                  {item.image ? (
+                    <img src={item.image} alt={item.title} className="w-full h-48 object-cover border-b border-[#D4AF37]/10" />
+                  ) : (
+                    <div className="h-48 bg-gradient-to-br from-[#C85A17] to-[#7A2525] flex items-center justify-center text-5xl border-b border-[#D4AF37]/10">📰</div>
                   )}
-                  {!item.image && (
-                    <div className="h-32 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-4xl">📰</div>
-                  )}
-                  <div className="p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge variant={categoryColors[item.category] || 'default'} size="xs">
-                        {item.category || 'News'}
-                      </Badge>
-                      <span className="text-gray-400 text-xs ml-auto">
-                        {new Date(item.createdAt || item.publishedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </span>
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge variant={categoryColors[item.category] || 'default'} size="xs">
+                          {item.category || 'News'}
+                        </Badge>
+                        <span className="text-[#CDBBA4] text-xs font-semibold ml-auto">
+                          {new Date(item.createdAt || item.publishedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                      </div>
+                      <h2 className="font-bold text-[#FFF3DD] text-base mb-2 line-clamp-2 leading-tight">{item.title}</h2>
+                      <p className="text-[#CDBBA4]/90 text-sm line-clamp-3 leading-relaxed mb-4">
+                        {item.excerpt || item.content?.replace(/<[^>]*>/g, '').substring(0, 150)}...
+                      </p>
                     </div>
-                    <h2 className="font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">{item.title}</h2>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-3">
-                      {item.excerpt || item.content?.replace(/<[^>]*>/g, '').substring(0, 150)}...
-                    </p>
                     {item.tags?.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-3">
+                      <div className="flex flex-wrap gap-1 mt-auto pt-2 border-t border-[#D4AF37]/10">
                         {item.tags.slice(0, 3).map(tag => (
-                          <span key={tag} className="text-xs text-blue-500 bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded-lg">#{tag}</span>
+                          <span key={tag} className="text-xs text-[#D4AF37] bg-[#7A2525]/30 px-2 py-0.5 rounded-lg border border-[#D4AF37]/10">#{tag}</span>
                         ))}
                       </div>
                     )}
@@ -101,7 +116,9 @@ const NewsPage = () => {
                 </motion.article>
               ))}
             </div>
-            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            <div className="mt-12 flex justify-center">
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            </div>
           </>
         )}
       </div>
