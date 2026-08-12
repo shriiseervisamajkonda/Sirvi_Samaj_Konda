@@ -50,8 +50,8 @@ const Navbar = () => {
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md shadow-primary/20">
-              SS
+            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md bg-white">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <div className="hidden sm:block">
               <p className="font-bold text-gray-900 dark:text-white text-sm leading-tight">{t('hero_title_1')} {t('hero_title_2')}</p>
