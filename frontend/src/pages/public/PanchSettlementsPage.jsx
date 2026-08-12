@@ -32,19 +32,22 @@ const PanchSettlementsPage = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 min-h-screen">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-800 py-16 text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full translate-x-1/2 -translate-y-1/2" />
+    <div className="bg-[#160D08] min-h-screen text-[#FFF3DD]">
+      {/* Header Banner */}
+      <div className="relative py-20 text-white overflow-hidden border-b border-[#D4AF37]/20">
+        {/* Background image overlay */}
+        <div className="absolute inset-0">
+          <img src="/hero_background.webp" alt="Header Background" className="w-full h-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]" />
         </div>
-        <div className="relative max-w-4xl mx-auto px-4 text-center">
+
+        <div className="relative max-w-4xl mx-auto px-4 text-center z-10">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="inline-block px-4 py-1.5 bg-white/20 border border-white/30 rounded-full text-sm font-medium mb-4">
+            <span className="inline-block px-4 py-1.5 bg-white/10 border border-[#D4AF37]/35 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
               स्थानीय न्यायिक समाधान
             </span>
-            <h1 className="text-4xl lg:text-5xl font-bold mb-3">पंचों द्वारा न्यायिक समझौतों का रिकॉर्ड</h1>
-            <p className="text-blue-100 text-lg">पंचों द्वारा आपसी सहमति से सुलझाए गए सामाजिक व पारिवारिक विवादों का ब्यौरा</p>
+            <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">पंचों द्वारा न्यायिक समझौतों का रिकॉर्ड</h1>
+            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">पंचों द्वारा आपसी सहमति से सुलझाए गए सामाजिक व पारिवारिक विवादों का ब्यौरा</p>
           </motion.div>
         </div>
       </div>
@@ -52,18 +55,20 @@ const PanchSettlementsPage = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Search */}
         <div className="relative mb-10">
-          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#CDBBA4]/55 w-5 h-5" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="केस का नाम, पक्षकार या पंचों के नाम से खोजें..."
-            className="w-full pl-12 pr-4 py-3.5 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
+            placeholder="केस का नाम, पक्षकार या पंचों के नाम से खोजें (Search)..."
+            className="w-full pl-12 pr-4 py-3.5 bg-[#2A1010] border border-[#D4AF37]/15 text-[#FFF3DD] rounded-2xl shadow-inner focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37] transition-all text-base font-semibold"
           />
         </div>
 
         {loading ? (
-          <LoadingSpinner />
+          <div className="flex justify-center py-20">
+            <LoadingSpinner />
+          </div>
         ) : items.length === 0 ? (
           <EmptyState icon={FiBook} title="कोई रिकॉर्ड नहीं मिला" description="वर्तमान में कोई भी समझौता रिकॉर्ड दर्ज नहीं है।" />
         ) : (
@@ -76,31 +81,31 @@ const PanchSettlementsPage = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                  className="bg-[#2A1010] rounded-2xl border border-[#D4AF37]/15 shadow-xl overflow-hidden"
                 >
                   <button
                     onClick={() => toggleExpand(item._id)}
-                    className="w-full text-left p-6 flex items-start justify-between gap-4"
+                    className="w-full text-left p-6 flex items-start justify-between gap-4 cursor-pointer"
                   >
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#3F7655]/20 text-[#3F7655]">
                           <FiCheckCircle className="w-3.5 h-3.5" />
                           सुलझाया गया (Resolved)
                         </span>
-                        <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                          <FiCalendar className="w-3 h-3" />
+                        <span className="flex items-center gap-1 text-xs text-[#CDBBA4] font-semibold">
+                          <FiCalendar className="w-3 h-3 text-[#C85A17]" />
                           {new Date(item.settlementDate).toLocaleDateString('hi-IN')}
                         </span>
                       </div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                      <h3 className="text-xl font-bold text-[#FFF3DD]">
                         {item.title}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        <strong>पक्षकार (Parties):</strong> {item.parties}
+                      <p className="text-sm text-[#CDBBA4]">
+                        <strong>पक्षकार (Parties):</strong> <span className="font-bold text-[#FFF3DD]">{item.parties}</span>
                       </p>
                     </div>
-                    <div className="text-gray-400 dark:text-gray-500 mt-2">
+                    <div className="text-[#CDBBA4] mt-2 shrink-0">
                       {isExpanded ? <FiChevronUp className="w-6 h-6" /> : <FiChevronDown className="w-6 h-6" />}
                     </div>
                   </button>
@@ -112,29 +117,29 @@ const PanchSettlementsPage = () => {
                         animate={{ height: 'auto' }}
                         exit={{ height: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="border-t border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50"
+                        className="border-t border-[#D4AF37]/10 bg-[#160D08]/50"
                       >
-                        <div className="p-6 space-y-4 text-gray-700 dark:text-gray-300 text-sm md:text-base leading-relaxed">
+                        <div className="p-6 space-y-4 text-[#CDBBA4] text-sm md:text-base leading-relaxed">
                           <div>
-                            <h4 className="font-bold text-gray-900 dark:text-white mb-2">समझौते / निर्णय का विवरण (Settlement Details)</h4>
-                            <p className="whitespace-pre-line bg-white dark:bg-slate-900 p-4 rounded-xl border border-gray-200 dark:border-slate-800">
+                            <h4 className="font-bold text-[#D4AF37] mb-2 text-sm uppercase tracking-wider">समझौते / निर्णय का विवरण (Settlement Details)</h4>
+                            <p className="whitespace-pre-line bg-[#2A1010] p-4 rounded-xl border border-[#D4AF37]/10 text-sm font-semibold text-[#FFF3DD] leading-relaxed">
                               {item.description}
                             </p>
                           </div>
 
                           {item.panchs && (
-                            <div className="flex items-start gap-2 pt-2">
-                              <FiUsers className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+                            <div className="flex items-start gap-2 pt-2 border-t border-[#D4AF37]/5">
+                              <FiUsers className="w-5 h-5 text-[#C85A17] shrink-0 mt-0.5" />
                               <div>
-                                <span className="font-bold text-gray-900 dark:text-white">मध्यस्थता करने वाले पंच (Panch arbitrators):</span>
-                                <p className="text-gray-600 dark:text-gray-400 mt-1">{item.panchs}</p>
+                                <span className="font-bold text-[#D4AF37] text-sm uppercase tracking-wider">मध्यस्थता करने वाले पंच (Panch arbitrators):</span>
+                                <p className="text-[#FFF3DD] font-semibold mt-1 text-sm">{item.panchs}</p>
                               </div>
                             </div>
                           )}
 
                           {item.documents && item.documents.length > 0 && (
-                            <div className="pt-2">
-                              <span className="font-bold text-gray-900 dark:text-white block mb-2">दस्तावेज़ / समझौता पत्रक (Documents):</span>
+                            <div className="pt-2 border-t border-[#D4AF37]/5">
+                              <span className="font-bold text-[#D4AF37] text-sm uppercase tracking-wider block mb-2">दस्तावेज़ / समझौता पत्रक (Documents):</span>
                               <div className="flex flex-wrap gap-2">
                                 {item.documents.map((doc, idx) => (
                                   <a
@@ -142,7 +147,7 @@ const PanchSettlementsPage = () => {
                                     href={doc.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 rounded-lg text-xs font-semibold transition-colors"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#7A2525]/30 text-[#D4AF37] hover:bg-[#7A2525]/60 rounded-lg text-xs font-bold border border-[#D4AF37]/15 transition-colors"
                                   >
                                     <FiFileText className="w-3.5 h-3.5" />
                                     {doc.name || `दस्तावेज़ ${idx + 1}`}

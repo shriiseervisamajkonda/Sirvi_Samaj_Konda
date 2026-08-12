@@ -3,16 +3,16 @@ import { Link } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 
 const PrivacyPolicyPage = () => (
-  <div className="bg-white dark:bg-slate-900 min-h-screen py-16">
+  <div className="bg-[#160D08] min-h-screen py-16 text-[#FFF3DD]">
     <div className="max-w-4xl mx-auto px-4 sm:px-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <Link to="/" className="inline-flex items-center gap-2 text-orange-500 hover:text-orange-600 mb-8">
+        <Link to="/" className="inline-flex items-center gap-2 text-[#C85A17] hover:text-[#D4AF37] mb-8 font-bold transition-colors">
           <FiArrowLeft className="w-4 h-4" /> Back to Home
         </Link>
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Privacy Policy</h1>
-        <p className="text-gray-500 dark:text-gray-400 mb-8">Last updated: {new Date().toLocaleDateString('en-IN', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+        <h1 className="text-4xl font-extrabold text-[#FFF3DD] mb-2">Privacy Policy (गोपनीयता नीति)</h1>
+        <p className="text-[#CDBBA4] mb-8 font-medium">Last updated: {new Date().toLocaleDateString('en-IN', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
 
-        <div className="prose dark:prose-invert max-w-none space-y-8">
+        <div className="space-y-8 bg-[#2A1010] rounded-2xl p-8 border border-[#D4AF37]/15 shadow-xl">
           {[
             {
               title: '1. Information We Collect',
@@ -32,7 +32,7 @@ const PrivacyPolicyPage = () => (
             },
             {
               title: '5. Cookies',
-              content: 'We use cookies and similar tracking technologies to maintain your session and remember your preferences such as dark mode settings.',
+              content: 'We use cookies and similar tracking technologies to maintain your session and remember your preferences.',
             },
             {
               title: '6. Your Rights',
@@ -43,9 +43,9 @@ const PrivacyPolicyPage = () => (
               content: 'If you have any questions about this Privacy Policy, please contact us at contact@seervisamajkonda.org or through our contact page.',
             },
           ].map(({ title, content }) => (
-            <div key={title}>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{title}</h2>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{content}</p>
+            <div key={title} className="border-b border-[#D4AF37]/10 pb-6 last:border-none last:pb-0">
+              <h2 className="text-xl font-bold text-[#D4AF37] mb-3">{title}</h2>
+              <p className="text-[#CDBBA4] leading-relaxed font-medium text-sm">{content}</p>
             </div>
           ))}
         </div>

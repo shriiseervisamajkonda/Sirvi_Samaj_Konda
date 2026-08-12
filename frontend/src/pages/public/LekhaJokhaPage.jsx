@@ -76,16 +76,16 @@ const LekhaJokhaPage = () => {
 
   const columns = [
     { key: 'date', label: 'दिनांक (Date)', sortable: true, render: (v) => new Date(v).toLocaleDateString('hi-IN') },
-    { key: 'title', label: 'विवरण (Description)', render: (v) => <span className="font-semibold text-gray-800 dark:text-gray-200">{v}</span> },
-    { key: 'personName', label: 'सम्बन्धित व्यक्ति (Person)', render: (v) => v || '-' },
+    { key: 'title', label: 'विवरण (Description)', render: (v) => <span className="font-bold text-[#FFF3DD]">{v}</span> },
+    { key: 'personName', label: 'सम्बन्धित व्यक्ति (Person)', render: (v) => <span className="text-[#CDBBA4] font-semibold">{v || '-'}</span> },
     {
       key: 'type',
       label: 'प्रकार (Type)',
       render: (v) => (
         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
           v === 'income'
-            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+            ? 'bg-[#3F7655]/20 text-[#3F7655]'
+            : 'bg-[#7A2525]/30 text-[#C85A17]'
         }`}>
           {v === 'income' ? <FiArrowDownLeft className="w-3.5 h-3.5" /> : <FiArrowUpRight className="w-3.5 h-3.5" />}
           {v === 'income' ? 'आवक (Income)' : 'जावक (Expense)'}
@@ -96,44 +96,47 @@ const LekhaJokhaPage = () => {
       key: 'amount',
       label: 'राशि (Amount)',
       render: (v, r) => (
-        <span className={`font-bold ${r.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+        <span className={`font-bold ${r.type === 'income' ? 'text-[#3F7655]' : 'text-[#C85A17]'}`}>
           ₹{v?.toLocaleString('en-IN')}
         </span>
       )
     },
-    { key: 'paymentMethod', label: 'माध्यम (Method)', render: (v) => <span className="uppercase text-xs font-semibold">{v}</span> },
-    { key: 'receiptNumber', label: 'रसीद क्र. (Receipt No.)', render: (v) => v || '-' },
+    { key: 'paymentMethod', label: 'माध्यम (Method)', render: (v) => <span className="uppercase text-xs font-bold text-[#CDBBA4]">{v}</span> },
+    { key: 'receiptNumber', label: 'रसीद क्र. (Receipt No.)', render: (v) => <span className="text-xs font-bold text-[#CDBBA4]">{v || '-'}</span> },
   ];
 
   return (
-    <div className="bg-white dark:bg-slate-900 min-h-screen">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-green-600 to-emerald-800 py-16 text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full translate-x-1/2 -translate-y-1/2" />
+    <div className="bg-[#160D08] min-h-screen text-[#FFF3DD]">
+      {/* Header Banner */}
+      <div className="relative py-20 text-white overflow-hidden border-b border-[#D4AF37]/20">
+        {/* Background image overlay */}
+        <div className="absolute inset-0">
+          <img src="/hero_background.webp" alt="Header Background" className="w-full h-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]" />
         </div>
-        <div className="relative max-w-4xl mx-auto px-4 text-center">
+
+        <div className="relative max-w-4xl mx-auto px-4 text-center z-10">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="inline-block px-4 py-1.5 bg-white/20 border border-white/30 rounded-full text-sm font-medium mb-4">
+            <span className="inline-block px-4 py-1.5 bg-white/10 border border-[#D4AF37]/35 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
               पारदर्शिता एवं लेखा-जोखा
             </span>
-            <h1 className="text-4xl lg:text-5xl font-bold mb-3">सिर्वी समाज लेखा जोखा Ledger</h1>
-            <p className="text-green-100 text-lg">समाज के सभी कोषों व निर्माण कार्यों का पारदर्शी ब्यौरा</p>
+            <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">सिर्वी समाज लेखा जोखा Ledger</h1>
+            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">समाज के सभी कोषों व निर्माण कार्यों का पारदर्शी ब्यौरा</p>
           </motion.div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Category Tabs */}
-        <div className="flex flex-wrap gap-2 justify-center border-b border-gray-200 dark:border-slate-800 pb-4 mb-8">
+        <div className="flex flex-wrap gap-2 justify-center border-b border-[#D4AF37]/10 pb-6 mb-8">
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => handleCategoryChange(cat.id)}
-              className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all ${
+              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all cursor-pointer ${
                 activeCategory === cat.id
-                  ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700'
+                  ? 'bg-[#7A2525] border-[#D4AF37]/40 text-[#D4AF37] shadow-lg'
+                  : 'bg-[#2A1010] border-[#D4AF37]/15 text-[#CDBBA4] hover:border-[#D4AF37]/45'
               }`}
             >
               {cat.label}
@@ -147,15 +150,15 @@ const LekhaJokhaPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm flex items-center justify-between"
+            className="bg-[#2A1010] p-6 rounded-2xl border border-[#D4AF37]/15 shadow-xl flex items-center justify-between"
           >
             <div>
-              <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">कुल आवक (Total Income)</p>
-              <h3 className="text-3xl font-extrabold text-green-600 dark:text-green-400 mt-1">
+              <p className="text-xs font-bold text-[#CDBBA4] uppercase tracking-wider">कुल आवक (Total Income)</p>
+              <h3 className="text-3xl font-extrabold text-[#3F7655] mt-1">
                 ₹{activeCatStats.totalIncome?.toLocaleString('en-IN') || 0}
               </h3>
             </div>
-            <div className="w-12 h-12 bg-green-50 dark:bg-green-900/20 text-green-600 rounded-xl flex items-center justify-center font-bold text-xl">
+            <div className="w-12 h-12 bg-[#3F7655]/10 text-[#3F7655] rounded-xl flex items-center justify-center font-bold text-xl">
               <FiArrowDownLeft className="w-6 h-6" />
             </div>
           </motion.div>
@@ -164,15 +167,15 @@ const LekhaJokhaPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm flex items-center justify-between"
+            className="bg-[#2A1010] p-6 rounded-2xl border border-[#D4AF37]/15 shadow-xl flex items-center justify-between"
           >
             <div>
-              <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">कुल जावक (Total Expense)</p>
-              <h3 className="text-3xl font-extrabold text-red-500 dark:text-red-400 mt-1">
+              <p className="text-xs font-bold text-[#CDBBA4] uppercase tracking-wider">कुल जावक (Total Expense)</p>
+              <h3 className="text-3xl font-extrabold text-[#C85A17] mt-1">
                 ₹{activeCatStats.totalExpense?.toLocaleString('en-IN') || 0}
               </h3>
             </div>
-            <div className="w-12 h-12 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-xl flex items-center justify-center font-bold text-xl">
+            <div className="w-12 h-12 bg-[#7A2525]/20 text-[#C85A17] rounded-xl flex items-center justify-center font-bold text-xl">
               <FiArrowUpRight className="w-6 h-6" />
             </div>
           </motion.div>
@@ -181,16 +184,16 @@ const LekhaJokhaPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm flex items-center justify-between"
+            className="bg-[#2A1010] p-6 rounded-2xl border border-[#D4AF37]/15 shadow-xl flex items-center justify-between"
           >
             <div>
-              <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">शुद्ध अवशेष (Net Balance)</p>
-              <h3 className={`text-3xl font-extrabold mt-1 ${netBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
+              <p className="text-xs font-bold text-[#CDBBA4] uppercase tracking-wider">शुद्ध अवशेष (Net Balance)</p>
+              <h3 className={`text-3xl font-extrabold mt-1 ${netBalance >= 0 ? 'text-[#3F7655]' : 'text-[#C85A17]'}`}>
                 ₹{netBalance?.toLocaleString('en-IN') || 0}
               </h3>
             </div>
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl ${
-              netBalance >= 0 ? 'bg-green-50 dark:bg-green-900/20 text-green-600' : 'bg-red-50 dark:bg-red-900/20 text-red-500'
+              netBalance >= 0 ? 'bg-[#3F7655]/10 text-[#3F7655]' : 'bg-[#7A2525]/20 text-[#C85A17]'
             }`}>
               <FiDollarSign className="w-6 h-6" />
             </div>
@@ -198,20 +201,20 @@ const LekhaJokhaPage = () => {
         </div>
 
         {/* Data Table */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden p-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+        <div className="bg-[#2A1010] rounded-2xl border border-[#D4AF37]/15 shadow-xl overflow-hidden p-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 border-b border-[#D4AF37]/10 pb-4">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">लेनदेन सूची (Transaction History)</h2>
-              <p className="text-sm text-gray-500 mt-0.5">संबंधित कोष में किए गए कुल लेनदेन की जानकारी</p>
+              <h2 className="text-xl font-bold text-[#FFF3DD]">लेनदेन सूची (Transaction History)</h2>
+              <p className="text-sm text-[#CDBBA4] mt-0.5">संबंधित कोष में किए गए कुल लेनदेन की जानकारी</p>
             </div>
             <div className="relative w-full sm:w-72">
-              <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#CDBBA4]/50 w-4.5 h-4.5" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                placeholder="खोजें (Search विवरण/नाम)..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                placeholder="खोजें विवरण या व्यक्ति का नाम..."
+                className="w-full pl-11 pr-4 py-2 bg-[#160D08] border border-[#D4AF37]/15 rounded-xl text-sm text-[#FFF3DD] placeholder-[#CDBBA4]/40 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 shadow-inner"
               />
             </div>
           </div>
