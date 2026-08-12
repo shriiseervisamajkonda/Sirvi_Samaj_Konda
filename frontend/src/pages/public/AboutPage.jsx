@@ -18,7 +18,7 @@ const AboutPage = () => {
   const { t, language } = useLanguage();
 
   const facts = [
-    { label: language === 'en' ? 'Village' : 'गाँव', value: language === 'en' ? 'Konda' : 'कोंडा' },
+    { label: language === 'en' ? 'Village' : 'गाँव', value: language === 'en' ? 'Konda' : 'कोणदा' },
     { label: language === 'en' ? 'Tehsil' : 'तहसील', value: language === 'en' ? 'Kukshi' : 'कुक्षी' },
     { label: language === 'en' ? 'District' : 'जिला', value: language === 'en' ? 'Dhar' : 'धार' },
     { label: language === 'en' ? 'State' : 'राज्य', value: language === 'en' ? 'Madhya Pradesh' : 'मध्य प्रदेश' },
@@ -46,7 +46,7 @@ const AboutPage = () => {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="inline-block px-4 py-1.5 bg-white/20 backdrop-blur border border-white/30 rounded-full text-xs font-semibold mb-6">
-              {language === 'en' ? 'Estd. Konda Village' : 'सीरवी समाज कोंडा'}
+              {language === 'en' ? 'Estd. Konda Village' : 'सीरवी समाज कोणदा'}
             </span>
             <h1 className="text-4xl lg:text-5xl font-extrabold mb-4">{t('nav_about')}</h1>
             <p className="text-lg text-orange-100 max-w-2xl mx-auto leading-relaxed font-medium">
