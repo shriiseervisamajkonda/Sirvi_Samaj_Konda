@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -15,58 +15,68 @@ import AdminLayout from './layouts/AdminLayout';
 // Common
 import ProtectedRoute from './components/common/ProtectedRoute';
 
-// Auth Pages
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
-import ResetPasswordPage from './pages/auth/ResetPasswordPage';
-import VerifyEmailPage from './pages/auth/VerifyEmailPage';
+// Loading fallback component
+const PageFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-slate-950 text-amber-500">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-12 h-12 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
+      <p className="text-sm font-medium text-slate-400">Loading Shri Seervi Samaj Konda...</p>
+    </div>
+  </div>
+);
 
-// Public Pages
-import HomePage from './pages/public/HomePage';
-import AboutPage from './pages/public/AboutPage';
-import CommitteePage from './pages/public/CommitteePage';
-import VillagePage from './pages/public/VillagePage';
-import FamilyDirectoryPage from './pages/public/FamilyDirectoryPage';
-import MemberDirectoryPage from './pages/public/MemberDirectoryPage';
-import StudentPage from './pages/public/StudentPage';
-import BusinessDirectoryPage from './pages/public/BusinessDirectoryPage';
-import BloodDonorPage from './pages/public/BloodDonorPage';
-import MarriageBiodataPage from './pages/public/MarriageBiodataPage';
-import EventsPage from './pages/public/EventsPage';
-import NewsPage from './pages/public/NewsPage';
-import GalleryPage from './pages/public/GalleryPage';
-import DocumentsPage from './pages/public/DocumentsPage';
-import DonationPage from './pages/public/DonationPage';
-import ContactPage from './pages/public/ContactPage';
-import LekhaJokhaPage from './pages/public/LekhaJokhaPage';
-import PanchSettlementsPage from './pages/public/PanchSettlementsPage';
-import SocialInfoPage from './pages/public/SocialInfoPage';
-import PrivacyPolicyPage from './pages/public/PrivacyPolicyPage';
-import TermsPage from './pages/public/TermsPage';
-import NotFoundPage from './pages/public/NotFoundPage';
+// Auth Pages (Lazy)
+const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
+const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'));
 
-// Admin Pages
-import DashboardPage from './pages/admin/DashboardPage';
-import AdminFamiliesPage from './pages/admin/FamiliesPage';
-import AdminMembersPage from './pages/admin/MembersPage';
-import AdminStudentsPage from './pages/admin/StudentsPage';
-import AdminBusinessesPage from './pages/admin/BusinessesPage';
-import AdminBloodDonorsPage from './pages/admin/BloodDonorsPage';
-import AdminMarriagePage from './pages/admin/MarriagePage';
-import AdminEventsPage from './pages/admin/EventsPage';
-import AdminGalleryPage from './pages/admin/GalleryPage';
-import AdminNewsPage from './pages/admin/NewsPage';
-import AdminDocumentsPage from './pages/admin/DocumentsPage';
-import AdminDonationsPage from './pages/admin/DonationsPage';
-import AdminCommitteePage from './pages/admin/CommitteePage';
-import AdminVillagePage from './pages/admin/VillagePage';
-import AdminLekhaJokhaPage from './pages/admin/LekhaJokhaPage';
-import AdminPanchSettlementsPage from './pages/admin/PanchSettlementsPage';
-import AdminSocialInfoPage from './pages/admin/SocialInfoPage';
-import AdminUsersPage from './pages/admin/UsersPage';
-import AdminActivityLogsPage from './pages/admin/ActivityLogsPage';
-import AdminSettingsPage from './pages/admin/SettingsPage';
+// Public Pages (Lazy)
+const HomePage = lazy(() => import('./pages/public/HomePage'));
+const AboutPage = lazy(() => import('./pages/public/AboutPage'));
+const CommitteePage = lazy(() => import('./pages/public/CommitteePage'));
+const VillagePage = lazy(() => import('./pages/public/VillagePage'));
+const FamilyDirectoryPage = lazy(() => import('./pages/public/FamilyDirectoryPage'));
+const MemberDirectoryPage = lazy(() => import('./pages/public/MemberDirectoryPage'));
+const StudentPage = lazy(() => import('./pages/public/StudentPage'));
+const BusinessDirectoryPage = lazy(() => import('./pages/public/BusinessDirectoryPage'));
+const BloodDonorPage = lazy(() => import('./pages/public/BloodDonorPage'));
+const MarriageBiodataPage = lazy(() => import('./pages/public/MarriageBiodataPage'));
+const EventsPage = lazy(() => import('./pages/public/EventsPage'));
+const NewsPage = lazy(() => import('./pages/public/NewsPage'));
+const GalleryPage = lazy(() => import('./pages/public/GalleryPage'));
+const DocumentsPage = lazy(() => import('./pages/public/DocumentsPage'));
+const DonationPage = lazy(() => import('./pages/public/DonationPage'));
+const ContactPage = lazy(() => import('./pages/public/ContactPage'));
+const LekhaJokhaPage = lazy(() => import('./pages/public/LekhaJokhaPage'));
+const PanchSettlementsPage = lazy(() => import('./pages/public/PanchSettlementsPage'));
+const SocialInfoPage = lazy(() => import('./pages/public/SocialInfoPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/public/PrivacyPolicyPage'));
+const TermsPage = lazy(() => import('./pages/public/TermsPage'));
+const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage'));
+
+// Admin Pages (Lazy - Isolated in separate bundles)
+const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'));
+const AdminFamiliesPage = lazy(() => import('./pages/admin/FamiliesPage'));
+const AdminMembersPage = lazy(() => import('./pages/admin/MembersPage'));
+const AdminStudentsPage = lazy(() => import('./pages/admin/StudentsPage'));
+const AdminBusinessesPage = lazy(() => import('./pages/admin/BusinessesPage'));
+const AdminBloodDonorsPage = lazy(() => import('./pages/admin/BloodDonorsPage'));
+const AdminMarriagePage = lazy(() => import('./pages/admin/MarriagePage'));
+const AdminEventsPage = lazy(() => import('./pages/admin/EventsPage'));
+const AdminGalleryPage = lazy(() => import('./pages/admin/GalleryPage'));
+const AdminNewsPage = lazy(() => import('./pages/admin/NewsPage'));
+const AdminDocumentsPage = lazy(() => import('./pages/admin/DocumentsPage'));
+const AdminDonationsPage = lazy(() => import('./pages/admin/DonationsPage'));
+const AdminCommitteePage = lazy(() => import('./pages/admin/CommitteePage'));
+const AdminVillagePage = lazy(() => import('./pages/admin/VillagePage'));
+const AdminLekhaJokhaPage = lazy(() => import('./pages/admin/LekhaJokhaPage'));
+const AdminPanchSettlementsPage = lazy(() => import('./pages/admin/PanchSettlementsPage'));
+const AdminSocialInfoPage = lazy(() => import('./pages/admin/SocialInfoPage'));
+const AdminUsersPage = lazy(() => import('./pages/admin/UsersPage'));
+const AdminActivityLogsPage = lazy(() => import('./pages/admin/ActivityLogsPage'));
+const AdminSettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -88,73 +98,75 @@ createRoot(document.getElementById('root')).render(
                 },
               }}
             />
-            <Routes>
-              {/* Auth Routes */}
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-              <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+            <Suspense fallback={<PageFallback />}>
+              <Routes>
+                {/* Auth Routes */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+                <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
 
-              {/* Public Routes */}
-              <Route element={<PublicLayout />}>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/committee" element={<CommitteePage />} />
-                <Route path="/village" element={<VillagePage />} />
-                <Route path="/families" element={<FamilyDirectoryPage />} />
-                <Route path="/members" element={<MemberDirectoryPage />} />
-                <Route path="/students" element={<StudentPage />} />
-                <Route path="/businesses" element={<BusinessDirectoryPage />} />
-                <Route path="/blood-donors" element={<BloodDonorPage />} />
-                <Route path="/marriage" element={<MarriageBiodataPage />} />
-                <Route path="/events" element={<EventsPage />} />
-                <Route path="/news" element={<NewsPage />} />
-                <Route path="/gallery" element={<GalleryPage />} />
-                <Route path="/documents" element={<DocumentsPage />} />
-                <Route path="/donations" element={<DonationPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/lekha-jokha" element={<LekhaJokhaPage />} />
-                <Route path="/panch-settlements" element={<PanchSettlementsPage />} />
-                <Route path="/social-info" element={<SocialInfoPage />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                <Route path="/terms" element={<TermsPage />} />
-              </Route>
+                {/* Public Routes */}
+                <Route element={<PublicLayout />}>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/committee" element={<CommitteePage />} />
+                  <Route path="/village" element={<VillagePage />} />
+                  <Route path="/families" element={<FamilyDirectoryPage />} />
+                  <Route path="/members" element={<MemberDirectoryPage />} />
+                  <Route path="/students" element={<StudentPage />} />
+                  <Route path="/businesses" element={<BusinessDirectoryPage />} />
+                  <Route path="/blood-donors" element={<BloodDonorPage />} />
+                  <Route path="/marriage" element={<MarriageBiodataPage />} />
+                  <Route path="/events" element={<EventsPage />} />
+                  <Route path="/news" element={<NewsPage />} />
+                  <Route path="/gallery" element={<GalleryPage />} />
+                  <Route path="/documents" element={<DocumentsPage />} />
+                  <Route path="/donations" element={<DonationPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/lekha-jokha" element={<LekhaJokhaPage />} />
+                  <Route path="/panch-settlements" element={<PanchSettlementsPage />} />
+                  <Route path="/social-info" element={<SocialInfoPage />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                  <Route path="/terms" element={<TermsPage />} />
+                </Route>
 
-              {/* Admin Routes */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute allowedRoles={['super_admin', 'admin', 'editor']}>
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<DashboardPage />} />
-                <Route path="families" element={<AdminFamiliesPage />} />
-                <Route path="members" element={<AdminMembersPage />} />
-                <Route path="students" element={<AdminStudentsPage />} />
-                <Route path="businesses" element={<AdminBusinessesPage />} />
-                <Route path="blood-donors" element={<AdminBloodDonorsPage />} />
-                <Route path="marriage" element={<AdminMarriagePage />} />
-                <Route path="events" element={<AdminEventsPage />} />
-                <Route path="gallery" element={<AdminGalleryPage />} />
-                <Route path="news" element={<AdminNewsPage />} />
-                <Route path="documents" element={<AdminDocumentsPage />} />
-                <Route path="donations" element={<AdminDonationsPage />} />
-                <Route path="committee" element={<AdminCommitteePage />} />
-                <Route path="village" element={<AdminVillagePage />} />
-                <Route path="lekha-jokha" element={<AdminLekhaJokhaPage />} />
-                <Route path="panch-settlements" element={<AdminPanchSettlementsPage />} />
-                <Route path="social-info" element={<AdminSocialInfoPage />} />
-                <Route path="users" element={<AdminUsersPage />} />
-                <Route path="activity-logs" element={<AdminActivityLogsPage />} />
-                <Route path="settings" element={<AdminSettingsPage />} />
-              </Route>
+                {/* Admin Routes */}
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute allowedRoles={['super_admin', 'admin', 'editor']}>
+                      <AdminLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<DashboardPage />} />
+                  <Route path="families" element={<AdminFamiliesPage />} />
+                  <Route path="members" element={<AdminMembersPage />} />
+                  <Route path="students" element={<AdminStudentsPage />} />
+                  <Route path="businesses" element={<AdminBusinessesPage />} />
+                  <Route path="blood-donors" element={<AdminBloodDonorsPage />} />
+                  <Route path="marriage" element={<AdminMarriagePage />} />
+                  <Route path="events" element={<AdminEventsPage />} />
+                  <Route path="gallery" element={<AdminGalleryPage />} />
+                  <Route path="news" element={<AdminNewsPage />} />
+                  <Route path="documents" element={<AdminDocumentsPage />} />
+                  <Route path="donations" element={<AdminDonationsPage />} />
+                  <Route path="committee" element={<AdminCommitteePage />} />
+                  <Route path="village" element={<AdminVillagePage />} />
+                  <Route path="lekha-jokha" element={<AdminLekhaJokhaPage />} />
+                  <Route path="panch-settlements" element={<AdminPanchSettlementsPage />} />
+                  <Route path="social-info" element={<AdminSocialInfoPage />} />
+                  <Route path="users" element={<AdminUsersPage />} />
+                  <Route path="activity-logs" element={<AdminActivityLogsPage />} />
+                  <Route path="settings" element={<AdminSettingsPage />} />
+                </Route>
 
-              {/* 404 */}
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
+                {/* 404 */}
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </Suspense>
           </LanguageProvider>
         </AuthProvider>
       </ThemeProvider>

@@ -25,5 +25,6 @@ const businessSchema = new mongoose.Schema(
 );
 
 businessSchema.index({ businessName: 'text', owner: 'text', category: 'text' });
+businessSchema.index({ status: 1, category: 1, village: 1 });
 
 export default mongoose.model('Business', businessSchema);
