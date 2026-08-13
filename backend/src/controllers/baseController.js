@@ -25,7 +25,7 @@ export const createCRUDController = (Model, moduleName, options = {}) => {
       }));
     }
 
-    let query = Model.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    let query = Model.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
     populate.forEach((p) => { query = query.populate(p); });
 
     const [data, total] = await Promise.all([
@@ -37,7 +37,7 @@ export const createCRUDController = (Model, moduleName, options = {}) => {
   });
 
   const getOne = asyncHandler(async (req, res) => {
-    let query = Model.findById(req.params.id);
+    let query = Model.findById(req.params.id).lean();
     populate.forEach((p) => { query = query.populate(p); });
     const item = await query;
     if (!item) {

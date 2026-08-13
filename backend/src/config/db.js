@@ -12,15 +12,37 @@ mongoose.connection.on('disconnected', () => {
   console.log('MongoDB disconnected.');
 });
 
+let isConnecting = false;
+
 const connectDB = async () => {
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+  if (isConnecting) {
+    while (mongoose.connection.readyState !== 1 && isConnecting) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    return;
+  }
   try {
+    isConnecting = true;
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 5000, // Fast fail in 5s if database is offline/blocked
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`MongoDB Initial Connection Error: ${error.message}`);
-    console.log('Server is running but database operations will fail until connection is resolved.');
+  } finally {
+    isConnecting = false;
+  }
+};
+
+export const ensureDbConnected = async (_req, _res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
   }
 };
 

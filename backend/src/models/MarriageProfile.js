@@ -38,4 +38,6 @@ const marriageProfileSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+marriageProfileSchema.index({ profileType: 1, approvalStatus: 1, isPublic: 1 });
+
 export default mongoose.model('MarriageProfile', marriageProfileSchema);

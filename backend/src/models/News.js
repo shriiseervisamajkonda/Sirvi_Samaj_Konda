@@ -22,5 +22,6 @@ const newsSchema = new mongoose.Schema(
 );
 
 newsSchema.index({ title: 'text', content: 'text' });
+newsSchema.index({ status: 1, createdAt: -1 });
 
 export default mongoose.model('News', newsSchema);

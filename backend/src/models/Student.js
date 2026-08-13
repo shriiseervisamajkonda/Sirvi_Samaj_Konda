@@ -22,4 +22,6 @@ const studentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+studentSchema.index({ status: 1, village: 1 });
+
 export default mongoose.model('Student', studentSchema);

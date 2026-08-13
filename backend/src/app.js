@@ -4,8 +4,9 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import cookieParser from 'cookie-parser';
-import xss from 'xss-clean';
 
+import { ensureDbConnected } from './config/db.js';
+import { setCacheHeaders } from './middleware/cache.js';
 import errorHandler from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -36,10 +37,21 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-app.use(helmet());
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'https://sirvi-samaj-konda.vercel.app',
+  'http://localhost:5173',
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
     credentials: true,
   })
 );
@@ -55,11 +67,21 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 app.use(mongoSanitize());
-app.use(xss());
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  message: { success: false, message: 'Too many authentication attempts, please try again after 15 minutes.' },
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+app.use('/api/auth/forgot-password', authLimiter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ success: true, message: 'Shri Seervi Samaj Konda API is running' });
 });
+
+app.use('/api', ensureDbConnected);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -69,13 +91,14 @@ app.use('/api/students', studentRoutes);
 app.use('/api/businesses', businessRoutes);
 app.use('/api/blood-donors', bloodDonorRoutes);
 app.use('/api/marriage-profiles', marriageRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/news', newsRoutes);
-app.use('/api/gallery', galleryRoutes);
-app.use('/api/documents', documentRoutes);
-app.use('/api/donations', donationRoutes);
-app.use('/api/committee', committeeRoutes);
-app.use('/api/village', villageRoutes);
+
+app.use('/api/village', setCacheHeaders(60, 300), villageRoutes);
+app.use('/api/social-info', setCacheHeaders(60, 300), socialInfoRoutes);
+app.use('/api/committee', setCacheHeaders(60, 300), committeeRoutes);
+app.use('/api/news', setCacheHeaders(30, 120), newsRoutes);
+app.use('/api/events', setCacheHeaders(30, 120), eventRoutes);
+app.use('/api/gallery', setCacheHeaders(60, 300), galleryRoutes);
+app.use('/api/documents', setCacheHeaders(60, 300), documentRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
