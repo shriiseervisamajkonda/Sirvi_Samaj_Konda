@@ -76,11 +76,7 @@ app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
 
-app.get('/', (_req, res) => {
-  res.json({ success: true, message: 'Shri Seervi Samaj Konda Backend API' });
-});
-
-app.get('/api', (_req, res) => {
+app.get(['/', '/api', '/api/'], (_req, res) => {
   res.json({ success: true, message: 'Shri Seervi Samaj Konda API Root' });
 });
 
