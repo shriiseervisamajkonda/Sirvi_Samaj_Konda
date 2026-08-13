@@ -24,4 +24,7 @@ const lekhaJokhaSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+lekhaJokhaSchema.index({ type: 1, category: 1, date: -1 });
+lekhaJokhaSchema.index({ title: 'text', personName: 'text', receiptNumber: 'text' });
+
 export default mongoose.model('LekhaJokha', lekhaJokhaSchema);
