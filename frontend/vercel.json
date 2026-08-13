@@ -1,11 +1,11 @@
 {
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://sirvi-samaj-konda-zhv7.vercel.app/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://sirvi-samaj-konda-zhv7.vercel.app/api/:path*"
     },
     {
-      "source": "/(.*)",
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ]
