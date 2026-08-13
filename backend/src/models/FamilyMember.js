@@ -55,5 +55,7 @@ const familyMemberSchema = new mongoose.Schema(
 
 familyMemberSchema.index({ firstName: 'text', lastName: 'text', occupation: 'text' });
 familyMemberSchema.index({ bloodGroup: 1, village: 1 });
+familyMemberSchema.index({ family: 1, status: 1 });
+familyMemberSchema.index({ status: 1, createdAt: -1 });
 
 export default mongoose.model('FamilyMember', familyMemberSchema);

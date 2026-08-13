@@ -23,4 +23,7 @@ const donationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+donationSchema.index({ status: 1, createdAt: -1 });
+donationSchema.index({ donorName: 'text', receiptNumber: 'text' });
+
 export default mongoose.model('Donation', donationSchema);
