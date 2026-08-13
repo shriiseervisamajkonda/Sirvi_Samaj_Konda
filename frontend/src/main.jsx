@@ -14,6 +14,7 @@ import AdminLayout from './layouts/AdminLayout';
 
 // Common
 import ProtectedRoute from './components/common/ProtectedRoute';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 // Loading fallback component
 const PageFallback = () => (
@@ -98,75 +99,77 @@ createRoot(document.getElementById('root')).render(
                 },
               }}
             />
-            <Suspense fallback={<PageFallback />}>
-              <Routes>
-                {/* Auth Routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-                <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+            <ErrorBoundary>
+              <Suspense fallback={<PageFallback />}>
+                <Routes>
+                  {/* Auth Routes */}
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+                  <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
 
-                {/* Public Routes */}
-                <Route element={<PublicLayout />}>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/about" element={<AboutPage />} />
-                  <Route path="/committee" element={<CommitteePage />} />
-                  <Route path="/village" element={<VillagePage />} />
-                  <Route path="/families" element={<FamilyDirectoryPage />} />
-                  <Route path="/members" element={<MemberDirectoryPage />} />
-                  <Route path="/students" element={<StudentPage />} />
-                  <Route path="/businesses" element={<BusinessDirectoryPage />} />
-                  <Route path="/blood-donors" element={<BloodDonorPage />} />
-                  <Route path="/marriage" element={<MarriageBiodataPage />} />
-                  <Route path="/events" element={<EventsPage />} />
-                  <Route path="/news" element={<NewsPage />} />
-                  <Route path="/gallery" element={<GalleryPage />} />
-                  <Route path="/documents" element={<DocumentsPage />} />
-                  <Route path="/donations" element={<DonationPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="/lekha-jokha" element={<LekhaJokhaPage />} />
-                  <Route path="/panch-settlements" element={<PanchSettlementsPage />} />
-                  <Route path="/social-info" element={<SocialInfoPage />} />
-                  <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                  <Route path="/terms" element={<TermsPage />} />
-                </Route>
+                  {/* Public Routes */}
+                  <Route element={<PublicLayout />}>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/committee" element={<CommitteePage />} />
+                    <Route path="/village" element={<VillagePage />} />
+                    <Route path="/families" element={<FamilyDirectoryPage />} />
+                    <Route path="/members" element={<MemberDirectoryPage />} />
+                    <Route path="/students" element={<StudentPage />} />
+                    <Route path="/businesses" element={<BusinessDirectoryPage />} />
+                    <Route path="/blood-donors" element={<BloodDonorPage />} />
+                    <Route path="/marriage" element={<MarriageBiodataPage />} />
+                    <Route path="/events" element={<EventsPage />} />
+                    <Route path="/news" element={<NewsPage />} />
+                    <Route path="/gallery" element={<GalleryPage />} />
+                    <Route path="/documents" element={<DocumentsPage />} />
+                    <Route path="/donations" element={<DonationPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/lekha-jokha" element={<LekhaJokhaPage />} />
+                    <Route path="/panch-settlements" element={<PanchSettlementsPage />} />
+                    <Route path="/social-info" element={<SocialInfoPage />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                    <Route path="/terms" element={<TermsPage />} />
+                  </Route>
 
-                {/* Admin Routes */}
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute allowedRoles={['super_admin', 'admin', 'editor']}>
-                      <AdminLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<DashboardPage />} />
-                  <Route path="families" element={<AdminFamiliesPage />} />
-                  <Route path="members" element={<AdminMembersPage />} />
-                  <Route path="students" element={<AdminStudentsPage />} />
-                  <Route path="businesses" element={<AdminBusinessesPage />} />
-                  <Route path="blood-donors" element={<AdminBloodDonorsPage />} />
-                  <Route path="marriage" element={<AdminMarriagePage />} />
-                  <Route path="events" element={<AdminEventsPage />} />
-                  <Route path="gallery" element={<AdminGalleryPage />} />
-                  <Route path="news" element={<AdminNewsPage />} />
-                  <Route path="documents" element={<AdminDocumentsPage />} />
-                  <Route path="donations" element={<AdminDonationsPage />} />
-                  <Route path="committee" element={<AdminCommitteePage />} />
-                  <Route path="village" element={<AdminVillagePage />} />
-                  <Route path="lekha-jokha" element={<AdminLekhaJokhaPage />} />
-                  <Route path="panch-settlements" element={<AdminPanchSettlementsPage />} />
-                  <Route path="social-info" element={<AdminSocialInfoPage />} />
-                  <Route path="users" element={<AdminUsersPage />} />
-                  <Route path="activity-logs" element={<AdminActivityLogsPage />} />
-                  <Route path="settings" element={<AdminSettingsPage />} />
-                </Route>
+                  {/* Admin Routes */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'editor']}>
+                        <AdminLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route index element={<DashboardPage />} />
+                    <Route path="families" element={<AdminFamiliesPage />} />
+                    <Route path="members" element={<AdminMembersPage />} />
+                    <Route path="students" element={<AdminStudentsPage />} />
+                    <Route path="businesses" element={<AdminBusinessesPage />} />
+                    <Route path="blood-donors" element={<AdminBloodDonorsPage />} />
+                    <Route path="marriage" element={<AdminMarriagePage />} />
+                    <Route path="events" element={<AdminEventsPage />} />
+                    <Route path="gallery" element={<AdminGalleryPage />} />
+                    <Route path="news" element={<AdminNewsPage />} />
+                    <Route path="documents" element={<AdminDocumentsPage />} />
+                    <Route path="donations" element={<AdminDonationsPage />} />
+                    <Route path="committee" element={<AdminCommitteePage />} />
+                    <Route path="village" element={<AdminVillagePage />} />
+                    <Route path="lekha-jokha" element={<AdminLekhaJokhaPage />} />
+                    <Route path="panch-settlements" element={<AdminPanchSettlementsPage />} />
+                    <Route path="social-info" element={<AdminSocialInfoPage />} />
+                    <Route path="users" element={<AdminUsersPage />} />
+                    <Route path="activity-logs" element={<AdminActivityLogsPage />} />
+                    <Route path="settings" element={<AdminSettingsPage />} />
+                  </Route>
 
-                {/* 404 */}
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </Suspense>
+                  {/* 404 */}
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </Suspense>
+            </ErrorBoundary>
           </LanguageProvider>
         </AuthProvider>
       </ThemeProvider>
