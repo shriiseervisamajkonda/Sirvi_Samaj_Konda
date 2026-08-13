@@ -5,6 +5,8 @@ import rateLimit from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 import cookieParser from 'cookie-parser';
 
+import compression from 'compression';
+
 import { ensureDbConnected } from './config/db.js';
 import { setCacheHeaders } from './middleware/cache.js';
 import errorHandler from './middleware/errorHandler.js';
@@ -34,6 +36,9 @@ import socialInfoRoutes from './routes/socialInfoRoutes.js';
 
 
 const app = express();
+
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(compression());
 
 app.set('trust proxy', 1);
 

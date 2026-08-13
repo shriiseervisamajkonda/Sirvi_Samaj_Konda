@@ -4,6 +4,14 @@ import app from './src/app.js';
 
 dotenv.config();
 
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception thrown:', err);
+});
+
 const PORT = process.env.PORT || 5000;
 
 connectDB();
