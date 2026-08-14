@@ -290,3 +290,44 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* ==========================================================================
+   Standardized Form Design System for Admin Panel
+   ========================================================================== */
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: #FFF8EC !important;
+  border: 1px solid #E8DCC8 !important;
+  border-radius: 1rem !important;
+  color: #2B211B !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.input-field:focus {
+  outline: none !important;
+  border-color: #C85A17 !important;
+  box-shadow: 0 0 0 3px rgba(200, 90, 23, 0.18) !important;
+}
+
+.input-field::placeholder {
+  color: #A3968A !important;
+  font-weight: 400 !important;
+}
+
+.input-field:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  background-color: #F5EADB !important;
+}
+
+select.input-field {
+  cursor: pointer;
+}
+
+textarea.input-field {
+  min-height: 5rem;
+}
+
+

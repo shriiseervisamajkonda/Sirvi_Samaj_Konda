@@ -314,88 +314,183 @@ const WomenCommitteeAdminPage = () => {
       </div>
 
       {editor.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4">
-          <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl dark:bg-slate-800">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                {editor.mode === 'edit' ? 'संपादित करें' : 'नया आइटम जोड़ें'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-3xl bg-white border border-[#E8DCC8] shadow-2xl overflow-hidden my-8">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-[#E8DCC8] bg-gradient-to-r from-[#FFF8EC] to-white">
+              <h3 className="text-base sm:text-lg font-black text-[#2B211B]">
+                {editor.mode === 'edit' ? 'संपादित करें (Edit)' : 'नया आइटम जोड़ें (Add New)'}
               </h3>
-              <button onClick={closeEditor} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700">
-                <FiTrash2 className="h-4 w-4" />
+              <button
+                onClick={closeEditor}
+                className="p-2 rounded-xl text-[#766A60] hover:text-[#7A2525] hover:bg-[#FFF8EC] transition cursor-pointer"
+              >
+                ✕
               </button>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="p-6 sm:p-8 space-y-4 max-h-[75vh] overflow-y-auto">
               {editor.section === 'objectives' && (
-                <>
-                  <input value={editor.draft.title || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, title: e.target.value } }))} placeholder="शीर्षक" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                  <textarea value={editor.draft.description || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, description: e.target.value } }))} rows={4} placeholder="विवरण" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                </>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">उद्देश्य शीर्षक *</label>
+                    <input value={editor.draft.title || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, title: e.target.value } }))} placeholder="उदा. महिला सशक्तिकरण" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">विस्तृत विवरण</label>
+                    <textarea value={editor.draft.description || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, description: e.target.value } }))} rows={4} placeholder="उद्देश्य का संक्षिप्त विवरण..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 resize-none" />
+                  </div>
+                </div>
               )}
 
               {editor.section === 'workAreas' && (
-                <>
-                  <input value={editor.draft.title || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, title: e.target.value } }))} placeholder="कार्य का शीर्षक" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                  <textarea value={editor.draft.content || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, content: e.target.value } }))} rows={4} placeholder="विवरण" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                </>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">कार्यक्षेत्र का नाम *</label>
+                    <input value={editor.draft.title || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, title: e.target.value } }))} placeholder="उदा. समाज सेवा" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">कार्य विवरण</label>
+                    <textarea value={editor.draft.content || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, content: e.target.value } }))} rows={4} placeholder="कार्य विवरण..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 resize-none" />
+                  </div>
+                </div>
               )}
 
               {editor.section === 'records' && (
-                <>
-                  <input value={editor.draft.category || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, category: e.target.value } }))} placeholder="श्रेणी" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                  <textarea value={editor.draft.details || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, details: e.target.value } }))} rows={5} placeholder="विवरण" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                </>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">अभिलेख श्रेणी *</label>
+                    <input value={editor.draft.category || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, category: e.target.value } }))} placeholder="उदा. वर्षवार गतिविधियाँ" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">विवरण</label>
+                    <textarea value={editor.draft.details || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, details: e.target.value } }))} rows={5} placeholder="अभिलेख विवरण..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 resize-none" />
+                  </div>
+                </div>
               )}
 
               {editor.section === 'activities' && (
-                <>
-                  <input value={editor.draft.title || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, title: e.target.value } }))} placeholder="कार्यक्रम का नाम" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                  <input value={editor.draft.date || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, date: e.target.value } }))} placeholder="तारीख" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
-                  <input value={editor.draft.location || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, location: e.target.value } }))} placeholder="स्थान" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
-                  <textarea value={editor.draft.description || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, description: e.target.value } }))} rows={4} placeholder="विवरण" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                  <input value={editor.draft.photo || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, photo: e.target.value } }))} placeholder="फोटो URL" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                  <textarea value={editor.draft.extraInfo || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, extraInfo: e.target.value } }))} rows={3} placeholder="संबंधित जानकारी" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                </>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">कार्यक्रम का नाम *</label>
+                    <input value={editor.draft.title || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, title: e.target.value } }))} placeholder="उदा. महिला सम्मेलन 2026" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">दिनांक</label>
+                      <input value={editor.draft.date || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, date: e.target.value } }))} placeholder="उदा. 15 अगस्त 2026" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">स्थान</label>
+                      <input value={editor.draft.location || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, location: e.target.value } }))} placeholder="उदा. कोणदा" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">विवरण</label>
+                    <textarea value={editor.draft.description || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, description: e.target.value } }))} rows={3} placeholder="कार्यक्रम विवरण..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 resize-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">कार्यक्रम फ़ोटो (URL)</label>
+                    <input value={editor.draft.photo || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, photo: e.target.value } }))} placeholder="https://..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800" />
+                  </div>
+                </div>
               )}
 
               {editor.section === 'upcomingEvents' && (
-                <>
-                  <input value={editor.draft.title || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, title: e.target.value } }))} placeholder="कार्यक्रम" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                  <input value={editor.draft.date || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, date: e.target.value } }))} placeholder="तारीख" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
-                  <input value={editor.draft.time || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, time: e.target.value } }))} placeholder="समय" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
-                  <input value={editor.draft.location || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, location: e.target.value } }))} placeholder="स्थान" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                  <textarea value={editor.draft.description || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, description: e.target.value } }))} rows={4} placeholder="विवरण" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                </>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">आगामी आयोजन का शीर्षक *</label>
+                    <input value={editor.draft.title || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, title: e.target.value } }))} placeholder="उदा. तीज महोत्सव" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">तारीख</label>
+                      <input value={editor.draft.date || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, date: e.target.value } }))} placeholder="दिनांक" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">समय</label>
+                      <input value={editor.draft.time || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, time: e.target.value } }))} placeholder="समय" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">स्थान</label>
+                      <input value={editor.draft.location || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, location: e.target.value } }))} placeholder="स्थान" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">विवरण</label>
+                    <textarea value={editor.draft.description || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, description: e.target.value } }))} rows={3} placeholder="विवरण..." className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 resize-none" />
+                  </div>
+                </div>
               )}
 
               {editor.section === 'members' && (
-                <>
-                  <input value={editor.draft.name || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, name: e.target.value } }))} placeholder="नाम" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
-                  <input value={editor.draft.position || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, position: e.target.value } }))} placeholder="पद" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
-                  <input value={editor.draft.photo || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, photo: e.target.value } }))} placeholder="फोटो URL" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                  <textarea value={editor.draft.bio || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, bio: e.target.value } }))} rows={4} placeholder="संक्षिप्त परिचय" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                </>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">सदस्य का नाम *</label>
+                      <input value={editor.draft.name || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, name: e.target.value } }))} placeholder="उदा. अनिता भायल" className="input-field" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">पद (Designation)</label>
+                      <input value={editor.draft.position || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, position: e.target.value } }))} placeholder="उदा. अध्यक्ष / सदस्य" className="input-field" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">फ़ोटो (URL)</label>
+                    <input value={editor.draft.photo || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, photo: e.target.value } }))} placeholder="https://..." className="input-field" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">संक्षिप्त परिचय (Bio)</label>
+                    <textarea value={editor.draft.bio || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, bio: e.target.value } }))} rows={3} placeholder="संक्षिप्त परिचय..." className="input-field resize-none" />
+                  </div>
+                </div>
               )}
 
               {editor.section === 'achievements' && (
-                <>
-                  <input value={editor.draft.title || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, title: e.target.value } }))} placeholder="उपलब्धि" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                  <input value={editor.draft.category || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, category: e.target.value } }))} placeholder="श्रेणी" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                </>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">उपलब्धि शीर्षक *</label>
+                    <input value={editor.draft.title || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, title: e.target.value } }))} placeholder="उदा. समाज सेवा सम्मान" className="input-field" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">श्रेणी</label>
+                    <input value={editor.draft.category || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, category: e.target.value } }))} placeholder="उदा. शिक्षा / समाज सेवा" className="input-field" />
+                  </div>
+                </div>
               )}
 
               {editor.section === 'gallery' && (
-                <>
-                  <input value={editor.draft.title || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, title: e.target.value } }))} placeholder="शीर्षक" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                  <input value={editor.draft.image || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, image: e.target.value } }))} placeholder="फोटो URL" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                  <input value={editor.draft.caption || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, caption: e.target.value } }))} placeholder="कैप्शन" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-                </>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">फ़ोटो शीर्षक *</label>
+                    <input value={editor.draft.title || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, title: e.target.value } }))} placeholder="फ़ोटो का शीर्षक" className="input-field" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">फ़ोटो लिंक (URL)</label>
+                    <input value={editor.draft.image || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, image: e.target.value } }))} placeholder="https://..." className="input-field" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525] mb-1">कैप्शन</label>
+                    <input value={editor.draft.caption || ''} onChange={(e) => setEditor((prev) => ({ ...prev, draft: { ...prev.draft, caption: e.target.value } }))} placeholder="कैप्शन..." className="input-field" />
+                  </div>
+                </div>
               )}
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
-              <button onClick={closeEditor} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700">Cancel</button>
-              <button onClick={saveItem} className="rounded-xl bg-gradient-to-r from-primary to-orange-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/20">Save</button>
+            <div className="p-6 border-t border-[#E8DCC8] bg-gradient-to-r from-[#FFF8EC]/60 to-white flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeEditor}
+                className="px-5 py-2.5 text-xs sm:text-sm font-bold text-[#766A60] bg-white border border-[#E8DCC8] rounded-2xl hover:bg-[#FFF8EC] transition cursor-pointer"
+              >
+                रद्द करें (Cancel)
+              </button>
+              <button
+                type="button"
+                onClick={saveItem}
+                className="px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#7A2525] to-[#C85A17] hover:from-[#8C2C1D] hover:to-[#A7450D] rounded-2xl shadow-md hover:shadow-lg transition cursor-pointer"
+              >
+                सहेजें (Save)
+              </button>
             </div>
           </div>
         </div>
