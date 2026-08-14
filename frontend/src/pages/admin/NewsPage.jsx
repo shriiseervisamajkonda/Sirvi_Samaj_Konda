@@ -6,6 +6,7 @@ import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Badge from '../../components/common/Badge';
+import ImageUpload from '../../components/common/ImageUpload';
 import toast from 'react-hot-toast';
 
 const categories = ['news', 'announcement', 'notice', 'emergency', 'update'];
@@ -21,7 +22,7 @@ const NewsPage = () => {
   const [deleteItem, setDeleteItem] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, setValue, watch } = useForm();
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -139,10 +140,12 @@ const NewsPage = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Content *</label>
             <textarea {...register('content', { required: true })} rows={6} placeholder="Full article content..." className="input-field resize-none" />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image URL</label>
-            <input {...register('image')} placeholder="https://..." className="input-field" />
-          </div>
+          <ImageUpload
+            value={watch('image')}
+            onChange={(url) => setValue('image', url, { shouldDirty: true })}
+            label="समाचार आवरण फ़ोटो (Upload Cover Image)"
+            folder="news"
+          />
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tags (comma-separated)</label>
             <input {...register('tags')} placeholder="community, events, health" className="input-field" />

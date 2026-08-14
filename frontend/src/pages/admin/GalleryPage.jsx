@@ -6,6 +6,7 @@ import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Badge from '../../components/common/Badge';
+import ImageUpload from '../../components/common/ImageUpload';
 import toast from 'react-hot-toast';
 
 const GalleryPage = () => {
@@ -21,7 +22,7 @@ const GalleryPage = () => {
   const [deleteItem, setDeleteItem] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, setValue, watch } = useForm();
   const { register: regAlbum, handleSubmit: handleAlbumSubmit, reset: resetAlbum } = useForm();
 
   const fetchData = useCallback(async () => {
@@ -138,10 +139,12 @@ const GalleryPage = () => {
       {/* Add Photo Modal */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Photo' : 'Add Photo'} size="lg">
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image URL *</label>
-            <input {...register('url', { required: true })} placeholder="https://res.cloudinary.com/..." className="input-field" />
-          </div>
+          <ImageUpload
+            value={watch('url')}
+            onChange={(url) => setValue('url', url, { shouldDirty: true })}
+            label="फ़ोटो अपलोड करें (Upload Image) *"
+            folder="gallery"
+          />
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
