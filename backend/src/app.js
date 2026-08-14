@@ -114,7 +114,6 @@ app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/lekha-jokha', lekhaJokhaRoutes);
 app.use('/api/panch-settlements', panchSettlementRoutes);
-app.use('/api/social-info', socialInfoRoutes);
 
 app.use(errorHandler);
 
