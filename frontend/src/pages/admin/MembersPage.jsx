@@ -62,14 +62,24 @@ const MembersPage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await memberAPI.delete(deleteItem._id);
-      toast.success('Member deleted!');
+      await memberAPI.delete(targetId);
+      setMembers((prev) => prev.filter((item) => item._id !== targetId));
+      toast.success('Member deleted successfully!');
       setDeleteItem(null);
-      fetchData();
-    } catch { toast.error('Delete failed'); }
-    finally { setDeleting(false); }
+      if (members.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Delete failed');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const columns = [

@@ -60,14 +60,21 @@ const UsersPage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await userAPI.delete(deleteItem._id);
-      toast.success('User deleted!');
+      await userAPI.delete(targetId);
+      setUsers((prev) => prev.filter((item) => item._id !== targetId));
+      toast.success('User deleted successfully!');
       setDeleteItem(null);
-      fetchData();
-    } catch {
-      toast.error('Failed to delete user');
+      if (users.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete user');
     } finally {
       setDeleting(false);
     }

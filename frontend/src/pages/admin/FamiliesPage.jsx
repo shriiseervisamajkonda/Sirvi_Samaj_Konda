@@ -56,14 +56,24 @@ const FamiliesPage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await familyAPI.delete(deleteItem._id);
-      toast.success('Family deleted!');
+      await familyAPI.delete(targetId);
+      setFamilies((prev) => prev.filter((item) => item._id !== targetId));
+      toast.success('Family deleted successfully!');
       setDeleteItem(null);
-      fetchFamilies();
-    } catch { toast.error('Delete failed'); }
-    finally { setDeleting(false); }
+      if (families.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchFamilies();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Delete failed');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const columns = [

@@ -58,14 +58,21 @@ const EventsPage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await eventAPI.delete(deleteItem._id);
-      toast.success('Deleted!');
+      await eventAPI.delete(targetId);
+      setEvents((prev) => prev.filter((item) => item._id !== targetId));
+      toast.success('Event deleted successfully!');
       setDeleteItem(null);
-      fetchData();
-    } catch {
-      toast.error('Failed to delete event');
+      if (events.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete event');
     } finally {
       setDeleting(false);
     }

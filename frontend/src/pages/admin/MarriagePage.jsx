@@ -73,14 +73,21 @@ const MarriagePage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await marriageAPI.delete(deleteItem._id);
-      toast.success('Deleted!');
+      await marriageAPI.delete(targetId);
+      setProfiles((prev) => prev.filter((item) => item._id !== targetId));
+      toast.success('Profile deleted successfully!');
       setDeleteItem(null);
-      fetchData();
-    } catch {
-      toast.error('Failed to delete profile');
+      if (profiles.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete profile');
     } finally {
       setDeleting(false);
     }

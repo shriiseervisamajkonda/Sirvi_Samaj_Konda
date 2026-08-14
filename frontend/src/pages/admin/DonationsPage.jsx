@@ -68,14 +68,21 @@ const DonationsPage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await donationAPI.delete(deleteItem._id);
-      toast.success('Deleted!');
+      await donationAPI.delete(targetId);
+      setDonations((prev) => prev.filter((item) => item._id !== targetId));
+      toast.success('Donation record deleted successfully!');
       setDeleteItem(null);
-      fetchData();
-    } catch {
-      toast.error('Failed to delete donation');
+      if (donations.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete donation');
     } finally {
       setDeleting(false);
     }
