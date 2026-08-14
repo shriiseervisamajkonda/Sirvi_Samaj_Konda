@@ -80,14 +80,21 @@ const GalleryPage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await galleryAPI.delete(deleteItem._id);
-      toast.success('Deleted!');
+      await galleryAPI.delete(targetId);
+      setImages((prev) => prev.filter((item) => item._id !== targetId));
+      toast.success('Photo deleted successfully!');
       setDeleteItem(null);
-      fetchData();
-    } catch {
-      toast.error('Failed to delete photo');
+      if (images.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete photo');
     } finally {
       setDeleting(false);
     }

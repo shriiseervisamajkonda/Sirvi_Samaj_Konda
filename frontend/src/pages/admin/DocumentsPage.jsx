@@ -58,14 +58,21 @@ const DocumentsPage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await documentAPI.delete(deleteItem._id);
-      toast.success('Deleted!');
+      await documentAPI.delete(targetId);
+      setDocuments((prev) => prev.filter((item) => item._id !== targetId));
+      toast.success('Document deleted successfully!');
       setDeleteItem(null);
-      fetchData();
-    } catch {
-      toast.error('Failed to delete document');
+      if (documents.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete document');
     } finally {
       setDeleting(false);
     }

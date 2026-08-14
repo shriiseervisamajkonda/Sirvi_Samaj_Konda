@@ -66,14 +66,24 @@ const createAdminPage = ({
     };
 
     const handleDelete = async () => {
+      if (!deleteItem) return;
+      const targetId = deleteItem._id;
       setDeleting(true);
       try {
-        await apiModule.delete(deleteItem._id);
-        toast.success(`${title} deleted!`);
+        await apiModule.delete(targetId);
+        setItems((prev) => prev.filter((item) => item._id !== targetId));
+        toast.success(`${title.replace(' Management', '')} deleted successfully!`);
         setDeleteItem(null);
-        fetchItems();
-      } catch { toast.error('Delete failed'); }
-      finally { setDeleting(false); }
+        if (items.length === 1 && page > 1) {
+          setPage((prev) => prev - 1);
+        } else {
+          fetchItems();
+        }
+      } catch (err) {
+        toast.error(err.response?.data?.message || `Failed to delete ${title.replace(' Management', '')}`);
+      } finally {
+        setDeleting(false);
+      }
     };
 
     const tableColumns = [

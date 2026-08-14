@@ -60,14 +60,21 @@ const NewsPage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await newsAPI.delete(deleteItem._id);
-      toast.success('Deleted!');
+      await newsAPI.delete(targetId);
+      setArticles((prev) => prev.filter((item) => item._id !== targetId));
+      toast.success('News article deleted successfully!');
       setDeleteItem(null);
-      fetchData();
-    } catch {
-      toast.error('Failed to delete article');
+      if (articles.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete article');
     } finally {
       setDeleting(false);
     }

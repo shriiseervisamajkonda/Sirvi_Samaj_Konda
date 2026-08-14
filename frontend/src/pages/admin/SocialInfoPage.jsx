@@ -76,14 +76,21 @@ const SocialInfoPage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await socialInfoAPI.delete(deleteItem._id);
-      toast.success('Deleted successfully!');
+      await socialInfoAPI.delete(targetId);
+      setItems((prev) => prev.filter((item) => item._id !== targetId));
+      toast.success('Social info entry deleted successfully!');
       setDeleteItem(null);
-      fetchData();
-    } catch {
-      toast.error('Failed to delete social info');
+      if (items.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete social info');
     } finally {
       setDeleting(false);
     }

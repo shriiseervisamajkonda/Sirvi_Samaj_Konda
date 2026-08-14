@@ -65,14 +65,21 @@ const BloodDonorsPage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await bloodDonorAPI.delete(deleteItem._id);
-      toast.success('Removed!');
+      await bloodDonorAPI.delete(targetId);
+      setDonors((prev) => prev.filter((item) => item._id !== targetId));
+      toast.success('Donor deleted successfully!');
       setDeleteItem(null);
-      fetchData();
-    } catch {
-      toast.error('Failed to delete donor');
+      if (donors.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete donor');
     } finally {
       setDeleting(false);
     }

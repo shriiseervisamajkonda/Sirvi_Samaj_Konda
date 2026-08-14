@@ -47,11 +47,24 @@ const StudentsPage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await studentAPI.delete(deleteItem._id);
-      toast.success('Deleted!'); setDeleteItem(null); fetchData();
-    } catch { toast.error('Delete failed'); } finally { setDeleting(false); }
+      await studentAPI.delete(targetId);
+      setStudents((prev) => prev.filter((item) => item._id !== targetId));
+      toast.success('Student record deleted successfully!');
+      setDeleteItem(null);
+      if (students.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Delete failed');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const columns = [

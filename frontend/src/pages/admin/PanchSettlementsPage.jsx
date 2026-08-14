@@ -68,14 +68,21 @@ const PanchSettlementsPage = () => {
   };
 
   const handleDelete = async () => {
+    if (!deleteItem) return;
+    const targetId = deleteItem._id;
     setDeleting(true);
     try {
-      await panchSettlementAPI.delete(deleteItem._id);
+      await panchSettlementAPI.delete(targetId);
+      setItems((prev) => prev.filter((item) => item._id !== targetId));
       toast.success('Record removed successfully!');
       setDeleteItem(null);
-      fetchData();
-    } catch {
-      toast.error('Failed to delete record');
+      if (items.length === 1 && page > 1) {
+        setPage((prev) => prev - 1);
+      } else {
+        fetchData();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete record');
     } finally {
       setDeleting(false);
     }
