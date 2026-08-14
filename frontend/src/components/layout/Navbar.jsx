@@ -39,7 +39,9 @@ const Navbar = () => {
     {
       label: t('nav_committee_panch'),
       children: [
+        { label: 'अखिल भारतीय सिर्वी महासभा (कोणदा इकाई)', path: '/konda-gram-unit' },
         { label: t('nav_committee_panch'), path: '/committee' },
+        { label: 'श्री आई जी महिला समिती', path: '/women-committee' },
         { label: t('nav_panch_settlements'), path: '/panch-settlements' },
         { label: t('nav_social_info'), path: '/social-info' },
         { label: t('nav_lekha_jokha'), path: '/lekha-jokha' },
@@ -57,18 +59,18 @@ const Navbar = () => {
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-300 ${
       scrolled 
-        ? 'bg-slate-900/90 border-b border-amber-500/25 shadow-lg backdrop-blur-md py-1.5' 
-        : 'bg-slate-900/30 border-b border-white/5 py-3'
+        ? 'bg-[#7A2525]/95 border-b border-[#C9A44C]/30 shadow-lg backdrop-blur-md py-1.5' 
+        : 'bg-[#7A2525] border-b border-[#C9A44C]/20 py-2.5'
     }`}>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md bg-white">
+            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md bg-white border border-[#C9A44C]/40">
               <img src="/Logo.webp" alt="Logo" className="w-full h-full object-cover" />
             </div>
             <div className="hidden sm:block">
-              <p className="font-bold text-gray-900 dark:text-white text-sm leading-tight">{t('hero_title_1')} {t('hero_title_2')}</p>
-              <p className="text-xs text-primary font-semibold tracking-wider">{t('hero_title_3')}</p>
+              <p className="font-bold text-white text-sm leading-tight">{t('hero_title_1')} {t('hero_title_2')}</p>
+              <p className="text-xs text-[#FDE68A] font-bold tracking-wider">{t('hero_title_3')}</p>
             </div>
           </Link>
 
@@ -81,7 +83,7 @@ const Navbar = () => {
                   onMouseEnter={() => setDropdown(link.label)}
                   onMouseLeave={() => setDropdown(null)}
                 >
-                  <button className="px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:text-primary transition-colors flex items-center gap-1">
+                  <button className="px-3 py-2 text-sm font-semibold text-orange-100 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
                     {link.label}
                   </button>
                   <AnimatePresence>
@@ -91,13 +93,13 @@ const Navbar = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 8 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute top-full left-0 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl py-2 mt-1 border border-gray-100 dark:border-slate-700 backdrop-blur-md"
+                        className="absolute top-full left-0 w-64 bg-white rounded-2xl shadow-2xl py-2 mt-1 border border-[#E8DCC8] backdrop-blur-md"
                       >
                         {link.children.map((child) => (
                           <Link
                             key={child.path}
                             to={child.path}
-                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary font-medium transition-colors"
+                            className="block px-4 py-2.5 text-sm text-[#2B211B] hover:bg-[#FFF8EC] hover:text-[#C85A17] font-semibold transition-colors"
                           >
                             {child.label}
                           </Link>
@@ -112,8 +114,8 @@ const Navbar = () => {
                   to={link.path}
                   className={`px-3 py-2 text-sm font-semibold rounded-lg transition-all ${
                     isActive(link.path)
-                      ? 'text-primary bg-primary/10'
-                      : 'text-gray-700 dark:text-gray-300 hover:text-primary'
+                      ? 'text-[#2B211B] bg-[#FFF8EC] font-bold shadow-sm'
+                      : 'text-orange-100 hover:text-white hover:bg-white/10'
                   }`}
                 >
                   {link.label}
@@ -123,30 +125,20 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Language Toggle */}
-            <button
-              onClick={toggleLanguage}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-gray-200 dark:border-slate-700 text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-              title="Change Language / भाषा बदलें"
-            >
-              <FiGlobe className="w-3.5 h-3.5 text-primary" />
-              <span>{language === 'en' ? 'हिन्दी' : 'English'}</span>
-            </button>
-
             {isAdmin ? (
-              <Link to="/admin" className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-dark transition shadow-md shadow-primary/20">
+              <Link to="/admin" className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-sm font-bold hover:shadow-lg transition shadow-md">
                 <FiUser className="w-4 h-4" /> {t('nav_admin')}
               </Link>
             ) : user ? (
-              <Link to="/admin" className="hidden sm:flex items-center gap-2 px-4 py-2.5 border border-primary text-primary rounded-xl text-sm font-bold hover:bg-primary/10 transition">
+              <Link to="/admin" className="hidden sm:flex items-center gap-2 px-4 py-2.5 border border-white/40 text-white rounded-xl text-sm font-bold hover:bg-white/10 transition">
                 {t('nav_dashboard')}
               </Link>
             ) : (
-              <Link to="/login" className="hidden sm:flex px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-dark transition shadow-md shadow-primary/20">
+              <Link to="/login" className="hidden sm:flex px-4 py-2.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-sm font-bold hover:shadow-lg transition shadow-md">
                 {t('nav_login')}
               </Link>
             )}
-            <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-gray-400">
+            <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2 rounded-xl hover:bg-white/10 text-white cursor-pointer">
               {mobileOpen ? <FiX className="w-6 h-6" /> : <FiMenu className="w-6 h-6" />}
             </button>
           </div>
@@ -160,19 +152,19 @@ const Navbar = () => {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden"
+            className="lg:hidden border-t border-[#C9A44C]/20 bg-[#7A2525] overflow-hidden"
           >
             <div className="px-4 py-4 space-y-3">
               {navLinks.map((link) =>
                 link.children ? (
                   <div key={link.label} className="space-y-1">
-                    <p className="px-4 py-1 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{link.label}</p>
+                    <p className="px-4 py-1 text-xs font-bold text-[#FDE68A] uppercase tracking-wider">{link.label}</p>
                     {link.children.map((child) => (
                       <Link
                         key={child.path}
                         to={child.path}
                         onClick={() => setMobileOpen(false)}
-                        className={`block px-6 py-2 text-sm font-medium rounded-lg ${isActive(child.path) ? 'text-primary bg-primary/5' : 'text-gray-600 dark:text-gray-400 hover:text-primary'}`}
+                        className={`block px-6 py-2 text-sm font-semibold rounded-lg ${isActive(child.path) ? 'text-[#C85A17] bg-[#FFF8EC]' : 'text-orange-100 hover:text-white'}`}
                       >
                         {child.label}
                       </Link>
@@ -183,7 +175,7 @@ const Navbar = () => {
                     key={link.path}
                     to={link.path}
                     onClick={() => setMobileOpen(false)}
-                    className={`block px-4 py-2 text-sm font-semibold rounded-lg ${isActive(link.path) ? 'text-primary bg-primary/5' : 'text-gray-700 dark:text-gray-300 hover:text-primary'}`}
+                    className={`block px-4 py-2 text-sm font-semibold rounded-lg ${isActive(link.path) ? 'text-[#C85A17] bg-[#FFF8EC]' : 'text-orange-100 hover:text-white'}`}
                   >
                     {link.label}
                   </Link>
@@ -193,7 +185,7 @@ const Navbar = () => {
                 <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="block px-4 py-2.5 text-sm font-bold bg-primary text-white rounded-xl text-center shadow-lg shadow-primary/10 mt-2"
+                  className="block px-4 py-2.5 text-sm font-bold bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-center shadow-lg mt-2"
                 >
                   {t('nav_login')}
                 </Link>

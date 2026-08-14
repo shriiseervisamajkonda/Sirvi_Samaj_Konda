@@ -8,7 +8,7 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 
 import { ensureDbConnected } from './config/db.js';
-import { setCacheHeaders } from './middleware/cache.js';
+import { setCacheHeaders, memoryCacheMiddleware } from './middleware/cache.js';
 import errorHandler from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -33,6 +33,9 @@ import searchRoutes from './routes/searchRoutes.js';
 import lekhaJokhaRoutes from './routes/lekhaJokhaRoutes.js';
 import panchSettlementRoutes from './routes/panchSettlementRoutes.js';
 import socialInfoRoutes from './routes/socialInfoRoutes.js';
+import gramUnitRoutes from './routes/gramUnitRoutes.js';
+import gramUnitMemberRoutes from './routes/gramUnitMemberRoutes.js';
+import formationEventRoutes from './routes/formationEventRoutes.js';
 
 
 const app = express();
@@ -45,13 +48,26 @@ app.set('trust proxy', 1);
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'https://sirvi-samaj-konda.vercel.app',
+  'https://sirvi-samaj-konda-zhv7.vercel.app',
   'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
 ].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      callback(null, true);
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.startsWith('http://localhost:') ||
+        origin.startsWith('http://127.0.0.1:')
+      ) {
+        return callback(null, true);
+      }
+      return callback(new Error('CORS not allowed for this origin'), false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -100,21 +116,24 @@ app.use('/api/businesses', businessRoutes);
 app.use('/api/blood-donors', bloodDonorRoutes);
 app.use('/api/marriage-profiles', marriageRoutes);
 
-app.use('/api/village', setCacheHeaders(60, 300), villageRoutes);
-app.use('/api/social-info', setCacheHeaders(60, 300), socialInfoRoutes);
-app.use('/api/committee', setCacheHeaders(60, 300), committeeRoutes);
-app.use('/api/news', setCacheHeaders(30, 120), newsRoutes);
-app.use('/api/events', setCacheHeaders(30, 120), eventRoutes);
-app.use('/api/gallery', setCacheHeaders(60, 300), galleryRoutes);
-app.use('/api/documents', setCacheHeaders(60, 300), documentRoutes);
+app.use('/api/village', setCacheHeaders(60, 300), memoryCacheMiddleware(60), villageRoutes);
+app.use('/api/social-info', setCacheHeaders(60, 300), memoryCacheMiddleware(60), socialInfoRoutes);
+app.use('/api/committee', setCacheHeaders(60, 300), memoryCacheMiddleware(60), committeeRoutes);
+app.use('/api/news', setCacheHeaders(30, 120), memoryCacheMiddleware(30), newsRoutes);
+app.use('/api/events', setCacheHeaders(30, 120), memoryCacheMiddleware(30), eventRoutes);
+app.use('/api/gallery', setCacheHeaders(60, 300), memoryCacheMiddleware(60), galleryRoutes);
+app.use('/api/documents', setCacheHeaders(60, 300), memoryCacheMiddleware(60), documentRoutes);
 app.use('/api/donations', setCacheHeaders(30, 120), donationRoutes);
 app.use('/api/contacts', contactRoutes);
-app.use('/api/settings', settingsRoutes);
+app.use('/api/settings', memoryCacheMiddleware(60), settingsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/lekha-jokha', lekhaJokhaRoutes);
-app.use('/api/panch-settlements', panchSettlementRoutes);
+app.use('/api/panch-settlements', memoryCacheMiddleware(30), panchSettlementRoutes);
+app.use('/api/gram-units', memoryCacheMiddleware(60), gramUnitRoutes);
+app.use('/api/gram-unit-members', memoryCacheMiddleware(60), gramUnitMemberRoutes);
+app.use('/api/formation-events', memoryCacheMiddleware(60), formationEventRoutes);
 
 app.use(errorHandler);
 

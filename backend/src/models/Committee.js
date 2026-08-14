@@ -13,7 +13,7 @@ const committeeSchema = new mongoose.Schema(
     termStart: Date,
     termEnd: Date,
     isActive: { type: Boolean, default: true },
-    type: { type: String, enum: ['committee', 'sangathan', 'sankal_panch'], default: 'committee' },
+    type: { type: String, enum: ['committee', 'sangathan', 'sankal_panch', 'women_committee'], default: 'committee' },
     member: { type: mongoose.Schema.Types.ObjectId, ref: 'FamilyMember' },
     villageRef: { type: mongoose.Schema.Types.ObjectId, ref: 'VillageInformation' },
   },

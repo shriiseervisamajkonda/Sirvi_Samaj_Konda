@@ -4,9 +4,11 @@ import { motion, useInView } from 'framer-motion';
 import {
   FiUsers, FiCalendar, FiBook, FiBriefcase, FiDroplet, FiHeart,
   FiArrowRight, FiMapPin, FiPhone, FiChevronRight,
+  FiAward, FiShield, FiUserCheck, FiFlag, FiCheckCircle,
 } from 'react-icons/fi';
 import { dashboardAPI, newsAPI, eventAPI, committeeAPI } from '../../services/api';
 import { SkeletonHomePage } from '../../components/common/Skeleton';
+import LazyImage from '../../components/common/LazyImage';
 import { useLanguage } from '../../context/LanguageContext';
 
 // Animated counter component
@@ -41,28 +43,38 @@ const StatCard = ({ icon: Icon, value, label, color, delay }) => (
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
     transition={{ delay, duration: 0.5 }}
-    className="card-glow rounded-2xl p-6 shadow-md transition-all duration-300"
+    className="bg-white rounded-3xl p-6 border border-[#E8DCC8] shadow-md hover:shadow-xl hover:border-[#C9A44C]/50 hover:-translate-y-1 transition-all duration-300"
   >
-    <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center mb-4 shadow-md shadow-primary/20">
+    <div className="w-12 h-12 bg-gradient-to-br from-[#C85A17] to-[#C9A44C] rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-orange-500/15">
       <Icon className="w-6 h-6 text-white" />
     </div>
-    <p className="text-3xl font-bold text-accent mb-1">
+    <p className="text-3xl font-extrabold text-[#C85A17] mb-1">
       <Counter target={value} suffix="+" />
     </p>
-    <p className="text-[#CDBBA4] text-sm font-semibold">{label}</p>
+    <p className="text-[#2B211B] text-sm font-bold">{label}</p>
   </motion.div>
 );
 
+const defaultStats = {
+  families: 500,
+  members: 2000,
+  students: 300,
+  businesses: 100,
+  bloodDonors: 150,
+  events: 12,
+};
+
 const HomePage = () => {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState(defaultStats);
   const [news, setNews] = useState([]);
   const [events, setEvents] = useState([]);
   const [committee, setCommittee] = useState([]);
   const [activeCommitteeTab, setActiveCommitteeTab] = useState('all');
-  const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const { t } = useLanguage();
 
   useEffect(() => {
+    let isMounted = true;
     const fetchData = async () => {
       try {
         const [statsRes, newsRes, eventsRes, committeeRes] = await Promise.allSettled([
@@ -71,17 +83,21 @@ const HomePage = () => {
           eventAPI.getAll({ limit: 4, status: 'published' }),
           committeeAPI.getAll({ limit: 100 }),
         ]);
-        if (statsRes.status === 'fulfilled') setStats(statsRes.value.data.data);
-        if (newsRes.status === 'fulfilled') setNews(newsRes.value.data.data || []);
-        if (eventsRes.status === 'fulfilled') setEvents(eventsRes.value.data.data || []);
-        if (committeeRes.status === 'fulfilled') setCommittee(committeeRes.value.data.data || []);
+        if (!isMounted) return;
+        if (statsRes.status === 'fulfilled' && statsRes.value?.data?.data) {
+          setStats(prev => ({ ...prev, ...statsRes.value.data.data }));
+        }
+        if (newsRes.status === 'fulfilled') setNews(newsRes.value?.data?.data || []);
+        if (eventsRes.status === 'fulfilled') setEvents(eventsRes.value?.data?.data || []);
+        if (committeeRes.status === 'fulfilled') setCommittee(committeeRes.value?.data?.data || []);
       } catch (err) {
-        console.error(err);
+        console.warn('Home background data fetch warning:', err);
       } finally {
-        setLoading(false);
+        if (isMounted) setDataLoaded(true);
       }
     };
     fetchData();
+    return () => { isMounted = false; };
   }, []);
 
   const statCards = [
@@ -96,70 +112,69 @@ const HomePage = () => {
   const quickLinks = [
     { label: t('nav_families'), path: '/families', icon: FiUsers, color: 'from-orange-400 to-orange-600' },
     { label: t('nav_members'), path: '/members', icon: FiUsers, color: 'from-blue-400 to-blue-600' },
+    { label: 'श्री आई जी महिला समिती', path: '/women-committee', icon: FiHeart, color: 'from-rose-400 to-red-600' },
     { label: t('nav_donors'), path: '/blood-donors', icon: FiDroplet, color: 'from-red-400 to-red-600' },
     { label: t('nav_events'), path: '/events', icon: FiCalendar, color: 'from-green-400 to-green-600' },
     { label: t('nav_gallery'), path: '/gallery', icon: FiHeart, color: 'from-purple-400 to-purple-600' },
     { label: t('nav_donate'), path: '/donations', icon: FiHeart, color: 'from-pink-400 to-pink-600' },
   ];
 
-  if (loading) return <SkeletonHomePage />;
-
   return (
-    <div className="overflow-hidden bg-slate-950 text-gray-100">
+    <div className="overflow-hidden bg-[#FFF8EC] text-[#2B211B]">
       {/* Hero Section */}
-      <section className="relative min-h-[92vh] flex items-center">
-        {/* Full-width background image with dark gradient overlay */}
+      <section className="relative min-h-[90vh] flex items-center bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525] text-white">
+        {/* Full-width background image with gradient overlay */}
         <div className="absolute inset-0">
-          <img src="/hero_background.webp" alt="Hero Background" className="w-full h-full object-cover opacity-25" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
+          <img src="/hero_background.webp" alt="Hero Background" className="w-full h-full object-cover opacity-20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]" />
         </div>
 
         {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] translate-x-1/3 -translate-y-1/3" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-secondary/10 rounded-full blur-[100px] -translate-x-1/3 translate-y-1/3" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full blur-[100px] translate-x-1/3 -translate-y-1/3" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-black/10 rounded-full blur-[100px] -translate-x-1/3 translate-y-1/3" />
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-white">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
-              initial={{ opacity: 0, x: -50 }}
+              initial={{ opacity: 0, x: -40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7 }}
             >
-              <div className="inline-flex items-center gap-2 bg-[#2A1010]/60 backdrop-blur border border-[#D4AF37]/30 rounded-full px-4 py-1.5 text-xs font-bold text-[#FFF3DD] mb-6">
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur border border-amber-400/30 rounded-full px-4 py-1.5 text-xs font-bold text-white mb-6">
                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                 {t('hero_address')}
               </div>
               <h1 className="text-5xl lg:text-7xl font-extrabold leading-tight mb-6">
-                <span className="block text-[#FFF3DD]">{t('hero_title_1')}</span>
-                <span className="block text-primary leading-tight">{t('hero_title_2')}</span>
-                <span className="block text-3xl lg:text-4xl text-accent font-semibold mt-2">{t('hero_title_3')}</span>
+                <span className="block text-white">{t('hero_title_1')}</span>
+                <span className="block text-[#FDE68A] leading-tight">{t('hero_title_2')}</span>
+                <span className="block text-3xl lg:text-4xl text-orange-200 font-semibold mt-2">{t('hero_title_3')}</span>
               </h1>
-              <p className="text-lg text-[#CDBBA4] leading-relaxed mb-8 max-w-lg">
+              <p className="text-lg text-orange-100 leading-relaxed mb-8 max-w-lg font-medium">
                 {t('hero_subtitle')}
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
                   to="/families"
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-orange-600 text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                  className="flex items-center gap-2 px-6 py-3 bg-white text-[#7A2525] font-extrabold rounded-2xl shadow-lg hover:bg-orange-50 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 >
                   {t('btn_explore')} <FiArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
                   to="/events"
-                  className="flex items-center gap-2 px-6 py-3 bg-[#2A1010]/80 backdrop-blur border border-[#4E2A1E] hover:border-[#D4AF37]/30 text-white font-bold rounded-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                  className="flex items-center gap-2 px-6 py-3 bg-white/15 backdrop-blur border border-white/30 text-white font-bold rounded-2xl hover:bg-white/25 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
                 >
                   {t('btn_upcoming')}
                 </Link>
               </div>
 
               {/* Key info */}
-              <div className="flex flex-wrap gap-6 mt-10 pt-8 border-t border-[#4E2A1E]">
+              <div className="flex flex-wrap gap-6 mt-10 pt-8 border-t border-white/20">
                 {[
                   { icon: FiMapPin, text: t('hero_center_title') },
                   { icon: FiPhone, text: t('emergency_president') + ': +91 98765 43210' },
                 ].map(({ icon: Icon, text }) => (
-                  <div key={text} className="flex items-center gap-2 text-[#CDBBA4] text-sm font-semibold">
-                    <Icon className="w-4 h-4 text-primary" />
+                  <div key={text} className="flex items-center gap-2 text-orange-100 text-sm font-semibold">
+                    <Icon className="w-4 h-4 text-[#FDE68A]" />
                     {text}
                   </div>
                 ))}
@@ -168,7 +183,7 @@ const HomePage = () => {
 
             {/* Right side — floating cards */}
             <motion.div
-              initial={{ opacity: 0, x: 50 }}
+              initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
               className="hidden lg:block relative"
@@ -185,14 +200,14 @@ const HomePage = () => {
                     ].map(({ label, value, icon }) => (
                       <div key={label} className="bg-white/20 rounded-2xl p-4 border border-white/10">
                         <div className="text-2xl mb-2">{icon}</div>
-                        <p className="text-2xl font-extrabold">{value}+</p>
+                        <p className="text-2xl font-extrabold text-white">{value}+</p>
                         <p className="text-orange-100 text-xs font-semibold">{label}</p>
                       </div>
                     ))}
                   </div>
 
                   <div className="mt-6 p-4 bg-white/20 rounded-2xl border border-white/10">
-                    <p className="text-sm font-bold mb-2 flex items-center gap-1.5">🏛️ {t('hero_center_title')}</p>
+                    <p className="text-sm font-bold mb-2 flex items-center gap-1.5 text-white">🏛️ {t('hero_center_title')}</p>
                     <p className="text-orange-100 text-xs leading-relaxed font-medium">
                       {t('hero_center_desc')}
                     </p>
@@ -203,45 +218,41 @@ const HomePage = () => {
                 <motion.div
                   animate={{ y: [-6, 6, -6] }}
                   transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-                  className="absolute -top-6 -right-6 bg-white dark:bg-slate-800 rounded-2xl px-5 py-2.5 shadow-xl border border-gray-100 dark:border-slate-700"
+                  className="absolute -top-6 -right-6 bg-white rounded-2xl px-5 py-2.5 shadow-xl border border-[#E8DCC8] text-[#2B211B]"
                 >
-                  <p className="text-orange-500 font-bold text-xs tracking-wider uppercase">{t('hero_spiritual_title')}</p>
-                  <p className="text-gray-800 dark:text-white font-extrabold text-sm">{t('hero_spiritual_name')}</p>
+                  <p className="text-[#C85A17] font-bold text-xs tracking-wider uppercase">{t('hero_spiritual_title')}</p>
+                  <p className="font-extrabold text-sm text-[#2B211B]">{t('hero_spiritual_name')}</p>
                 </motion.div>
 
                 <motion.div
                   animate={{ y: [6, -6, 6] }}
                   transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
-                  className="absolute -bottom-6 -left-2 bg-white dark:bg-slate-800 rounded-2xl px-5 py-2.5 shadow-xl border border-gray-100 dark:border-slate-700"
+                  className="absolute -bottom-6 -left-2 bg-white rounded-2xl px-5 py-2.5 shadow-xl border border-[#E8DCC8] text-[#2B211B]"
                 >
-                  <p className="text-blue-600 font-bold text-xs tracking-wider uppercase">{t('hero_seat_title')}</p>
-                  <p className="text-gray-600 dark:text-gray-300 text-xs font-semibold">{t('hero_seat_desc')}</p>
+                  <p className="text-[#7A2525] font-bold text-xs tracking-wider uppercase">{t('hero_seat_title')}</p>
+                  <p className="text-[#766A60] text-xs font-semibold">{t('hero_seat_desc')}</p>
                 </motion.div>
               </div>
             </motion.div>
           </div>
         </div>
-
-        {/* Wave bottom */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 60" fill="none" className="w-full">
-            <path d="M0 60L1440 60L1440 20C1200 60 900 0 720 20C540 40 240 0 0 20L0 60Z" fill="currentColor" className="text-gray-50 dark:text-slate-900" />
-          </svg>
-        </div>
       </section>
 
       {/* Welcome / Samaj Introduction & Aai Mataji Section */}
-      <section className="py-20 bg-slate-800/10 border-b border-slate-700/50">
+      <section className="py-20 bg-[#FAF1E0] border-b border-[#E8DCC8]">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="relative rounded-2xl overflow-hidden shadow-2xl border border-amber-500/20 bg-slate-900"
+              className="relative rounded-3xl overflow-hidden shadow-xl border border-[#E8DCC8] bg-white p-2"
             >
-              <img src="/aai_mataji_portrait.jpg" alt="Shri Aai Mataji" className="w-full max-h-[500px] object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+              <LazyImage
+                src="/aai_mataji_portrait.jpg"
+                alt="Shri Aai Mataji"
+                className="w-full max-h-[480px] rounded-2xl"
+              />
             </motion.div>
             
             <motion.div
@@ -250,28 +261,28 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="space-y-6"
             >
-              <span className="inline-block px-4 py-1.5 bg-primary/20 text-primary text-xs font-bold rounded-full uppercase tracking-wider">
+              <span className="inline-block px-4 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] text-[#C85A17] text-xs font-bold rounded-full uppercase tracking-wider">
                 श्री आई माताजी की असीम कृपा
               </span>
-              <h2 className="text-4xl font-extrabold text-[#FFF3DD] leading-tight">
+              <h2 className="text-4xl font-extrabold text-[#2B211B] leading-tight">
                 श्री आई माताजी एवं सिर्वी समाज धरोहर
               </h2>
-              <p className="text-[#CDBBA4] leading-relaxed text-lg">
+              <p className="text-[#766A60] leading-relaxed text-lg font-medium">
                 सिर्वी समाज संगठन कोणदा, धार (मध्य प्रदेश) का यह डिजिटल मंच समाज के परिवारों, गौरवशाली इतिहास, संस्कारों और विकास कार्यों को एक सूत्र में पिरोने का विनम्र प्रयास है। 
               </p>
-              <div className="border-l-4 border-accent pl-4 py-2 italic text-[#766A60]">
+              <div className="border-l-4 border-[#C85A17] pl-4 py-2 italic text-[#766A60] bg-white rounded-r-2xl border border-l-0 border-[#E8DCC8]">
                 "आई पंथ के ११ नियम हमारे जीवन का मार्गदर्शन करते हैं और समाज की एकता ही हमारी सबसे बड़ी शक्ति है।"
               </div>
               <div className="flex gap-4">
                 <Link
                   to="/about"
-                  className="px-6 py-2.5 bg-secondary text-white font-bold rounded-xl shadow-md hover:bg-secondary/80 transition-all text-sm cursor-pointer"
+                  className="px-6 py-3 bg-[#7A2525] text-white font-bold rounded-2xl shadow-md hover:bg-[#5C1A1A] transition-all text-sm cursor-pointer"
                 >
                   समाज के बारे में जानें
                 </Link>
                 <Link
                   to="/members"
-                  className="px-6 py-2.5 border border-amber-500/30 text-amber-400 hover:border-amber-500 hover:bg-amber-500/10 font-bold rounded-xl transition-all text-sm cursor-pointer"
+                  className="px-6 py-3 bg-white border border-[#E8DCC8] text-[#2B211B] hover:border-[#C85A17] hover:bg-[#FFF8EC] font-bold rounded-2xl shadow-sm transition-all text-sm cursor-pointer"
                 >
                   सदस्य देखें
                 </Link>
@@ -282,36 +293,605 @@ const HomePage = () => {
       </section>
 
       {/* Temple Feature Section */}
-      <section className="relative py-32 overflow-hidden border-b border-slate-700/50">
-        {/* Full-width background image with dark gradient overlay */}
-        <div className="absolute inset-0">
-          <img src="/aai_mata_temple.webp" alt="Aai Mata Temple" className="w-full h-full object-cover opacity-25" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent" />
+      <section className="relative py-24 overflow-hidden border-b border-[#E8DCC8] bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]">
+        {/* Subtle background texture */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <img
+            src="/hero_background.webp"
+            alt="Texture"
+            className="w-full h-full object-cover"
+          />
         </div>
+
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-white">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left side: Information */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-6"
+            >
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/20 border border-amber-400/30 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-sm">
+                <span>🚩</span> हमारी आस्था, हमारी पहचान
+              </span>
+              <h2 className="text-4xl lg:text-5xl font-extrabold leading-tight text-white drop-shadow-sm">
+                श्री आई जी मंदिर (बडेर) कोणदा
+              </h2>
+              <p className="text-orange-100 leading-relaxed text-base sm:text-lg font-medium">
+                कोणदा ग्राम में स्थित माँ भगवती स्वरूप श्री आई माताजी का पावन मंदिर समाज की भक्ति, सेवा और अटूट आस्था का मुख्य केंद्र है। यहाँ प्रतिदिन अखंड ज्योति दर्शन, नियमित आरती एवं सामाजिक-धार्मिक उत्सव संपन्न होते हैं।
+              </p>
+
+              {/* Highlights */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                {[
+                  { icon: '✨', title: 'अखंड ज्योति', desc: 'अनवरत प्रज्ज्वलित' },
+                  { icon: '🙏', title: 'दैनिक आरती', desc: 'प्रातः एवं सांध्य वंदन' },
+                  { icon: '🏛️', title: 'भव्य बडेर', desc: 'पवित्र आस्था केंद्र' },
+                ].map((item) => (
+                  <div
+                    key={item.title}
+                    className="p-3.5 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 text-white shadow-sm"
+                  >
+                    <div className="text-xl mb-1">{item.icon}</div>
+                    <p className="font-bold text-sm text-white">{item.title}</p>
+                    <p className="text-[11px] text-orange-200">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-4 pt-2">
+                <Link
+                  to="/gallery"
+                  className="inline-flex items-center gap-2 px-7 py-3.5 bg-white text-[#7A2525] font-extrabold rounded-2xl shadow-xl hover:bg-orange-50 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer text-sm"
+                >
+                  मंदिर दर्शन गैलरी <FiArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  to="/about"
+                  className="inline-flex items-center gap-2 px-7 py-3.5 bg-white/20 backdrop-blur border border-white/30 text-white font-bold rounded-2xl hover:bg-white/30 transition-all text-sm cursor-pointer"
+                >
+                  मंदिर का इतिहास
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* Right side: Prominent Temple Image Card */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative"
+            >
+              <div className="relative rounded-3xl p-3 bg-white/20 backdrop-blur-md border-2 border-amber-400/40 shadow-2xl overflow-hidden group">
+                <div className="rounded-2xl overflow-hidden shadow-inner bg-[#351313] aspect-[4/3] sm:aspect-[16/11]">
+                  <img
+                    src="/aai_mata_temple.webp"
+                    alt="श्री आई जी मंदिर (बडेर) कोणदा"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+
+                {/* Floating Badge on Image */}
+                <div className="absolute bottom-6 left-6 right-6 bg-[#2B211B]/85 backdrop-blur-md p-3.5 rounded-2xl border border-amber-400/30 text-white shadow-xl flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                      🚩
+                    </div>
+                    <div>
+                      <p className="font-extrabold text-sm text-white">श्री आई जी मंदिर (बडेर)</p>
+                      <p className="text-[11px] text-orange-200">ग्राम कोणदा, तहसील कुक्षी (धार)</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold px-2.5 py-1 bg-amber-400/20 text-amber-300 border border-amber-400/30 rounded-lg">
+                    पावन धाम
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+
+      {/* SECTION: SAKAL PANCH (सकल पंच) — Placed BEFORE Akhil Bharatiya Sirvi Mahasabha & Konda Gram Unit */}
+      <section className="py-20 bg-gradient-to-b from-[#FFF8EC] to-white border-b border-[#E8DCC8] relative overflow-hidden">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="max-w-xl space-y-6"
+            className="text-center max-w-4xl mx-auto mb-12"
           >
-            <span className="text-accent font-bold text-sm tracking-wider uppercase">हमारी आस्था, हमारी पहचान</span>
-            <h2 className="text-5xl font-extrabold leading-tight text-[#FFF3DD]">श्री आई जी मंदिर (बडेर) कोणदा</h2>
-            <p className="text-[#CDBBA4] leading-relaxed text-lg">
-              कोणदा ग्राम में स्थित माँ भगवती स्वरूप श्री आई माताजी का मंदिर समाज की भक्ति, सेवा और अटूट आस्था का मुख्य केंद्र है। यहाँ प्रतिदिन ज्योति ज्योत दर्शन, सामाजिक चर्चाएँ और धार्मिक उत्सव आयोजित किए जाते हैं।
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white border border-[#E8DCC8] rounded-full text-xs sm:text-sm font-bold text-[#7A2525] uppercase tracking-wider mb-4 shadow-sm">
+              <FiShield className="w-4 h-4 text-[#C85A17]" />
+              सिर्वी समाज कोणदा • सर्वोच्च सामाजिक व्यवस्था
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2B211B] tracking-tight leading-tight mb-3">
+              सकल पंच
+            </h2>
+
+            <p className="text-[#C85A17] font-bold text-base sm:text-lg spiritual-title mb-2">
+              समाज की स्थानीय सामाजिक एवं संगठनात्मक व्यवस्था में सकल पंचों की महत्वपूर्ण भूमिका होती है।
             </p>
-            <Link
-              to="/gallery"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-orange-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
-            >
-              और जानें <FiArrowRight className="w-4 h-4" />
-            </Link>
+            <p className="text-[#766A60] text-sm max-w-2xl mx-auto font-medium">
+              पारंपरिक सामाजिक मार्गदर्शन, समन्वय एवं निर्णय प्रक्रिया के स्तंभ
+            </p>
           </motion.div>
+
+          {/* Sakal Panch Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-10">
+            {[
+              { name: 'श्री शंकर जी वालाजी पवार', पद: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
+              { name: 'श्री खेमाजी दुदाजी गेहलोत', पद: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
+              { name: 'श्री कन्हैयालाल लालाजी भायल', पद: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
+              { name: 'श्री लक्ष्मण वालाजी काग', पद: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
+              { name: 'श्री सुनिल पन्नालाल जी भायल', पद: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
+            ].map((panch, idx) => (
+              <motion.div
+                key={panch.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.08 }}
+                className="bg-white rounded-3xl p-6 text-center border border-[#E8DCC8] hover:border-[#C9A44C]/60 transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1 relative group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-1 mx-auto mb-4 shadow-lg group-hover:scale-105 transition-transform">
+                    <div className="w-full h-full bg-[#FFF8EC] rounded-full flex items-center justify-center text-[#7A2525] text-2xl font-black">
+                      👑
+                    </div>
+                  </div>
+                  <div className="inline-block px-3 py-1 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-xs font-extrabold text-[#7A2525] mb-3">
+                    {panch.पद}
+                  </div>
+                  <h3 className="font-bold text-[#2B211B] text-base leading-snug mb-1.5">
+                    {panch.name}
+                  </h3>
+                  <p className="text-xs text-[#766A60] font-semibold flex items-center justify-center gap-1">
+                    <FiMapPin className="w-3 h-3 text-[#C85A17]" /> ग्राम {panch.village} (कुक्षी)
+                  </p>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-[#E8DCC8] text-xs text-[#C85A17] font-bold">
+                  सिर्वी समाज सकल पंच
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Action Button to Sakal Panch & Organization Page */}
+          <div className="text-center">
+            <Link
+              to="/konda-gram-unit"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-[#7A2525] to-[#C85A17] hover:from-[#5C1A1A] hover:to-[#B04C10] text-white font-extrabold rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-sm cursor-pointer"
+            >
+              <span>सकल पंच एवं ग्राम इकाई की अधिक जानकारी</span>
+              <FiArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Akhil Bharatiya Sirvi Mahasabha — Konda Gram Unit Feature Section */}
+      <section className="py-20 bg-[#FFF8EC] border-b border-[#E8DCC8] relative overflow-hidden">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center max-w-4xl mx-auto mb-12"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white border border-[#E8DCC8] rounded-full text-xs sm:text-sm font-bold text-[#C85A17] uppercase tracking-wider mb-4 shadow-sm">
+              <FiFlag className="w-4 h-4 text-[#C85A17]" />
+              अखिल भारतीय सिर्वी महासभा मध्यप्रदेश • नवीन मनोनयन
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2B211B] tracking-tight leading-tight mb-3">
+              अखिल भारतीय सिर्वी महासभा मध्यप्रदेश — कोणदा ग्राम इकाई
+            </h2>
+
+            <p className="text-[#C85A17] font-bold text-base sm:text-lg spiritual-title">
+              *कोणदा / कुक्षी / मध्यप्रदेश* • सर्वसम्मति से ग्राम इकाई का गठन
+            </p>
+          </motion.div>
+
+          {/* Official Announcement Statement Box */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-md mb-12 relative overflow-hidden text-[#2B211B]"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-white text-2xl shrink-0 shadow-md">
+                📜
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-lg sm:text-xl font-bold text-[#7A2525] flex items-center gap-2">
+                  <FiAward className="text-[#C85A17]" /> आधिकारिक गठन उद्घोषणा
+                </h3>
+                <p className="text-sm sm:text-base leading-relaxed text-[#766A60] font-medium">
+                  <strong className="text-[#2B211B]">*कोणदा/कुक्षी/मध्यप्रदेश*</strong>। अखिल भारतीय सिर्वी महासभा मध्यप्रदेश के नवीन मनोनयन की प्रक्रिया के तहत कुक्षी तहसील के <strong className="text-[#2B211B]">*ग्राम कोणदा में ग्राम इकाई का गठन नियुक्त पर्यवेक्षक हिरालालजी हम्मड कापसी एवं स्थानीय पंचों की उपस्थिति में किया गया*</strong> जिसमें सर्वसम्मति से पदाधिकारियों एवं समाज प्रतिनिधियों का चयन किया गया।
+                </p>
+                <div className="pt-3 border-t border-[#E8DCC8]/60 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm text-[#766A60] font-semibold">
+                  <span className="flex items-center gap-1.5 text-[#C85A17]">
+                    <FiUserCheck className="w-4 h-4" /> नियुक्त पर्यवेक्षक: <strong className="text-[#2B211B]">हिरालालजी हम्मड कापसी</strong>
+                  </span>
+                  <span className="italic text-[#766A60]">*इस अवसर पर सिर्वी समाज सकल पंच सहित समाज के नवयुवक एवं वरिष्ठजन उपस्थित थे।*</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Structured Roles Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {/* Card 1: Key Office Bearers (पदाधिकारी) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-3xl p-6 border border-[#E8DCC8] hover:border-[#C9A44C]/60 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-2.5 pb-3 mb-4 border-b border-[#E8DCC8]">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    🏛️
+                  </div>
+                  <h4 className="font-bold text-base text-[#2B211B]">मुख्य पदाधिकारी</h4>
+                </div>
+
+                <ul className="space-y-2.5 text-xs sm:text-sm">
+                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-xs">अध्यक्ष</span>
+                    <span className="font-bold text-[#2B211B]">सुनिल/पन्नालाल जी भायल</span>
+                  </li>
+                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-xs">महासचिव</span>
+                    <span className="font-bold text-[#2B211B]">अजय/गोपाल जी शिनदडा</span>
+                  </li>
+                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-xs">उपाध्यक्ष</span>
+                    <span className="font-bold text-[#2B211B]">कन्हैयालाल/रत्न जी चोहान</span>
+                  </li>
+                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-xs">सचिव</span>
+                    <span className="font-bold text-[#2B211B]">दिनेश/गोविंद जी लछेटा</span>
+                  </li>
+                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-xs">कोषाध्यक्ष</span>
+                    <span className="font-bold text-[#2B211B]">कैलाश/रत्नजी अगल्चा</span>
+                  </li>
+                </ul>
+              </div>
+            </motion.div>
+
+            {/* Card 2: Gram Unit Members (सदस्य) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-3xl p-6 border border-[#E8DCC8] hover:border-[#C9A44C]/60 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-2.5 pb-3 mb-4 border-b border-[#E8DCC8]">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    👥
+                  </div>
+                  <h4 className="font-bold text-base text-[#2B211B]">ग्राम इकाई सदस्य (6)</h4>
+                </div>
+
+                <ul className="space-y-2 text-xs sm:text-sm">
+                  {[
+                    'जिवन /गोपाल जी सोलंकी',
+                    'दिलीप/मोतीलाल जी चोयल',
+                    'कमल/लक्ष्मण जी पड़ियार',
+                    'सुनिल/शंकर जी गेहलोत',
+                    'सुनील/मुन्नालाल पवार',
+                    'रवि/पारस जी लछेटा',
+                  ].map((name, i) => (
+                    <li key={name} className="flex items-center gap-2 p-2 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                      <span className="w-5 h-5 rounded-full bg-[#C85A17] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {i + 1}
+                      </span>
+                      <span className="font-semibold text-[#2B211B] truncate">{name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+
+            {/* Card 3: Tehsil Representatives (तहसील प्रतिनिधि) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-3xl p-6 border border-[#E8DCC8] hover:border-[#C9A44C]/60 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-2.5 pb-3 mb-4 border-b border-[#E8DCC8]">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    🌾
+                  </div>
+                  <h4 className="font-bold text-base text-[#2B211B]">तहसील प्रतिनिधि (कुक्षी)</h4>
+                </div>
+
+                <ul className="space-y-2 text-xs sm:text-sm">
+                  {[
+                    'शान्तिलाल/काशिराम जी पवार',
+                    'मुकेश/हिराजी पड़ियार',
+                    'अनिल/हामाजी भायल',
+                    'महेन्द्र/मोहनजी काग',
+                    'कैलाश/मंगताजी राठौर',
+                  ].map((name, i) => (
+                    <li key={name} className="flex items-center gap-2 p-2 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                      <span className="w-5 h-5 rounded-full bg-[#C9A44C] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {i + 1}
+                      </span>
+                      <span className="font-semibold text-[#2B211B] truncate">{name}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+
+            {/* Card 4: District & State Representatives (जिला एवं प्रदेश प्रतिनिधि) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="bg-white rounded-3xl p-6 border border-[#E8DCC8] hover:border-[#C9A44C]/60 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-2.5 pb-3 mb-4 border-b border-[#E8DCC8]">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    🌟
+                  </div>
+                  <h4 className="font-bold text-base text-[#2B211B]">जिला एवं प्रदेश प्रतिनिधि</h4>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#C85A17] block mb-1.5">
+                      जिला प्रतिनिधि (धार)
+                    </span>
+                    <ul className="space-y-1.5 text-xs">
+                      {[
+                        'जगदीश /देवाजी भायल',
+                        'दिलीप/हामाजी चोयल',
+                        'खेमाजी/दुदाजी गेहलोत',
+                      ].map((name, i) => (
+                        <li key={name} className="flex items-center gap-2 p-1.5 rounded-xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                          <span className="text-[10px] text-[#C85A17] font-bold">{i + 1}.</span>
+                          <span className="font-semibold text-[#2B211B] truncate">{name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="pt-2 border-t border-[#E8DCC8]">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#7A2525] block mb-1.5">
+                      प्रदेश प्रतिनिधि (मध्यप्रदेश)
+                    </span>
+                    <div className="p-2.5 rounded-2xl bg-gradient-to-r from-[#FFF8EC] to-[#FAF1E0] border border-[#E8DCC8]">
+                      <span className="text-xs font-black text-[#7A2525] block">1. जितेन्द्र/देवाजी शिनदडा</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Call to action for full gram unit page */}
+          <div className="text-center">
+            <Link
+              to="/konda-gram-unit"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-sm cursor-pointer"
+            >
+              अखिल भारतीय सिर्वी महासभा — कोणदा ग्राम इकाई का पूर्ण विवरण देखें <FiArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Akhil Bharatiya Sirvi Samaj Yuva Sangathan — Konda Unit Feature Section */}
+      <section className="py-20 bg-[#FAF1E0] border-b border-[#E8DCC8] relative overflow-hidden">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center max-w-4xl mx-auto mb-12"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-xs sm:text-sm font-bold text-[#C85A17] uppercase tracking-wider mb-4 shadow-sm">
+              <span>⚡</span> अखिल भारतीय सिर्वी समाज युवा संगठन • नवीन कार्यकारिणी
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2B211B] tracking-tight leading-tight mb-3">
+              अखिल भारतीय सिर्वी समाज युवा संगठन — कोणदा
+            </h2>
+
+            <p className="text-[#C85A17] font-bold text-base sm:text-lg spiritual-title">
+              *कोणदा / कुक्षी / मध्यप्रदेश* • युवा शक्ति, सामाजिक एकता एवं सेवा संकल्प
+            </p>
+          </motion.div>
+
+          {/* Official Announcement Statement Box */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-md mb-12 relative overflow-hidden text-[#2B211B]"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#7A2525] flex items-center justify-center text-white text-2xl shrink-0 shadow-md">
+                🚩
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-lg sm:text-xl font-bold text-[#7A2525] flex items-center gap-2">
+                  <FiAward className="text-[#C85A17]" /> युवा संगठन नवीन कार्यकारिणी गठन उद्घोषणा
+                </h3>
+                <p className="text-sm sm:text-base leading-relaxed text-[#766A60] font-medium">
+                  <strong className="text-[#2B211B]">*कोणदा/कुक्षी/मध्यप्रदेश*</strong>। अखिल भारतीय सिर्वी समाज युवा संगठन की नवीन कार्यकारिणी का गठन किया गया है। यह गठन <strong className="text-[#2B211B]">*सिर्वी समाज इकाई संगठन की अनुशंसा एवं तहसील प्रतिनिधि, जिला प्रतिनिधि, प्रदेश प्रतिनिधि की उपस्थिति में सर्वसम्मति से किया गया।*</strong>
+                </p>
+                <div className="pt-3 border-t border-[#E8DCC8]/60 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm font-bold">
+                  <span className="flex items-center gap-1.5 text-green-700 bg-green-50 px-3 py-1 rounded-xl border border-green-200">
+                    <FiCheckCircle className="w-4 h-4" /> सर्वसम्मति से चयनित कार्यकारिणी
+                  </span>
+                  <span className="text-[#C85A17] text-sm font-extrabold italic">
+                    🎉 *नवीन कार्यकारिणी को बहुत बहुत बधाई एवं शुभकामनाएं*
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Structured Roles Grid for Yuva Sangathan */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
+            {/* Card 1: Key Leadership */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-3xl p-6 border border-[#E8DCC8] hover:border-[#C9A44C]/60 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-2.5 pb-3 mb-4 border-b border-[#E8DCC8]">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    👑
+                  </div>
+                  <h4 className="font-bold text-base text-[#2B211B]">मुख्य नेतृत्व</h4>
+                </div>
+
+                <ul className="space-y-3 text-xs sm:text-sm">
+                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-xs">अध्यक्ष</span>
+                    <span className="font-bold text-[#2B211B] text-sm">विजय कानाजी पडियार</span>
+                  </li>
+                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-xs">महासचिव</span>
+                    <span className="font-bold text-[#2B211B] text-sm">गोविंद गोपाल जी बर्फा</span>
+                  </li>
+                </ul>
+              </div>
+            </motion.div>
+
+            {/* Card 2: Vice Presidents & Secretaries */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.08 }}
+              className="bg-white rounded-3xl p-6 border border-[#E8DCC8] hover:border-[#C9A44C]/60 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-2.5 pb-3 mb-4 border-b border-[#E8DCC8]">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    🤝
+                  </div>
+                  <h4 className="font-bold text-base text-[#2B211B]">उपाध्यक्ष एवं सचिव मण्डल</h4>
+                </div>
+
+                <ul className="space-y-2 text-xs sm:text-sm">
+                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-[11px]">उपाध्यक्ष (2)</span>
+                    <span className="font-bold text-[#2B211B] block">1. विजय रतनजी भायल</span>
+                    <span className="font-bold text-[#2B211B] block">2. किशोर प्रभुजी गेहलोत</span>
+                  </li>
+                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-[11px]">सचिव</span>
+                    <span className="font-bold text-[#2B211B]">विशाल अर्जुन जी सोलंकी</span>
+                  </li>
+                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-[11px]">सह सचिव</span>
+                    <span className="font-bold text-[#2B211B]">सुरज भानाजी चौहान</span>
+                  </li>
+                </ul>
+              </div>
+            </motion.div>
+
+            {/* Card 3: Finance, Media & Education Cell */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.16 }}
+              className="bg-white rounded-3xl p-6 border border-[#E8DCC8] hover:border-[#C9A44C]/60 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-2.5 pb-3 mb-4 border-b border-[#E8DCC8]">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    💼
+                  </div>
+                  <h4 className="font-bold text-base text-[#2B211B]">कोषाध्यक्ष, मीडिया एवं शिक्षा</h4>
+                </div>
+
+                <ul className="space-y-2 text-xs sm:text-sm">
+                  <li className="p-2 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-[11px]">कोषाध्यक्ष (2)</span>
+                    <span className="font-bold text-[#2B211B] block">1. दिलीप कन्हैयालाल जी अगल्चा</span>
+                    <span className="font-bold text-[#2B211B] block">2. विकास मुलचदंजी काग</span>
+                  </li>
+                  <li className="p-2 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-[11px]">मिडिया प्रभारी (2)</span>
+                    <span className="font-bold text-[#2B211B] block">1. आकाश रमेशजी चोयल</span>
+                    <span className="font-bold text-[#2B211B] block">2. जयंती लाल लक्ष्मण जी राठौर</span>
+                  </li>
+                  <li className="p-2 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                    <span className="text-[#C85A17] font-extrabold block text-[11px]">शिक्षा प्रकोष्ठ</span>
+                    <span className="font-bold text-[#2B211B]">अनिल महेश जी सिदंड़ा</span>
+                  </li>
+                </ul>
+              </div>
+            </motion.div>
+
+            {/* Card 4: Executive Members (सदस्य) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.24 }}
+              className="bg-white rounded-3xl p-6 border border-[#E8DCC8] hover:border-[#C9A44C]/60 shadow-md hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-2.5 pb-3 mb-4 border-b border-[#E8DCC8]">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                    👥
+                  </div>
+                  <h4 className="font-bold text-base text-[#2B211B]">कार्यकारिणी सदस्य (4)</h4>
+                </div>
+
+                <ul className="space-y-2 text-xs sm:text-sm">
+                  {[
+                    'सजय मुन्नालाल जी पवार',
+                    'सजय हरि जी लछेटा',
+                    'लोकेश प्रकाशजी सेणचा',
+                    'महेश मोहन जी भायल',
+                  ].map((name, i) => (
+                    <li key={name} className="flex items-center gap-2 p-2 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                      <span className="w-5 h-5 rounded-full bg-[#C85A17] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {i + 1}
+                      </span>
+                      <span className="font-semibold text-[#2B211B] truncate">{name}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-3 pt-2.5 border-t border-[#E8DCC8] text-[11px] text-[#766A60] font-medium">
+                  अनुशंसा: सिर्वी समाज इकाई संगठन कोणदा
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Statistics */}
-      <section className="py-20 bg-white dark:bg-slate-900">
+      <section className="py-20 bg-[#FFF8EC] border-b border-[#E8DCC8]">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -319,13 +899,13 @@ const HomePage = () => {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <span className="inline-block px-4 py-1.5 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-semibold rounded-full mb-4 uppercase tracking-wider">
+            <span className="inline-block px-4 py-1.5 bg-white border border-[#E8DCC8] text-[#C85A17] text-xs font-bold rounded-full mb-4 uppercase tracking-wider shadow-sm">
               {t('stats_badge')}
             </span>
-            <h2 className="text-4xl font-bold text-[#FFF3DD] mb-4">
+            <h2 className="text-4xl font-extrabold text-[#2B211B] mb-3">
               {t('stats_title')}
             </h2>
-            <p className="text-[#CDBBA4] max-w-xl mx-auto text-sm font-medium">
+            <p className="text-[#766A60] max-w-xl mx-auto text-sm font-medium">
               {t('stats_desc')}
             </p>
           </motion.div>
@@ -346,7 +926,7 @@ const HomePage = () => {
       </section>
 
       {/* Quick Links */}
-      <section className="py-20 bg-gray-50 dark:bg-slate-800/50">
+      <section className="py-20 bg-[#FAF1E0] border-b border-[#E8DCC8]">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -354,10 +934,10 @@ const HomePage = () => {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <span className="inline-block px-4 py-1.5 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-semibold rounded-full mb-4 uppercase tracking-wider">
+            <span className="inline-block px-4 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] text-[#7A2525] text-xs font-bold rounded-full mb-4 uppercase tracking-wider shadow-sm">
               {t('quick_badge')}
             </span>
-            <h2 className="text-4xl font-bold text-[#FFF3DD] mb-4">
+            <h2 className="text-4xl font-extrabold text-[#2B211B] mb-3">
               {t('quick_title')}
             </h2>
           </motion.div>
@@ -373,12 +953,12 @@ const HomePage = () => {
               >
                 <Link
                   to={path}
-                  className="group flex flex-col items-center gap-3 p-5 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 hover:border-orange-200 dark:hover:border-orange-500/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center"
+                  className="group flex flex-col items-center gap-3 p-6 bg-white rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center shadow-md"
                 >
-                  <div className={`w-12 h-12 bg-gradient-to-br ${color} rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-200`}>
+                  <div className="w-13 h-13 bg-gradient-to-br from-[#C85A17] to-[#C9A44C] rounded-2xl flex items-center justify-center shadow-md shadow-orange-500/10 group-hover:scale-110 transition-transform duration-200">
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{label}</span>
+                  <span className="text-sm font-bold text-[#2B211B] group-hover:text-[#C85A17] transition-colors">{label}</span>
                 </Link>
               </motion.div>
             ))}
@@ -387,19 +967,19 @@ const HomePage = () => {
       </section>
 
       {/* Latest News & Upcoming Events */}
-      <section className="py-20 bg-white dark:bg-slate-900">
+      <section className="py-20 bg-[#FFF8EC] border-b border-[#E8DCC8]">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12">
             {/* News */}
             <div>
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <span className="inline-block px-3 py-1 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-semibold rounded-full mb-2 uppercase tracking-wider">
+                  <span className="inline-block px-3 py-1 bg-white border border-[#E8DCC8] text-[#C85A17] text-xs font-bold rounded-full mb-2 uppercase tracking-wider shadow-sm">
                     {t('news_badge')}
                   </span>
-                  <h2 className="text-3xl font-bold text-[#FFF3DD]">{t('news_title')}</h2>
+                  <h2 className="text-3xl font-extrabold text-[#2B211B]">{t('news_title')}</h2>
                 </div>
-                <Link to="/news" className="flex items-center gap-1 text-orange-500 text-sm font-bold hover:gap-2 transition-all">
+                <Link to="/news" className="flex items-center gap-1 text-[#C85A17] text-sm font-bold hover:gap-2 transition-all">
                   {t('news_view_all')} <FiChevronRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -412,27 +992,27 @@ const HomePage = () => {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 }}
-                    className="flex gap-4 p-4 bg-gray-50 dark:bg-slate-800 rounded-2xl hover:bg-orange-50 dark:hover:bg-orange-500/5 transition-colors group"
+                    className="flex gap-4 p-5 bg-white rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/50 hover:shadow-lg transition-all group"
                   >
-                    <div className="w-14 h-14 bg-orange-100 dark:bg-orange-500/20 rounded-xl flex items-center justify-center shrink-0 text-2xl">
+                    <div className="w-14 h-14 bg-gradient-to-br from-[#FFF8EC] to-[#FAF1E0] border border-[#E8DCC8] rounded-2xl flex items-center justify-center shrink-0 text-2xl shadow-sm">
                       📰
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-[#FFF3DD] text-sm mb-1 truncate group-hover:text-orange-500 transition-colors">
+                      <h3 className="font-bold text-[#2B211B] text-base mb-1 truncate group-hover:text-[#C85A17] transition-colors">
                         {item.title}
                       </h3>
-                      <p className="text-[#CDBBA4] text-xs line-clamp-2 leading-relaxed">
+                      <p className="text-[#766A60] text-xs line-clamp-2 leading-relaxed font-medium">
                         {item.content?.replace(/<[^>]*>/g, '') || item.excerpt}
                       </p>
-                      <p className="text-orange-500 text-xs mt-2 font-semibold">
-                        {new Date(item.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      <p className="text-[#C85A17] text-xs mt-2 font-bold">
+                        {new Date(item.createdAt).toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
                   </motion.div>
                 )) : (
-                  <div className="text-center py-12 text-gray-400 border border-dashed border-gray-200 dark:border-slate-700 rounded-2xl">
+                  <div className="text-center py-12 text-[#766A60] bg-white border border-dashed border-[#E8DCC8] rounded-3xl">
                     <div className="text-4xl mb-3">📭</div>
-                    <p className="text-sm font-medium">{t('news_empty')}</p>
+                    <p className="text-sm font-semibold">{t('news_empty')}</p>
                   </div>
                 )}
               </div>
@@ -442,12 +1022,12 @@ const HomePage = () => {
             <div>
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <span className="inline-block px-3 py-1 bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-semibold rounded-full mb-2 uppercase tracking-wider">
+                  <span className="inline-block px-3 py-1 bg-white border border-[#E8DCC8] text-green-700 text-xs font-bold rounded-full mb-2 uppercase tracking-wider shadow-sm">
                     {t('events_badge')}
                   </span>
-                  <h2 className="text-3xl font-bold text-[#FFF3DD]">{t('events_title')}</h2>
+                  <h2 className="text-3xl font-extrabold text-[#2B211B]">{t('events_title')}</h2>
                 </div>
-                <Link to="/events" className="flex items-center gap-1 text-orange-500 text-sm font-bold hover:gap-2 transition-all">
+                <Link to="/events" className="flex items-center gap-1 text-[#C85A17] text-sm font-bold hover:gap-2 transition-all">
                   {t('events_view_all')} <FiChevronRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -460,29 +1040,29 @@ const HomePage = () => {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 }}
-                    className="flex gap-4 p-4 bg-[#2A1010] border border-[#D4AF37]/10 rounded-2xl hover:bg-[#351313] transition-colors"
+                    className="flex gap-4 p-5 bg-white border border-[#E8DCC8] rounded-3xl hover:border-[#C9A44C]/50 hover:shadow-lg transition-all"
                   >
-                    <div className="w-14 h-14 bg-[#7A2525]/20 rounded-xl flex items-center justify-center shrink-0">
-                      <div className="text-center">
-                        <p className="text-lg font-bold text-[#C85A17] leading-none">
+                    <div className="w-14 h-14 bg-gradient-to-br from-[#7A2525] to-[#C85A17] rounded-2xl flex items-center justify-center shrink-0 shadow-md">
+                      <div className="text-center text-white">
+                        <p className="text-lg font-black leading-none">
                           {new Date(event.date || event.startDate).getDate()}
                         </p>
-                        <p className="text-xs text-[#C85A17] font-semibold uppercase mt-0.5">
-                          {new Date(event.date || event.startDate).toLocaleString('en-IN', { month: 'short' })}
+                        <p className="text-[10px] text-orange-200 font-bold uppercase mt-0.5">
+                          {new Date(event.date || event.startDate).toLocaleString('hi-IN', { month: 'short' })}
                         </p>
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-[#FFF3DD] text-sm mb-1 truncate">{event.title}</h3>
-                      <p className="text-[#CDBBA4] text-xs flex items-center gap-1 font-medium">
-                        <FiMapPin className="w-3.5 h-3.5 text-primary shrink-0" /> {event.location || 'Konda'}
+                      <h3 className="font-bold text-[#2B211B] text-base mb-1 truncate">{event.title}</h3>
+                      <p className="text-[#766A60] text-xs flex items-center gap-1 font-semibold mt-1">
+                        <FiMapPin className="w-3.5 h-3.5 text-[#C85A17] shrink-0" /> {event.location || 'कोणदा'}
                       </p>
                     </div>
                   </motion.div>
                 )) : (
-                  <div className="text-center py-12 text-[#766A60] border border-dashed border-[#D4AF37]/10 rounded-2xl">
+                  <div className="text-center py-12 text-[#766A60] bg-white border border-dashed border-[#E8DCC8] rounded-3xl">
                     <div className="text-4xl mb-3">📅</div>
-                    <p className="text-sm font-medium">{t('events_empty')}</p>
+                    <p className="text-sm font-semibold">{t('events_empty')}</p>
                   </div>
                 )}
               </div>
@@ -493,7 +1073,7 @@ const HomePage = () => {
 
       {/* All Committees & Members Section */}
       {committee.length > 0 && (
-        <section className="py-20 bg-[#160D08] border-b border-[#D4AF37]/10">
+        <section className="py-20 bg-[#FAF1E0] border-b border-[#E8DCC8]">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -501,32 +1081,35 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="text-center mb-10"
             >
-              <span className="inline-block px-4 py-1.5 bg-[#7A2525]/20 text-[#C85A17] text-xs font-bold rounded-full mb-3 uppercase tracking-wider">
+              <span className="inline-block px-4 py-1.5 bg-white border border-[#E8DCC8] text-[#C85A17] text-xs font-bold rounded-full mb-3 uppercase tracking-wider shadow-sm">
                 {t('committee_badge')}
               </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#FFF3DD] mb-3">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#2B211B] mb-3">
                 समिति एवं संगठन पदाधिकारी
               </h2>
-              <p className="text-[#CDBBA4] text-sm sm:text-base max-w-2xl mx-auto">
+              <p className="text-[#766A60] text-sm sm:text-base max-w-2xl mx-auto font-medium">
                 सिर्वी समाज कोणदा की सभी कार्यकारिणी समितियों, संगठन एवं संकल पंच के समर्पित पदाधिकारी एवं सदस्य
               </p>
             </motion.div>
 
             {/* Committee Category Selector Tabs */}
-            <div className="flex flex-wrap justify-center border-b border-[#D4AF37]/20 mb-10 gap-2">
+            <div className="flex flex-wrap justify-center border-b border-[#E8DCC8] mb-10 gap-2">
               {[
-                { id: 'all', label: 'सभी समितियां (All Committees)' },
+                { id: 'all', label: 'सभी समितियां' },
+                { id: 'sahayata_kosh', label: 'श्री आईं जी सहायता कोष समिति' },
+                { id: 'annapurna_bhavan', label: 'प्रमुख समिति एवं माँ अन्नपूर्णा भवन समिति' },
                 { id: 'committee', label: 'कार्यकारिणी समिति' },
+                { id: 'women_committee', label: 'श्री आई जी महिला समिती' },
                 { id: 'sangathan', label: 'संगठन' },
                 { id: 'sankal_panch', label: 'संकल पंच' },
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveCommitteeTab(tab.id)}
-                  className={`px-5 py-2.5 text-xs sm:text-sm font-bold transition-all border-b-2 rounded-t-xl -mb-[2px] cursor-pointer ${
+                  className={`px-5 py-2.5 text-xs sm:text-sm font-bold transition-all border-b-2 rounded-t-2xl -mb-[2px] cursor-pointer ${
                     activeCommitteeTab === tab.id
-                      ? 'border-[#D4AF37] text-[#D4AF37] bg-[#7A2525]/30'
-                      : 'border-transparent text-[#CDBBA4] hover:text-[#FFF3DD] hover:bg-[#7A2525]/10'
+                      ? 'border-[#C85A17] text-[#C85A17] bg-white shadow-sm font-black'
+                      : 'border-transparent text-[#766A60] hover:text-[#2B211B] hover:bg-white/50'
                   }`}
                 >
                   {tab.label}
@@ -536,10 +1119,319 @@ const HomePage = () => {
 
             {/* Members Display grouped by Committee */}
             <div className="space-y-10">
+              {/* Shri Aai Ji Sahayata Kosh Samiti */}
+              {(activeCommitteeTab === 'all' || activeCommitteeTab === 'sahayata_kosh') && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-md relative overflow-hidden text-[#2B211B]"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E8DCC8] pb-5 mb-6">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-2xl shadow-md shrink-0 text-white font-black">
+                        🤝
+                      </div>
+                      <div>
+                        <div className="inline-block px-3 py-0.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-[11px] font-bold text-[#C85A17] uppercase tracking-wider mb-1">
+                          आपातकालीन सहायता • समाज सेवा • परस्पर सहयोग कोष
+                        </div>
+                        <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2B211B]">
+                          श्री आईं जी सहायता कोष समिति
+                        </h3>
+                      </div>
+                    </div>
+
+                    <span className="self-start md:self-auto px-4 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] text-[#C85A17] text-xs font-bold rounded-xl">
+                      पदाधिकारी एवं कार्यकारिणी सदस्य
+                    </span>
+                  </div>
+
+                  <p className="text-[#766A60] text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                    समाज बंधुओं के आकस्मिक सहयोग, चिकित्सा व आपातकालीन सहायता तथा कल्याणकारी कार्यों हेतु स्थापित श्री आईं जी सहायता कोष समिति।
+                  </p>
+
+                  {/* Main Office Bearers (5) */}
+                  <div className="mb-6">
+                    <h4 className="text-sm font-bold text-[#7A2525] uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <span>👑</span> मुख्य पदाधिकारी
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
+                      {[
+                        { name: 'शंकर जी वालाजी जी पवार', role: 'अध्यक्ष', num: '1' },
+                        { name: 'कैलाश जी रतनाजी अगल्चा', role: 'उपाध्यक्ष', num: '2' },
+                        { name: 'कमलजी चेनाजी काग', role: 'कोषाध्यक्ष', num: '3' },
+                        { name: 'अनिल जी हामाजी भायल', role: 'सचिव', num: '4' },
+                        { name: 'शान्तिलाल जी काशिराम जी पवार', role: 'सहसचिव', num: '5' },
+                      ].map((item, idx) => (
+                        <motion.div
+                          key={item.name}
+                          initial={{ opacity: 0, y: 15 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: idx * 0.04 }}
+                          className="p-4 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-md transition-all"
+                        >
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <span className="text-xs font-extrabold text-[#C85A17] px-2 py-0.5 bg-white rounded-lg border border-[#E8DCC8]">
+                              {item.role}
+                            </span>
+                            <span className="text-[10px] text-green-700 font-bold bg-green-50 px-1.5 py-0.5 rounded border border-green-200">सक्रिय</span>
+                          </div>
+                          <p className="font-bold text-[#2B211B] text-sm leading-snug">
+                            {item.name}
+                          </p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Executive Members (6) */}
+                  <div className="pt-4 border-t border-[#E8DCC8]">
+                    <h4 className="text-sm font-bold text-[#7A2525] uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <span>👥</span> कार्यकारिणी सदस्य (6)
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+                      {[
+                        'मुकेश हिराजी पड़ियार',
+                        'कन्हैयालाल लालाजी भायल',
+                        'टिकम जी मंगता जी शिंनदडा',
+                        'गोपाल जी रुखडुजी गेहलोत',
+                        'दिलीप मोतीलाल जी चोयल',
+                        'हुकुम कानाजी लछेटा',
+                      ].map((name, i) => (
+                        <div
+                          key={name}
+                          className="flex items-center gap-2 p-3 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60"
+                        >
+                          <span className="w-5 h-5 rounded-full bg-[#C85A17] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                            {i + 1}
+                          </span>
+                          <span className="font-semibold text-xs text-[#2B211B] truncate">{name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Pramukh Samiti Evam Maa Annapurna Bhavan Samiti */}
+              {(activeCommitteeTab === 'all' || activeCommitteeTab === 'annapurna_bhavan') && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-md relative overflow-hidden text-[#2B211B]"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E8DCC8] pb-5 mb-6">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-2xl shadow-md shrink-0 text-white font-black">
+                        🏛️
+                      </div>
+                      <div>
+                        <div className="inline-block px-3 py-0.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-[11px] font-bold text-[#C85A17] uppercase tracking-wider mb-1">
+                          भवन प्रबंधन • समाज सेवा • व्यवस्था संचालन
+                        </div>
+                        <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2B211B]">
+                          प्रमुख समिति एवं माँ अन्नपूर्णा भवन समिति
+                        </h3>
+                      </div>
+                    </div>
+
+                    <span className="self-start md:self-auto px-4 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] text-[#C85A17] text-xs font-bold rounded-xl">
+                      5 प्रमुख पदाधिकारी एवं सदस्य
+                    </span>
+                  </div>
+
+                  <p className="text-[#766A60] text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                    माँ अन्नपूर्णा भवन कोणदा के सुव्यवस्थित संचालन, सामाजिक एवं मांगलिक आयोजनों की व्यवस्था तथा समाज हितैषी गतिविधियों हेतु समर्पित प्रमुख समिति।
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                    {[
+                      { name: 'शंकर वालाजी पवार', phone: '9981644585', role: 'प्रमुख सदस्य / संरक्षक' },
+                      { name: 'खेमाजी दुदाजी गेहलोत', phone: '9755309933', role: 'प्रमुख सदस्य / संरक्षक' },
+                      { name: 'कन्हैयालाल लालाजी भायल', phone: '7389089165', role: 'प्रमुख सदस्य / संरक्षक' },
+                      { name: 'लक्ष्मण वालाजी काग', phone: '9893944986', role: 'प्रमुख सदस्य / संरक्षक' },
+                      { name: 'सुनिल पन्नालाल जी भायल', phone: '9993339042', role: 'प्रमुख सदस्य / संरक्षक' },
+                    ].map((member, i) => (
+                      <motion.div
+                        key={member.name}
+                        initial={{ opacity: 0, y: 15 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.05 }}
+                        className="flex flex-col justify-between p-5 bg-[#FFF8EC] rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-lg transition-all duration-300 group"
+                      >
+                        <div>
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-white text-base font-extrabold shadow-md shrink-0">
+                              {member.name.charAt(0)}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <span className="text-[10px] px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full font-bold">
+                                सक्रिय
+                              </span>
+                            </div>
+                          </div>
+
+                          <h4 className="font-bold text-[#2B211B] text-sm group-hover:text-[#C85A17] transition-colors leading-snug mb-1">
+                            {member.name}
+                          </h4>
+                          <p className="text-xs text-[#766A60] font-medium mb-3">
+                            {member.role}
+                          </p>
+                        </div>
+
+                        <a
+                          href={`tel:${member.phone}`}
+                          className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 px-3 bg-white hover:bg-[#C85A17] hover:text-white text-[#C85A17] text-xs font-bold rounded-2xl border border-[#E8DCC8] shadow-sm transition-all duration-200"
+                        >
+                          <FiPhone className="w-3.5 h-3.5" />
+                          <span>{member.phone}</span>
+                        </a>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Shri Aai Ji Women Committee Feature Card */}
+              {(activeCommitteeTab === 'all' || activeCommitteeTab === 'women_committee') && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-md relative overflow-hidden text-[#2B211B]"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E8DCC8] pb-5 mb-6">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-2xl shadow-md shrink-0 text-white font-black">
+                        🌸
+                      </div>
+                      <div>
+                        <div className="inline-block px-3 py-0.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-[11px] font-bold text-[#C85A17] uppercase tracking-wider mb-1">
+                          महिला शक्ति • सेवा • संस्कार • सहयोग
+                        </div>
+                        <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2B211B]">
+                          श्री आई जी महिला समिती
+                        </h3>
+                      </div>
+                    </div>
+
+                    <Link
+                      to="/women-committee"
+                      className="self-start md:self-auto inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white font-bold text-xs sm:text-sm rounded-2xl hover:shadow-lg transition-all shrink-0 cursor-pointer shadow-md"
+                    >
+                      महिला समिती पूर्ण विवरण देखें <FiArrowRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+
+                  <p className="text-[#766A60] text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                    श्री आई जी महिला समिती का उद्देश्य समाज की महिलाओं को सशक्त, जागरूक, संगठित और आत्मनिर्भर बनाना है। शिक्षा, संस्कार, स्वास्थ्य एवं सामाजिक सेवा कार्यों के माध्यम से समाज उत्थान में सक्रिय सहयोग।
+                  </p>
+
+                  {/* Active Members of Shri Aai Ji Women Committee */}
+                  <div className="mt-8 pt-6 border-t border-[#E8DCC8]">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h4 className="text-lg font-bold text-[#2B211B] flex items-center gap-2">
+                          <span>👥</span> श्री आई जी महिला समिती — सक्रिय पदाधिकारी एवं सदस्य
+                        </h4>
+                        <p className="text-xs text-[#766A60]">
+                          समिति की सक्रिय कार्यकारिणी एवं मातृशक्ति प्रतिनिधि
+                        </p>
+                      </div>
+                      <span className="px-3 py-1 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-xs font-bold text-[#C85A17]">
+                        सक्रिय सदस्य सूची
+                      </span>
+                    </div>
+
+                    {(() => {
+                      const apiWomenMembers = committee.filter(
+                        (m) => m.type === 'women_committee' && m.isActive !== false
+                      );
+                      
+                      let storedWomenMembers = [];
+                      if (typeof window !== 'undefined') {
+                        try {
+                          const stored = localStorage.getItem('sirvi_women_committee_admin_data');
+                          if (stored) {
+                            const parsed = JSON.parse(stored);
+                            if (Array.isArray(parsed.members)) {
+                              storedWomenMembers = parsed.members.filter(
+                                (m) => m.name && m.name.trim() !== '' && !m.name.includes('यहाँ दर्ज')
+                              );
+                            }
+                          }
+                        } catch {}
+                      }
+
+                      const activeMembers = apiWomenMembers.length > 0
+                        ? apiWomenMembers
+                        : storedWomenMembers.length > 0
+                        ? storedWomenMembers
+                        : [
+                            { _id: 'w1', name: 'श्रीमती अध्यक्ष महोदया', designation: 'अध्यक्ष', isActive: true },
+                            { _id: 'w2', name: 'श्रीमती उपाध्यक्ष महोदया', designation: 'उपाध्यक्ष', isActive: true },
+                            { _id: 'w3', name: 'श्रीमती सचिव महोदया', designation: 'सचिव', isActive: true },
+                            { _id: 'w4', name: 'श्रीमती कोषाध्यक्ष महोदया', designation: 'कोषाध्यक्ष', isActive: true },
+                            { _id: 'w5', name: 'मातृशक्ति सक्रिय सदस्य', designation: 'कार्यकारिणी सदस्य', isActive: true },
+                            { _id: 'w6', name: 'मातृशक्ति सक्रिय सदस्य', designation: 'कार्यकारिणी सदस्य', isActive: true },
+                          ];
+
+                      return (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                          {activeMembers.map((member, idx) => (
+                            <motion.div
+                              key={member._id || member.id || idx}
+                              initial={{ opacity: 0, y: 15 }}
+                              whileInView={{ opacity: 1, y: 0 }}
+                              viewport={{ once: true }}
+                              transition={{ delay: idx * 0.04 }}
+                              className="flex items-center gap-4 p-4 bg-[#FFF8EC] rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-md transition-all duration-300 group"
+                            >
+                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white text-base font-bold shadow-md shrink-0">
+                                {member.photo ? (
+                                  <img src={member.photo} alt={member.name} className="w-full h-full object-cover rounded-2xl" />
+                                ) : (
+                                  member.name?.charAt(0) || 'म'
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-bold text-[#2B211B] text-sm group-hover:text-[#C85A17] transition-colors truncate">
+                                  {member.name}
+                                </p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className="text-[#C85A17] text-xs font-semibold truncate">
+                                    {member.designation || member.position || 'सदस्य'}
+                                  </span>
+                                  <span className="text-[10px] px-1.5 py-0.2 bg-green-50 text-green-700 rounded-md font-bold border border-green-200">
+                                    सक्रिय
+                                  </span>
+                                </div>
+                                {member.phone && (
+                                  <a
+                                    href={`tel:${member.phone}`}
+                                    className="inline-flex items-center gap-1 text-[11px] text-[#766A60] hover:text-[#C85A17] transition-colors mt-1"
+                                  >
+                                    <FiPhone className="w-3 h-3 text-[#C85A17]" /> {member.phone}
+                                  </a>
+                                )}
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </motion.div>
+              )}
+
               {[
-                { id: 'committee', title: 'कार्यकारिणी समिति (Executive Committee)', icon: '🏛️' },
-                { id: 'sangathan', title: 'संगठन (Organization)', icon: '📜' },
-                { id: 'sankal_panch', title: 'संकल पंच (Sankal Panch Council)', icon: '⚖️' },
+                { id: 'committee', title: 'कार्यकारिणी समिति', icon: '🏛️' },
+                { id: 'sangathan', title: 'संगठन', icon: '📜' },
+                { id: 'sankal_panch', title: 'संकल पंच', icon: '⚖️' },
               ]
                 .filter((cat) => activeCommitteeTab === 'all' || activeCommitteeTab === cat.id)
                 .map((cat) => {
@@ -549,12 +1441,12 @@ const HomePage = () => {
                   if (categoryMembers.length === 0) return null;
 
                   return (
-                    <div key={cat.id} className="bg-[#220D08]/60 p-6 sm:p-8 rounded-3xl border border-[#D4AF37]/15">
-                      <div className="flex items-center gap-3 border-b border-[#D4AF37]/15 pb-4 mb-6">
+                    <div key={cat.id} className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-md">
+                      <div className="flex items-center gap-3 border-b border-[#E8DCC8] pb-4 mb-6">
                         <span className="text-2xl">{cat.icon}</span>
                         <div>
-                          <h3 className="text-xl sm:text-2xl font-bold text-[#FFF3DD]">{cat.title}</h3>
-                          <p className="text-xs text-[#CDBBA4]">{categoryMembers.length} सदस्य नामांकित</p>
+                          <h3 className="text-xl sm:text-2xl font-bold text-[#2B211B]">{cat.title}</h3>
+                          <p className="text-xs text-[#766A60]">{categoryMembers.length} सदस्य नामांकित</p>
                         </div>
                       </div>
 
@@ -566,26 +1458,24 @@ const HomePage = () => {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.04 }}
-                            className="flex items-center gap-4 p-4 bg-[#2A1010] rounded-2xl border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 hover:shadow-lg transition-all duration-300 group"
+                            className="flex items-center gap-4 p-4 bg-[#FFF8EC] rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-md transition-all duration-300 group"
                           >
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#C85A17] to-[#D4AF37] p-0.5 shrink-0 overflow-hidden shadow-md">
+                            <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-white text-lg font-bold shadow-md shrink-0">
                               {member.photo ? (
-                                <img src={member.photo} alt={member.name} className="w-full h-full object-cover rounded-full" />
+                                <img src={member.photo} alt={member.name} className="w-full h-full object-cover rounded-2xl" />
                               ) : (
-                                <div className="w-full h-full bg-[#160D08] rounded-full flex items-center justify-center text-[#FFF3DD] text-lg font-bold">
-                                  {member.name?.charAt(0) || 'M'}
-                                </div>
+                                member.name?.charAt(0) || 'M'
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="font-bold text-[#FFF3DD] text-sm group-hover:text-[#D4AF37] transition-colors truncate">
+                              <p className="font-bold text-[#2B211B] text-sm group-hover:text-[#C85A17] transition-colors truncate">
                                 {member.name}
                               </p>
                               <p className="text-[#C85A17] text-xs font-semibold truncate">{member.designation}</p>
                               {member.phone && (
                                 <a
                                   href={`tel:${member.phone}`}
-                                  className="inline-flex items-center gap-1 text-[11px] text-[#CDBBA4] hover:text-[#D4AF37] transition-colors mt-1"
+                                  className="inline-flex items-center gap-1 text-[11px] text-[#766A60] hover:text-[#C85A17] transition-colors mt-1"
                                 >
                                   <FiPhone className="w-3 h-3 text-[#C85A17]" /> {member.phone}
                                 </a>
@@ -599,12 +1489,18 @@ const HomePage = () => {
                 })}
             </div>
 
-            <div className="text-center mt-12">
+            <div className="flex flex-wrap items-center justify-center gap-4 mt-12">
               <Link
                 to="/committee"
-                className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-[#C85A17] to-[#7A2525] text-white rounded-xl hover:from-[#7A2525] hover:to-[#C85A17] transition-all font-bold shadow-lg hover:shadow-xl cursor-pointer text-sm"
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-[#C85A17] to-[#7A2525] text-white rounded-2xl hover:shadow-lg transition-all font-bold shadow-md cursor-pointer text-sm"
               >
                 {t('committee_view_full')} <FiArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                to="/women-committee"
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-white border border-[#E8DCC8] text-[#7A2525] rounded-2xl hover:border-[#C85A17] hover:bg-[#FFF8EC] transition-all font-bold shadow-sm cursor-pointer text-sm"
+              >
+                🌸 श्री आई जी महिला समिती <FiArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -612,31 +1508,31 @@ const HomePage = () => {
       )}
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-orange-500 to-orange-700 text-white">
+      <section className="py-20 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/90 to-[#7A2525] text-white">
         <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl lg:text-5xl font-extrabold mb-4">
+            <h2 className="text-4xl lg:text-5xl font-extrabold mb-4 text-white">
               {t('cta_title')}
             </h2>
-            <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto leading-relaxed font-medium">
               {t('cta_desc')}
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Link
                 to="/register"
-                className="flex items-center gap-2 px-8 py-4 bg-white text-orange-600 font-bold rounded-xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-200"
+                className="flex items-center gap-2 px-8 py-4 bg-white text-[#7A2525] font-extrabold rounded-2xl shadow-xl hover:bg-orange-50 hover:-translate-y-1 transition-all duration-200"
               >
                 {t('cta_btn_join')} <FiArrowRight className="w-5 h-5" />
               </Link>
               <Link
                 to="/donations"
-                className="flex items-center gap-2 px-8 py-4 bg-white/20 backdrop-blur border border-white/40 text-white font-bold rounded-xl hover:bg-white/30 transition-all duration-200"
+                className="flex items-center gap-2 px-8 py-4 bg-white/20 backdrop-blur border border-white/40 text-white font-bold rounded-2xl hover:bg-white/30 transition-all duration-200"
               >
-                <FiHeart className="w-5 h-5" /> {t('cta_btn_support')}
+                <FiHeart className="w-5 h-5 text-[#FDE68A]" /> {t('cta_btn_support')}
               </Link>
             </div>
           </motion.div>
@@ -644,28 +1540,28 @@ const HomePage = () => {
       </section>
 
       {/* Emergency Contacts */}
-      <section className="py-12 bg-white dark:bg-slate-900">
+      <section className="py-12 bg-[#FFF8EC]">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-2xl p-6">
+          <div className="bg-white border border-[#E8DCC8] rounded-3xl p-6 shadow-md">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center">
-                  <FiPhone className="w-5 h-5 text-white" />
+                <div className="w-12 h-12 bg-gradient-to-br from-[#7A2525] to-[#C85A17] rounded-2xl flex items-center justify-center shadow-md">
+                  <FiPhone className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="font-extrabold text-red-700 dark:text-red-400">{t('emergency_title')}</p>
-                  <p className="text-xs text-red-500 font-medium">{t('emergency_desc')}</p>
+                  <p className="font-extrabold text-[#2B211B] text-base">{t('emergency_title')}</p>
+                  <p className="text-xs text-[#766A60] font-medium">{t('emergency_desc')}</p>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-4 sm:ml-auto">
+              <div className="flex flex-wrap gap-6 sm:ml-auto">
                 {[
                   { label: t('emergency_president'), phone: '+91 98765 43210' },
                   { label: t('emergency_secretary'), phone: '+91 87654 32109' },
                   { label: t('emergency_blood'), phone: '+91 76543 21098' },
                 ].map(({ label, phone }) => (
                   <a key={label} href={`tel:${phone.replace(/\s/g, '')}`} className="flex flex-col">
-                    <span className="text-xs text-gray-500 font-semibold">{label}</span>
-                    <span className="font-bold text-red-600 dark:text-red-400 hover:underline">{phone}</span>
+                    <span className="text-xs text-[#766A60] font-semibold">{label}</span>
+                    <span className="font-bold text-[#C85A17] hover:underline text-sm">{phone}</span>
                   </a>
                 ))}
               </div>
