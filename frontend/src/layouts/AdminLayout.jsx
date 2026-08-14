@@ -45,7 +45,7 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gray-100 dark:bg-slate-900">
+    <div className="min-h-screen flex bg-[#230505] bg-ambient-layer bg-dots-pattern">
       <aside className={`fixed lg:sticky top-0 h-screen z-50 w-64 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 transform transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col h-full">
           <div className="p-4 border-b border-gray-200 dark:border-slate-700">
