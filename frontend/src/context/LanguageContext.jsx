@@ -350,24 +350,20 @@ const translations = {
 };
 
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguageState] = useState(() => {
-    return localStorage.getItem('language') || 'hi';
-  });
+  const [language, setLanguageState] = useState('hi');
 
   useEffect(() => {
-    localStorage.setItem('language', language);
-  }, [language]);
+    localStorage.setItem('language', 'hi');
+  }, []);
 
-  const toggleLanguage = () => {
-    setLanguageState(prev => (prev === 'en' ? 'hi' : 'en'));
-  };
+  const toggleLanguage = () => {};
 
   const t = (key) => {
-    return translations[language]?.[key] || translations['en']?.[key] || key;
+    return translations['hi']?.[key] || translations['en']?.[key] || key;
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage: setLanguageState, toggleLanguage, t }}>
+    <LanguageContext.Provider value={{ language: 'hi', setLanguage: setLanguageState, toggleLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );

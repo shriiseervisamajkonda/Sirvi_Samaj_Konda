@@ -177,3 +177,28 @@ export const userAPI = {
 export const activityLogAPI = {
   getAll: (params) => api.get('/activity-logs', { params }),
 };
+
+export const gramUnitAPI = {
+  getPublicDetails: () => api.get('/gram-units/public/details'),
+  getAll: (params) => api.get('/gram-units', { params }),
+  getOne: (id) => api.get(`/gram-units/${id}`),
+  create: (data) => api.post('/gram-units', data),
+  update: (id, data) => api.put(`/gram-units/${id}`, data),
+  delete: (id) => api.delete(`/gram-units/${id}`),
+};
+
+export const gramUnitMemberAPI = {
+  getAll: (params) => api.get('/gram-unit-members', { params }),
+  getOne: (id) => api.get(`/gram-unit-members/${id}`),
+  create: (data) => api.post('/gram-unit-members', data),
+  update: (id, data) => api.put(`/gram-unit-members/${id}`, data),
+  delete: (id) => api.delete(`/gram-unit-members/${id}`),
+};
+
+export const formationEventAPI = {
+  getAll: (params) => api.get('/formation-events', { params }),
+  getOne: (id) => api.get(`/formation-events/${id}`),
+  create: (data) => api.post('/formation-events', data),
+  update: (id, data) => api.put(`/formation-events/${id}`, data),
+  delete: (id) => api.delete(`/formation-events/${id}`),
+};

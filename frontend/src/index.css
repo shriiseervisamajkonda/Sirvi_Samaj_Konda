@@ -2,37 +2,36 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #F59E0B; /* Royal Gold */
-  --color-primary-dark: #D97706;
-  --color-secondary: #7F1D1D; /* Velvet Maroon */
-  --color-accent: #EA580C; /* Vibrant Sacred Saffron */
+  --color-primary: #C85A17; /* Saffron Sunset */
+  --color-primary-dark: #A7450D;
+  --color-secondary: #7A2525; /* Royal Maroon */
+  --color-accent: #C9A44C; /* Temple Gold */
   --font-sans: 'Poppins', 'Noto Sans Devanagari', system-ui, sans-serif;
-  --font-serif: 'Noto Sans Devanagari', 'Georgia', serif;
+  --font-serif: 'Noto Serif Devanagari', 'Georgia', serif;
   --font-display: 'Yatra One', cursive;
 
-  /* Force standard orange and blue variables to Royal Gold and Velvet Maroon */
-  --color-orange-500: #F59E0B;
-  --color-orange-600: #EA580C; /* Rich Saffron */
-  --color-orange-100: #3B0A0A; /* Velvet Maroon Card */
-  --color-blue-500: #7F1D1D;
-  --color-blue-600: #581111;
-  --color-blue-100: #230505;
+  --color-orange-500: #C85A17;
+  --color-orange-600: #A7450D;
+  --color-orange-100: #FFF3DD;
+  --color-blue-500: #7A2525;
+  --color-blue-600: #5C1A1A;
+  --color-blue-100: #FFF8EC;
 
-  /* Custom palette overrides for Royal Velvet Maroon & Gold Theme */
-  --color-slate-950: #230505; /* Primary Background - Deep Royal Velvet Maroon */
-  --color-slate-900: #3B0A0A; /* Surface Card - Deep Velvet Maroon */
-  --color-slate-800: #4F0E0E; /* Section Background - Rich Burgundy Velvet */
-  --color-slate-700: #7F1D1D; /* Velvet Maroon Border */
-  --color-slate-600: #FDE68A; /* Light Golden Secondary Text */
-  --color-slate-500: #F59E0B;
+  /* Custom palette matching Family Directory */
+  --color-slate-950: #FFF8EC; /* Sandalwood Cream Canvas */
+  --color-slate-900: #FFFFFF; /* Pure White Card */
+  --color-slate-800: #FAF1E0; /* Surface Accent */
+  --color-slate-700: #E8DCC8; /* Cream Border */
+  --color-slate-600: #766A60; /* Muted Espresso Text */
+  --color-slate-500: #C85A17;
 
-  --color-gray-900: #FFF8F0; /* Primary Text - Warm Golden Cream */
-  --color-gray-800: #FFF8F0;
-  --color-gray-750: #3B0A0A; /* Surface Background */
-  --color-gray-700: #FDE68A; /* Secondary Text */
-  --color-gray-600: #F59E0B;
-  --color-gray-200: #7F1D1D; /* Border */
-  --color-gray-100: #230505;
+  --color-gray-900: #2B211B; /* Primary Deep Espresso Text */
+  --color-gray-800: #2B211B;
+  --color-gray-750: #FFFFFF;
+  --color-gray-700: #766A60;
+  --color-gray-600: #C85A17;
+  --color-gray-200: #E8DCC8;
+  --color-gray-100: #FFF8EC;
 }
 
 html {
@@ -41,8 +40,8 @@ html {
 
 body {
   font-family: 'Poppins', 'Noto Sans Devanagari', system-ui, sans-serif;
-  background-color: #230505 !important; /* Deep Royal Velvet Maroon Background */
-  color: #FFF8F0 !important; /* Primary Warm Golden Cream Text */
+  background-color: #FFF8EC !important; /* Sandalwood Cream */
+  color: #2B211B !important; /* Deep Espresso */
   -webkit-font-smoothing: antialiased;
 }
 

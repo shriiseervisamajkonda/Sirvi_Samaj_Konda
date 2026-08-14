@@ -37,13 +37,16 @@ const connectDB = async () => {
   }
 };
 
-export const ensureDbConnected = async (_req, _res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (error) {
-    next(error);
+export const ensureDbConnected = (_req, _res, next) => {
+  if (mongoose.connection.readyState === 1) {
+    return next();
   }
+  connectDB()
+    .then(() => next())
+    .catch((err) => {
+      console.warn('Database connection warning during request:', err.message);
+      next();
+    });
 };
 
 export default connectDB;

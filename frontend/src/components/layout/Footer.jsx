@@ -46,8 +46,8 @@ const Footer = () => {
               {[
                 [t('nav_students'), '/students'],
                 [t('nav_marriage'), '/marriage'],
-                ['Privacy Policy', '/privacy-policy'],
-                ['Terms & Conditions', '/terms'],
+                ['गोपनीयता नीति', '/privacy-policy'],
+                ['नियम एवं शर्तें', '/terms'],
               ].map(([label, path]) => (
                 <li key={path}>
                   <Link to={path} className="hover:text-primary transition-colors">{label}</Link>
@@ -88,10 +88,10 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-[#D4AF37]/15 mt-10 pt-6 text-center text-xs text-[#766A60] flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p>&copy; {currentYear} {t('hero_title_1')} {t('hero_title_2')} {t('hero_title_3')}. All rights reserved.</p>
+          <p>&copy; {currentYear} {t('hero_title_1')} {t('hero_title_2')} {t('hero_title_3')}। सर्वाधिकार सुरक्षित।</p>
           <div className="flex gap-4">
-            <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy</Link>
-            <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
+            <Link to="/privacy-policy" className="hover:text-primary transition-colors">गोपनीयता नीति</Link>
+            <Link to="/terms" className="hover:text-primary transition-colors">नियम एवं शर्तें</Link>
           </div>
         </div>
       </div>

@@ -30,6 +30,7 @@ const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'));
 const HomePage = lazy(() => import('./pages/public/HomePage'));
 const AboutPage = lazy(() => import('./pages/public/AboutPage'));
 const CommitteePage = lazy(() => import('./pages/public/CommitteePage'));
+const WomenCommitteePage = lazy(() => import('./pages/public/WomenCommitteePage'));
 const VillagePage = lazy(() => import('./pages/public/VillagePage'));
 const FamilyDirectoryPage = lazy(() => import('./pages/public/FamilyDirectoryPage'));
 const MemberDirectoryPage = lazy(() => import('./pages/public/MemberDirectoryPage'));
@@ -46,6 +47,7 @@ const ContactPage = lazy(() => import('./pages/public/ContactPage'));
 const LekhaJokhaPage = lazy(() => import('./pages/public/LekhaJokhaPage'));
 const PanchSettlementsPage = lazy(() => import('./pages/public/PanchSettlementsPage'));
 const SocialInfoPage = lazy(() => import('./pages/public/SocialInfoPage'));
+const KondaGramUnitPage = lazy(() => import('./pages/public/KondaGramUnitPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/public/PrivacyPolicyPage'));
 const TermsPage = lazy(() => import('./pages/public/TermsPage'));
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage'));
@@ -64,6 +66,8 @@ const AdminNewsPage = lazy(() => import('./pages/admin/NewsPage'));
 const AdminDocumentsPage = lazy(() => import('./pages/admin/DocumentsPage'));
 const AdminDonationsPage = lazy(() => import('./pages/admin/DonationsPage'));
 const AdminCommitteePage = lazy(() => import('./pages/admin/CommitteePage'));
+const AdminWomenCommitteePage = lazy(() => import('./pages/admin/WomenCommitteeAdminPage'));
+const AdminGramUnitsPage = lazy(() => import('./pages/admin/GramUnitsPage'));
 const AdminVillagePage = lazy(() => import('./pages/admin/VillagePage'));
 const AdminLekhaJokhaPage = lazy(() => import('./pages/admin/LekhaJokhaPage'));
 const AdminPanchSettlementsPage = lazy(() => import('./pages/admin/PanchSettlementsPage'));
@@ -71,6 +75,7 @@ const AdminSocialInfoPage = lazy(() => import('./pages/admin/SocialInfoPage'));
 const AdminUsersPage = lazy(() => import('./pages/admin/UsersPage'));
 const AdminActivityLogsPage = lazy(() => import('./pages/admin/ActivityLogsPage'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
+const AdminProfilePage = lazy(() => import('./pages/admin/ProfilePage'));
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -107,6 +112,8 @@ createRoot(document.getElementById('root')).render(
                     <Route path="/" element={<HomePage />} />
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/committee" element={<CommitteePage />} />
+                    <Route path="/women-committee" element={<WomenCommitteePage />} />
+                    <Route path="/shri-ii-g-women-committee" element={<WomenCommitteePage />} />
                     <Route path="/village" element={<VillagePage />} />
                     <Route path="/families" element={<FamilyDirectoryPage />} />
                     <Route path="/members" element={<MemberDirectoryPage />} />
@@ -123,6 +130,8 @@ createRoot(document.getElementById('root')).render(
                     <Route path="/lekha-jokha" element={<LekhaJokhaPage />} />
                     <Route path="/panch-settlements" element={<PanchSettlementsPage />} />
                     <Route path="/social-info" element={<SocialInfoPage />} />
+                    <Route path="/konda-gram-unit" element={<KondaGramUnitPage />} />
+                    <Route path="/gram-unit" element={<KondaGramUnitPage />} />
                     <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                     <Route path="/terms" element={<TermsPage />} />
                   </Route>
@@ -149,6 +158,9 @@ createRoot(document.getElementById('root')).render(
                     <Route path="documents" element={<AdminDocumentsPage />} />
                     <Route path="donations" element={<AdminDonationsPage />} />
                     <Route path="committee" element={<AdminCommitteePage />} />
+                    <Route path="women-committee" element={<AdminWomenCommitteePage />} />
+                    <Route path="gram-units" element={<AdminGramUnitsPage />} />
+                    <Route path="konda-gram-unit" element={<AdminGramUnitsPage />} />
                     <Route path="village" element={<AdminVillagePage />} />
                     <Route path="lekha-jokha" element={<AdminLekhaJokhaPage />} />
                     <Route path="panch-settlements" element={<AdminPanchSettlementsPage />} />
@@ -156,6 +168,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path="users" element={<AdminUsersPage />} />
                     <Route path="activity-logs" element={<AdminActivityLogsPage />} />
                     <Route path="settings" element={<AdminSettingsPage />} />
+                    <Route path="profile" element={<AdminProfilePage />} />
                   </Route>
 
                   {/* 404 */}

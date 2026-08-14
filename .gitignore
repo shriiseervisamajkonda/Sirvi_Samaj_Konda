@@ -5,8 +5,15 @@ frontend/node_modules/
 
 # Local configuration & secrets
 .env
+.env.*
+.env.local
+.env.*.local
 backend/.env
+backend/.env.*
+backend/.env.local
 frontend/.env
+frontend/.env.*
+frontend/.env.local
 *.log
 
 # Production build outputs

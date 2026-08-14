@@ -1,11 +1,30 @@
 import { asyncHandler } from '../middleware/validate.js';
 import { paginateResponse } from '../utils/helpers.js';
 
+// Default sensitive/internal fields to exclude from all client responses
+const DEFAULT_EXCLUDE_FIELDS = '-__v -password -refreshToken -otp -resetPasswordToken -emailVerificationToken -internalNotes -adminNotes';
+
+export const sanitizeDocument = (doc) => {
+  if (!doc) return null;
+  const sanitized = typeof doc.toObject === 'function' ? doc.toObject() : { ...doc };
+  delete sanitized.__v;
+  delete sanitized.password;
+  delete sanitized.refreshToken;
+  delete sanitized.otp;
+  delete sanitized.resetPasswordToken;
+  delete sanitized.emailVerificationToken;
+  delete sanitized.internalNotes;
+  delete sanitized.adminNotes;
+  return sanitized;
+};
+
 export const createCRUDController = (Model, moduleName, options = {}) => {
   const {
     populate = [],
     searchFields = [],
     publicFilter = {},
+    select = DEFAULT_EXCLUDE_FIELDS,
+    serializer,
     beforeCreate,
     afterCreate,
   } = options;
@@ -17,6 +36,7 @@ export const createCRUDController = (Model, moduleName, options = {}) => {
     const filter = { ...publicFilter };
 
     if (req.query.status) filter.status = req.query.status;
+    if (req.query.type) filter.type = req.query.type;
     if (req.query.village) filter.village = req.query.village;
     if (req.query.category) filter.category = req.query.category;
     if (req.query.search && searchFields.length) {
@@ -25,25 +45,42 @@ export const createCRUDController = (Model, moduleName, options = {}) => {
       }));
     }
 
-    let query = Model.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
-    populate.forEach((p) => { query = query.populate(p); });
+    let query = Model.find(filter)
+      .select(select)
+      .sort({ order: 1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    populate.forEach((p) => {
+      query = query.populate(p);
+    });
 
     const [data, total] = await Promise.all([
       query,
       Model.countDocuments(filter),
     ]);
 
-    res.json(paginateResponse(data, total, page, limit));
+    const sanitizedData = data.map((item) => {
+      const clean = sanitizeDocument(item);
+      return serializer ? serializer(clean, req) : clean;
+    });
+
+    res.json(paginateResponse(sanitizedData, total, page, limit));
   });
 
   const getOne = asyncHandler(async (req, res) => {
-    let query = Model.findById(req.params.id).lean();
-    populate.forEach((p) => { query = query.populate(p); });
+    let query = Model.findById(req.params.id).select(select).lean();
+    populate.forEach((p) => {
+      query = query.populate(p);
+    });
     const item = await query;
     if (!item) {
       return res.status(404).json({ success: false, message: `${moduleName} not found` });
     }
-    res.json({ success: true, data: item });
+    const clean = sanitizeDocument(item);
+    const responseData = serializer ? serializer(clean, req) : clean;
+    res.json({ success: true, data: responseData });
   });
 
   const create = asyncHandler(async (req, res) => {
@@ -51,7 +88,8 @@ export const createCRUDController = (Model, moduleName, options = {}) => {
     if (beforeCreate) data = await beforeCreate(data, req);
     const item = await Model.create(data);
     if (afterCreate) await afterCreate(item, req);
-    res.status(201).json({ success: true, data: item });
+    const clean = sanitizeDocument(item);
+    res.status(201).json({ success: true, data: clean });
   });
 
   const update = asyncHandler(async (req, res) => {
@@ -61,7 +99,8 @@ export const createCRUDController = (Model, moduleName, options = {}) => {
     }
     Object.assign(item, req.body);
     await item.save();
-    res.json({ success: true, data: item });
+    const clean = sanitizeDocument(item);
+    res.json({ success: true, data: clean });
   });
 
   const remove = asyncHandler(async (req, res) => {
