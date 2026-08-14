@@ -239,7 +239,7 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="relative rounded-2xl overflow-hidden shadow-2xl border border-amber-500/20 bg-slate-900"
             >
-              <img src="/aai_mataji_portrait.webp" alt="Shri Aai Mataji" className="w-full max-h-[500px] object-cover" />
+              <img src="/aai_mataji_portrait.jpg" alt="Shri Aai Mataji" className="w-full max-h-[500px] object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
             </motion.div>
             
