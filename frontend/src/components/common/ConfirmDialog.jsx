@@ -1,30 +1,40 @@
 import { FiAlertTriangle } from 'react-icons/fi';
 import Modal from './Modal';
 
-const ConfirmDialog = ({ isOpen, onClose, onConfirm, title = 'Are you sure?', message, confirmText = 'Delete', isLoading = false }) => {
+const ConfirmDialog = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title = 'क्या आप सुनिश्चित हैं?',
+  message,
+  confirmText = 'हटाएँ (Delete)',
+  cancelText = 'रद्द करें (Cancel)',
+  isLoading = false,
+}) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
-      <div className="px-6 py-5">
+      <div className="p-6 sm:p-8 space-y-6">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center shrink-0">
-            <FiAlertTriangle className="w-5 h-5 text-red-500" />
+          <div className="w-12 h-12 rounded-2xl bg-red-100 border border-red-200 flex items-center justify-center shrink-0 text-red-600 shadow-xs">
+            <FiAlertTriangle className="w-6 h-6" />
           </div>
-          <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed pt-1">
-            {message || 'This action cannot be undone. Are you sure you want to proceed?'}
+          <p className="text-sm font-medium text-[#2B211B] leading-relaxed pt-1">
+            {message || 'यह कार्य पूर्ववत नहीं किया जा सकता। क्या आप आगे बढ़ना चाहते हैं?'}
           </p>
         </div>
-        <div className="flex gap-3 mt-6 justify-end">
+
+        <div className="flex gap-3 justify-end pt-4 border-t border-[#E8DCC8]">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+            className="px-5 py-2.5 text-xs sm:text-sm font-bold text-[#766A60] bg-white border border-[#E8DCC8] rounded-2xl hover:bg-[#FFF8EC] transition cursor-pointer disabled:opacity-50"
           >
-            Cancel
+            {cancelText}
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-2xl shadow-md hover:shadow-lg transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
           >
             {isLoading ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

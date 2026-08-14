@@ -13,33 +13,33 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={onClose}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ duration: 0.2 }}
-            className={`relative w-full ${sizes[size]} bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden`}
+            className={`relative w-full ${sizes[size]} bg-white rounded-3xl shadow-2xl border border-[#E8DCC8] overflow-hidden z-10 my-8`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
+            <div className="flex items-center justify-between px-6 sm:px-8 py-5 border-b border-[#E8DCC8] bg-gradient-to-r from-[#FFF8EC] to-white">
+              <h2 className="text-base sm:text-lg font-black text-[#2B211B] tracking-tight">{title}</h2>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                className="p-2 rounded-xl text-[#766A60] hover:text-[#7A2525] hover:bg-[#FFF8EC] transition cursor-pointer"
               >
                 <FiX className="w-5 h-5" />
               </button>
             </div>
             {/* Content */}
-            <div className="overflow-y-auto max-h-[80vh]">
+            <div className="overflow-y-auto max-h-[80vh] scrollbar-thin scrollbar-thumb-[#E8DCC8]">
               {children}
             </div>
           </motion.div>

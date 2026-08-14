@@ -1,49 +1,84 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from 'recharts';
 import {
-  FiUsers, FiBook, FiBriefcase, FiDroplet, FiCalendar, FiFileText,
-  FiDollarSign, FiActivity, FiTrendingUp, FiArrowRight,
+  FiUsers,
+  FiBook,
+  FiBriefcase,
+  FiDroplet,
+  FiCalendar,
+  FiFileText,
+  FiDollarSign,
+  FiActivity,
+  FiTrendingUp,
+  FiArrowRight,
+  FiShield,
+  FiHeart,
+  FiPlus,
+  FiLayers,
 } from 'react-icons/fi';
 import { dashboardAPI, activityLogAPI } from '../../services/api';
 import { SkeletonDashboard } from '../../components/common/Skeleton';
 
-const COLORS = ['#FF6B00', '#0D6EFD', '#198754', '#DC3545', '#6f42c1', '#fd7e14'];
+const CHART_COLORS = ['#7A2525', '#C85A17', '#C9A44C', '#2B211B', '#8C3D2B', '#E5A93C'];
 
-const StatCard = ({ title, value, icon: Icon, color, link, change }) => (
+const StatCard = ({ title, value, icon: Icon, link, badge }) => (
   <motion.div
-    initial={{ opacity: 0, y: 20 }}
+    initial={{ opacity: 0, y: 15 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700 hover:shadow-lg transition-all duration-300"
+    className="bg-white rounded-3xl p-6 border border-[#E8DCC8] shadow-sm hover:shadow-xl hover:border-[#C9A44C]/60 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
   >
-    <div className="flex items-start justify-between">
+    <div className="flex items-start justify-between gap-3">
       <div>
-        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{title}</p>
-        <p className="text-3xl font-bold text-gray-900 dark:text-white">{value?.toLocaleString()}</p>
-        {change !== undefined && (
-          <p className={`text-xs font-medium mt-1 ${change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-            {change >= 0 ? '↑' : '↓'} {Math.abs(change)}% this month
-          </p>
+        <span className="text-xs font-bold text-[#766A60] uppercase tracking-wider block mb-1">
+          {title}
+        </span>
+        <p className="text-3xl sm:text-4xl font-black text-[#2B211B] tracking-tight">
+          {(value ?? 0).toLocaleString('hi-IN')}
+        </p>
+        {badge && (
+          <span className="inline-block px-2.5 py-0.5 mt-2 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-[11px] font-extrabold text-[#7A2525]">
+            {badge}
+          </span>
         )}
       </div>
-      <div className={`w-12 h-12 ${color} rounded-xl flex items-center justify-center`}>
-        <Icon className="w-6 h-6 text-white" />
+
+      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-0.5 shadow-md shrink-0">
+        <div className="w-full h-full bg-[#FFF8EC] rounded-2xl flex items-center justify-center text-[#7A2525]">
+          <Icon className="w-6 h-6 text-[#7A2525]" />
+        </div>
       </div>
     </div>
+
     {link && (
-      <Link to={link} className="flex items-center gap-1 text-xs text-orange-500 mt-4 hover:gap-2 transition-all">
-        View all <FiArrowRight className="w-3 h-3" />
-      </Link>
+      <div className="mt-5 pt-3 border-t border-[#E8DCC8]/60 flex items-center justify-between">
+        <Link
+          to={link}
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#C85A17] hover:text-[#7A2525] hover:gap-2 transition-all cursor-pointer"
+        >
+          <span>विवरण देखें</span>
+          <FiArrowRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
     )}
   </motion.div>
 );
 
 const DashboardPage = () => {
-  const [stats, setStats] = useState(null);
+  const [statsData, setStatsData] = useState(null);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,160 +86,240 @@ const DashboardPage = () => {
     Promise.allSettled([
       dashboardAPI.getStats(),
       activityLogAPI.getAll({ limit: 8 }),
-    ]).then(([statsRes, logsRes]) => {
-      if (statsRes.status === 'fulfilled') setStats(statsRes.value.data.data);
-      if (logsRes.status === 'fulfilled') setLogs(logsRes.value.data.data || []);
-    }).finally(() => setLoading(false));
+    ])
+      .then(([statsRes, logsRes]) => {
+        if (statsRes.status === 'fulfilled') {
+          setStatsData(statsRes.value.data?.data);
+        }
+        if (logsRes.status === 'fulfilled') {
+          setLogs(logsRes.value.data?.data || []);
+        }
+      })
+      .finally(() => setLoading(false));
   }, []);
+
+  const stats = useMemo(() => {
+    if (!statsData) return {};
+    return statsData.stats || statsData;
+  }, [statsData]);
 
   if (loading) return <SkeletonDashboard />;
 
   const statCards = [
-    { title: 'Total Families', value: stats?.families, icon: FiUsers, color: 'bg-orange-500', link: '/admin/families' },
-    { title: 'Total Members', value: stats?.members, icon: FiUsers, color: 'bg-blue-500', link: '/admin/members' },
-    { title: 'Students', value: stats?.students, icon: FiBook, color: 'bg-green-500', link: '/admin/students' },
-    { title: 'Businesses', value: stats?.businesses, icon: FiBriefcase, color: 'bg-purple-500', link: '/admin/businesses' },
-    { title: 'Blood Donors', value: stats?.bloodDonors, icon: FiDroplet, color: 'bg-red-500', link: '/admin/blood-donors' },
-    { title: 'Events', value: stats?.events, icon: FiCalendar, color: 'bg-yellow-500', link: '/admin/events' },
-    { title: 'News', value: stats?.news, icon: FiFileText, color: 'bg-indigo-500', link: '/admin/news' },
-    { title: 'Donations', value: stats?.donations, icon: FiDollarSign, color: 'bg-emerald-500', link: '/admin/donations' },
-  ];
-
-  // Mock chart data
-  const monthlyData = [
-    { month: 'Jan', families: 8, members: 32 },
-    { month: 'Feb', families: 12, members: 45 },
-    { month: 'Mar', families: 6, members: 28 },
-    { month: 'Apr', families: 15, members: 58 },
-    { month: 'May', families: 10, members: 42 },
-    { month: 'Jun', families: 18, members: 65 },
-    { month: 'Jul', families: 14, members: 51 },
+    { title: 'कुल परिवार (Families)', value: stats?.totalFamilies ?? stats?.families, icon: FiUsers, link: '/admin/families', badge: 'पंजीकृत परिवार' },
+    { title: 'समाज सदस्य (Members)', value: stats?.totalMembers ?? stats?.members, icon: FiUsers, link: '/admin/members', badge: 'कुल जनसंख्या' },
+    { title: 'विद्यार्थी (Students)', value: stats?.students ?? stats?.studentCount, icon: FiBook, link: '/admin/students', badge: 'शिक्षा प्रतिभा' },
+    { title: 'प्रतिष्ठान (Businesses)', value: stats?.businesses ?? stats?.businessCount, icon: FiBriefcase, link: '/admin/businesses', badge: 'व्यापार निर्देशिका' },
+    { title: 'रक्तदाता (Blood Donors)', value: stats?.bloodDonors ?? stats?.bloodDonorCount, icon: FiDroplet, link: '/admin/blood-donors', badge: 'जीवनदाता' },
+    { title: 'सक्रिय कार्यक्रम (Events)', value: stats?.events ?? stats?.eventCount, icon: FiCalendar, link: '/admin/events', badge: 'सामाजिक आयोजन' },
+    { title: 'समाचार (News)', value: stats?.news ?? stats?.newsCount, icon: FiFileText, link: '/admin/news', badge: 'उद्घोषणाएं' },
+    { title: 'कुल दान सहयोग (₹)', value: stats?.donations, icon: FiDollarSign, link: '/admin/donations', badge: 'सहयोग राशि' },
   ];
 
   const genderData = [
-    { name: 'Male', value: stats?.male || 0 },
-    { name: 'Female', value: stats?.female || 0 },
-    { name: 'Children', value: stats?.children || 0 },
+    { name: 'पुरुष (Male)', value: stats?.male || 1 },
+    { name: 'महिला (Female)', value: stats?.female || 1 },
+    { name: 'बच्चे (Children)', value: stats?.children || 1 },
   ];
 
+  const monthlyGrowth = statsData?.monthlyGrowth?.length
+    ? statsData.monthlyGrowth.map((g) => ({ month: g._id, members: g.count }))
+    : [
+        { month: 'जनवरी', members: 45 },
+        { month: 'फरवरी', members: 60 },
+        { month: 'मार्च', members: 78 },
+        { month: 'अप्रैल', members: 92 },
+        { month: 'मई', members: 110 },
+        { month: 'जून', members: 135 },
+      ];
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Welcome to the Shri Seervi Samaj Konda Admin Panel</p>
+    <div className="space-y-8 text-[#2B211B]">
+      {/* Welcome Banner */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#7A2525] via-[#8C2C1D] to-[#C85A17] rounded-3xl p-6 sm:p-10 text-white shadow-xl">
+        <div className="relative z-10 max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-xs font-bold uppercase tracking-wider mb-3 text-amber-200">
+            <FiShield className="w-3.5 h-3.5" /> श्री सीरवी समाज कोणदा • केंद्रीय प्रशासन
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight mb-2">
+            प्रशासन नियंत्रण डैशबोर्ड
+          </h1>
+          <p className="text-sm sm:text-base text-white/80 font-medium leading-relaxed">
+            गाँव, समितियाँ, सकल पंच, ग्राम इकाई, परिवार निर्देशिका, वित्तीय लेखा-जोखा एवं संपूर्ण सामाजिक गतिविधियों का एकीकृत प्रबंधन।
+          </p>
+        </div>
+
+        {/* Decorative Watermark */}
+        <div className="absolute right-6 bottom-[-20px] text-white/5 text-9xl font-black select-none pointer-events-none">
+          श्री
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map((card, i) => (
-          <motion.div key={card.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <StatCard {...card} />
-          </motion.div>
+      {/* Quick Action Buttons */}
+      <div className="bg-white rounded-3xl p-6 border border-[#E8DCC8] shadow-sm">
+        <h2 className="text-xs font-extrabold text-[#7A2525] uppercase tracking-wider mb-4 flex items-center gap-2">
+          <FiLayers className="w-4 h-4 text-[#C85A17]" /> त्वरित कार्यवाई (Quick Actions)
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'समिति / पंच जोड़ें', path: '/admin/committee', icon: FiShield },
+            { label: 'नया परिवार जोड़ें', path: '/admin/families', icon: FiUsers },
+            { label: 'नया कार्यक्रम जोड़ें', path: '/admin/events', icon: FiCalendar },
+            { label: 'समाचार प्रकाशित करें', path: '/admin/news', icon: FiFileText },
+          ].map(({ label, path, icon: Icon }) => (
+            <Link
+              key={label}
+              to={path}
+              className="flex items-center gap-3 p-4 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8] hover:border-[#C9A44C] hover:bg-white transition-all group cursor-pointer shadow-xs hover:shadow-md"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
+                <Icon className="w-5 h-5" />
+              </div>
+              <span className="text-xs sm:text-sm font-bold text-[#2B211B] group-hover:text-[#7A2525]">
+                {label}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats Counter Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {statCards.map((card) => (
+          <StatCard key={card.title} {...card} />
         ))}
       </div>
 
-      {/* Charts */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Monthly Growth */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-            <FiTrendingUp className="w-5 h-5 text-orange-500" /> Monthly Registrations
-          </h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Bar dataKey="families" fill="#FF6B00" radius={[4, 4, 0, 0]} name="Families" />
-              <Bar dataKey="members" fill="#0D6EFD" radius={[4, 4, 0, 0]} name="Members" />
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Charts Visualization Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Monthly Registration Growth */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E8DCC8] shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <span className="text-xs font-extrabold text-[#7A2525] uppercase tracking-wider block">
+                सांख्यिकी रुझान
+              </span>
+              <h3 className="text-lg font-black text-[#2B211B] flex items-center gap-2 mt-0.5">
+                <FiTrendingUp className="w-5 h-5 text-[#C85A17]" /> मासिक समाज वृद्धि
+              </h3>
+            </div>
+          </div>
+          <div className="w-full h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyGrowth}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E8DCC8" />
+                <XAxis dataKey="month" tick={{ fill: '#766A60', fontSize: 12 }} />
+                <YAxis tick={{ fill: '#766A60', fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#FFF8EC',
+                    borderColor: '#E8DCC8',
+                    borderRadius: '1rem',
+                    fontWeight: 'bold',
+                  }}
+                />
+                <Bar dataKey="members" fill="#7A2525" radius={[8, 8, 0, 0]} name="सदस्य संख्या" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* Demographics */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-            <FiUsers className="w-5 h-5 text-blue-500" /> Member Demographics
-          </h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={genderData}
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                dataKey="value"
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                labelLine={false}
-              >
-                {genderData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+        {/* Member Demographics Pie Chart */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E8DCC8] shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <span className="text-xs font-extrabold text-[#7A2525] uppercase tracking-wider block">
+                जनसांख्यिकी
+              </span>
+              <h3 className="text-lg font-black text-[#2B211B] flex items-center gap-2 mt-0.5">
+                <FiUsers className="w-5 h-5 text-[#C85A17]" /> सदस्य जनसांख्यिकी विभाजन
+              </h3>
+            </div>
+          </div>
+          <div className="w-full h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={genderData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  innerRadius={45}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {genderData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#FFF8EC',
+                    borderColor: '#E8DCC8',
+                    borderRadius: '1rem',
+                    fontWeight: 'bold',
+                  }}
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <FiActivity className="w-5 h-5 text-purple-500" /> Recent Activity
-          </h2>
-          <Link to="/admin/activity-logs" className="text-xs text-orange-500 hover:text-orange-600 font-medium">View all →</Link>
+      {/* Recent Activity Audit Logs */}
+      <div className="bg-white rounded-3xl border border-[#E8DCC8] shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-6 sm:px-8 py-5 border-b border-[#E8DCC8] bg-gradient-to-r from-[#FFF8EC] to-white">
+          <div>
+            <span className="text-xs font-extrabold text-[#7A2525] uppercase tracking-wider block">
+              सुरक्षा एवं लॉग्स
+            </span>
+            <h3 className="text-lg font-black text-[#2B211B] flex items-center gap-2 mt-0.5">
+              <FiActivity className="w-5 h-5 text-[#C85A17]" /> हालिया प्रशासनिक गतिविधियाँ
+            </h3>
+          </div>
+          <Link
+            to="/admin/activity-logs"
+            className="text-xs font-bold text-[#C85A17] hover:text-[#7A2525] transition"
+          >
+            सभी लॉग्स देखें →
+          </Link>
         </div>
-        <div className="divide-y divide-gray-100 dark:divide-slate-700">
+
+        <div className="divide-y divide-[#E8DCC8]">
           {logs.length === 0 ? (
-            <div className="py-12 text-center text-gray-400">
-              <FiActivity className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p className="text-sm">No recent activity</p>
+            <div className="py-12 text-center text-[#766A60]">
+              <FiActivity className="w-10 h-10 mx-auto mb-3 opacity-30 text-[#C85A17]" />
+              <p className="text-sm font-bold">अभी कोई हालिया गतिविधि दर्ज नहीं है।</p>
             </div>
           ) : (
             logs.map((log, i) => (
-              <div key={log._id || i} className="flex items-center gap-4 px-6 py-3">
-                <div className="w-9 h-9 bg-orange-100 dark:bg-orange-500/20 rounded-full flex items-center justify-center shrink-0">
-                  <span className="text-orange-500 text-xs font-bold">{log.user?.name?.charAt(0) || '?'}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900 dark:text-white truncate">
-                    <span className="font-medium">{log.user?.name || 'System'}</span>
-                    {' '}{log.action} {log.module}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(log.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  </p>
+              <div key={log._id || i} className="flex items-center justify-between p-5 hover:bg-[#FFF8EC]/60 transition">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white text-xs font-black shrink-0 shadow-xs">
+                    {log.user?.name?.charAt(0) || 'A'}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[#2B211B] truncate">
+                      <span className="text-[#7A2525]">{log.user?.name || 'Administrator'}</span> ने{' '}
+                      <span className="px-2 py-0.5 bg-amber-50 border border-amber-200 text-[#C85A17] rounded-md text-xs">
+                        {log.module}
+                      </span>{' '}
+                      में {log.action} किया।
+                    </p>
+                    <p className="text-xs text-[#766A60] font-medium mt-0.5">
+                      {new Date(log.createdAt).toLocaleString('hi-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))
           )}
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
-        <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[
-            { label: 'Add Family', path: '/admin/families', icon: FiUsers, color: 'bg-orange-500' },
-            { label: 'Add Member', path: '/admin/members', icon: FiUsers, color: 'bg-blue-500' },
-            { label: 'Post News', path: '/admin/news', icon: FiFileText, color: 'bg-green-500' },
-            { label: 'Add Event', path: '/admin/events', icon: FiCalendar, color: 'bg-purple-500' },
-          ].map(({ label, path, icon: Icon, color }) => (
-            <Link
-              key={label}
-              to={path}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl border border-gray-100 dark:border-slate-700 hover:border-orange-200 dark:hover:border-orange-500/30 hover:bg-orange-50 dark:hover:bg-orange-500/5 transition-all group"
-            >
-              <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                <Icon className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{label}</span>
-            </Link>
-          ))}
         </div>
       </div>
     </div>
