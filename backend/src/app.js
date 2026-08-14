@@ -107,6 +107,7 @@ app.use('/api/news', setCacheHeaders(30, 120), newsRoutes);
 app.use('/api/events', setCacheHeaders(30, 120), eventRoutes);
 app.use('/api/gallery', setCacheHeaders(60, 300), galleryRoutes);
 app.use('/api/documents', setCacheHeaders(60, 300), documentRoutes);
+app.use('/api/donations', setCacheHeaders(30, 120), donationRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
