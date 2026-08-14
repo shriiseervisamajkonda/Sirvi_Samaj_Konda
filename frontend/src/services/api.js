@@ -202,3 +202,10 @@ export const formationEventAPI = {
   update: (id, data) => api.put(`/formation-events/${id}`, data),
   delete: (id) => api.delete(`/formation-events/${id}`),
 };
+
+export const uploadAPI = {
+  upload: (formData) => api.post('/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+};
+

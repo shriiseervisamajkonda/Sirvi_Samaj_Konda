@@ -6,6 +6,7 @@ import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Badge from '../../components/common/Badge';
+import ImageUpload from '../../components/common/ImageUpload';
 import toast from 'react-hot-toast';
 
 const EventsPage = () => {
@@ -19,7 +20,7 @@ const EventsPage = () => {
   const [deleteItem, setDeleteItem] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, setValue, watch } = useForm();
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -156,10 +157,12 @@ const EventsPage = () => {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
             <textarea {...register('description')} rows={4} placeholder="Event details..." className="input-field resize-none" />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image URL</label>
-            <input {...register('image')} placeholder="https://..." className="input-field" />
-          </div>
+          <ImageUpload
+            value={watch('image')}
+            onChange={(url) => setValue('image', url, { shouldDirty: true })}
+            label="कार्यक्रम बैनर / फ़ोटो (Upload Event Image)"
+            folder="events"
+          />
           <div className="flex justify-end gap-3">
             <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
             <button type="submit" disabled={saving} className="px-4 py-2 text-sm text-white bg-orange-500 rounded-xl hover:bg-orange-600 disabled:opacity-50 flex items-center gap-2">

@@ -36,7 +36,7 @@ import socialInfoRoutes from './routes/socialInfoRoutes.js';
 import gramUnitRoutes from './routes/gramUnitRoutes.js';
 import gramUnitMemberRoutes from './routes/gramUnitMemberRoutes.js';
 import formationEventRoutes from './routes/formationEventRoutes.js';
-
+import uploadRoutes from './routes/uploadRoutes.js';
 
 const app = express();
 
@@ -134,6 +134,7 @@ app.use('/api/panch-settlements', memoryCacheMiddleware(30), panchSettlementRout
 app.use('/api/gram-units', memoryCacheMiddleware(60), gramUnitRoutes);
 app.use('/api/gram-unit-members', memoryCacheMiddleware(60), gramUnitMemberRoutes);
 app.use('/api/formation-events', memoryCacheMiddleware(60), formationEventRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.use(errorHandler);
 

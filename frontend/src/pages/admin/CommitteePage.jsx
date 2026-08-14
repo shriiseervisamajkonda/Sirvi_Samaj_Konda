@@ -20,6 +20,7 @@ import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Badge from '../../components/common/Badge';
+import ImageUpload from '../../components/common/ImageUpload';
 import toast from 'react-hot-toast';
 
 const committeeTypes = [
@@ -62,7 +63,7 @@ const CommitteePage = () => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const { register, handleSubmit, reset, setValue } = useForm();
+  const { register, handleSubmit, reset, setValue, watch } = useForm();
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -424,15 +425,13 @@ const CommitteePage = () => {
               />
             </div>
 
-            {/* Photo URL */}
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#7A2525] mb-1.5">
-                फ़ोटो लिंक (Photo URL)
-              </label>
-              <input
-                {...register('photo')}
-                placeholder="https://... / फ़ोटो URL"
-                className="w-full px-4 py-3 bg-[#FFF8EC] border border-[#E8DCC8] rounded-2xl text-[#2B211B] focus:outline-none focus:border-[#C85A17] focus:ring-2 focus:ring-[#C85A17]/20 text-sm font-medium"
+            {/* Photo Upload */}
+            <div className="sm:col-span-2">
+              <ImageUpload
+                value={watch('photo')}
+                onChange={(url) => setValue('photo', url, { shouldDirty: true })}
+                label="पदाधिकारी / पंच की फ़ोटो अपलोड करें (Upload Photo)"
+                folder="committees"
               />
             </div>
 
