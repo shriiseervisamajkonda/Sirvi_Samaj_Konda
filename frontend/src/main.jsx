@@ -16,15 +16,8 @@ import AdminLayout from './layouts/AdminLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import ErrorBoundary from './components/common/ErrorBoundary';
 
-// Loading fallback component
-const PageFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-slate-950 text-amber-500">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-12 h-12 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
-      <p className="text-sm font-medium text-slate-400">Loading Shri Seervi Samaj Konda...</p>
-    </div>
-  </div>
-);
+// Loading fallback component (disabled)
+const PageFallback = () => null;
 
 // Auth Pages (Lazy)
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
@@ -100,7 +93,7 @@ createRoot(document.getElementById('root')).render(
               }}
             />
             <ErrorBoundary>
-              <Suspense fallback={<PageFallback />}>
+              <Suspense fallback={null}>
                 <Routes>
                   {/* Auth Routes */}
                   <Route path="/login" element={<LoginPage />} />
