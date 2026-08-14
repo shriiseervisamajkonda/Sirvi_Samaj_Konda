@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FiDollarSign, FiSearch, FiArrowUpRight, FiArrowDownLeft, FiInbox } from 'react-icons/fi';
 import { lekhaJokhaAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonTable } from '../../components/common/Skeleton';
 import DataTable from '../../components/common/DataTable';
 
 const LekhaJokhaPage = () => {

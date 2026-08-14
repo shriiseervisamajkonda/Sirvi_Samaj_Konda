@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { FiSearch, FiChevronUp, FiChevronDown } from 'react-icons/fi';
 import Pagination from './Pagination';
 import EmptyState from './EmptyState';
-import LoadingSpinner from './LoadingSpinner';
+import { SkeletonTable } from './Skeleton';
 
 const DataTable = ({
   columns,
@@ -89,7 +89,7 @@ const DataTable = ({
       {/* Table */}
       <div className="overflow-x-auto">
         {loading ? (
-          <LoadingSpinner />
+          <SkeletonTable columns={columns} rows={6} hasHeader={true} className="border-none shadow-none rounded-none" />
         ) : sorted.length === 0 ? (
           <EmptyState icon={emptyIcon} title={emptyText} description={emptyDescription} />
         ) : (

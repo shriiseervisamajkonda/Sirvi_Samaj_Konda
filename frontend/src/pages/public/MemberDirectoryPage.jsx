@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FiSearch, FiUser, FiMapPin, FiBriefcase, FiDroplet } from 'react-icons/fi';
 import { memberAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 import Pagination from '../../components/common/Pagination';
 import Badge from '../../components/common/Badge';
@@ -144,9 +144,7 @@ const MemberDirectoryPage = () => {
 
         {/* Grid */}
         {loading ? (
-          <div className="flex justify-center py-20">
-            <LoadingSpinner />
-          </div>
+          <SkeletonCardGrid count={8} cols="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" />
         ) : members.length === 0 ? (
           <EmptyState icon={FiUser} title="कोई सदस्य नहीं मिला" description={search ? `No results for "${search}"` : 'No members registered yet.'} />
         ) : (

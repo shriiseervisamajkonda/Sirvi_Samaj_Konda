@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiFileText, FiSearch } from 'react-icons/fi';
 import { newsAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 import Pagination from '../../components/common/Pagination';
 import Badge from '../../components/common/Badge';
@@ -68,9 +68,7 @@ const NewsPage = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <LoadingSpinner />
-          </div>
+          <SkeletonCardGrid count={6} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
         ) : news.length === 0 ? (
           <EmptyState icon={FiFileText} title="कोई समाचार नहीं मिला" description="वर्तमान में कोई समाचार प्रकाशित नहीं किया गया है।" />
         ) : (

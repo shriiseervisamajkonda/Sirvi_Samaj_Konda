@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiCalendar, FiMapPin, FiClock } from 'react-icons/fi';
 import { eventAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
@@ -135,9 +135,7 @@ const EventsPage = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <LoadingSpinner />
-          </div>
+          <SkeletonCardGrid count={6} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
         ) : displayed.length === 0 ? (
           <EmptyState icon={FiCalendar} title={`No ${tab} events`} description="Check back soon for new events." />
         ) : (

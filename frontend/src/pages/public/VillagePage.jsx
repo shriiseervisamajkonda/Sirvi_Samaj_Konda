@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiMapPin, FiHome } from 'react-icons/fi';
 import { villageAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonPage } from '../../components/common/Skeleton';
 
 const VillagePage = () => {
   const [villages, setVillages] = useState([]);
@@ -51,9 +51,7 @@ const VillagePage = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {loading ? (
-          <div className="flex justify-center py-20">
-            <LoadingSpinner />
-          </div>
+          <SkeletonPage />
         ) : (
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Info */}

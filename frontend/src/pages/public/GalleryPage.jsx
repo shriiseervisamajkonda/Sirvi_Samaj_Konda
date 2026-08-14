@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiImage, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { galleryAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonImageGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 
 const GalleryPage = () => {
@@ -93,9 +93,7 @@ const GalleryPage = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <LoadingSpinner />
-          </div>
+          <SkeletonImageGrid count={8} />
         ) : filtered.length === 0 ? (
           <EmptyState icon={FiImage} title="कोई चित्र उपलब्ध नहीं" description="वर्तमान में गैलरी में कोई फोटो उपलब्ध नहीं है।" />
         ) : (

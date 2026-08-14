@@ -4,7 +4,7 @@ import { FiHeart, FiLock } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { marriageAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 import Pagination from '../../components/common/Pagination';
 import Badge from '../../components/common/Badge';
@@ -80,7 +80,7 @@ const MarriageBiodataPage = () => {
           ))}
         </div>
 
-        {loading ? <LoadingSpinner /> : profiles.length === 0 ? (
+        {loading ? <SkeletonCardGrid count={6} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" /> : profiles.length === 0 ? (
           <EmptyState icon={FiHeart} title="No profiles yet" description="Marriage biodata profiles will appear here once approved." />
         ) : (
           <>

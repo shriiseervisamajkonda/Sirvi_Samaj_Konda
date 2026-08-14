@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiDownload, FiFileText } from 'react-icons/fi';
 import { documentAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonList } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 import Badge from '../../components/common/Badge';
 
@@ -75,9 +75,7 @@ const DocumentsPage = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <LoadingSpinner />
-          </div>
+          <SkeletonList items={6} />
         ) : filtered.length === 0 ? (
           <EmptyState icon={FiFileText} title="कोई दस्तावेज उपलब्ध नहीं" description="वर्तमान में कोई दस्तावेज अपलोड नहीं किया गया है।" />
         ) : (

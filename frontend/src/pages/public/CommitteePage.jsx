@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiPhone, FiUsers } from 'react-icons/fi';
 import { committeeAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 
 const CommitteePage = () => {
@@ -69,9 +69,7 @@ const CommitteePage = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <LoadingSpinner />
-          </div>
+          <SkeletonCardGrid count={6} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" />
         ) : filteredMembers.length === 0 ? (
           <EmptyState icon={FiUsers} title="कोई सदस्य उपलब्ध नहीं" description="इस सूची में वर्तमान में कोई सदस्य दर्ज नहीं किया गया है।" />
         ) : (

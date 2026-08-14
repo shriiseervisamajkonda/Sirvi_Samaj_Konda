@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiBriefcase, FiSearch, FiPhone, FiGlobe, FiMapPin } from 'react-icons/fi';
 import { businessAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 import Pagination from '../../components/common/Pagination';
 import Badge from '../../components/common/Badge';
@@ -69,7 +69,7 @@ const BusinessDirectoryPage = () => {
           </div>
         </div>
 
-        {loading ? <LoadingSpinner /> : businesses.length === 0 ? (
+        {loading ? <SkeletonCardGrid count={6} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" /> : businesses.length === 0 ? (
           <EmptyState icon={FiBriefcase} title="No businesses found" description="Business listings will be available soon." />
         ) : (
           <>

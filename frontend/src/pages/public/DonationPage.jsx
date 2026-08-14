@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { FiHeart, FiUser, FiPhone, FiMail } from 'react-icons/fi';
 import { useForm } from 'react-hook-form';
 import { donationAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonList } from '../../components/common/Skeleton';
 import toast from 'react-hot-toast';
 import { useLanguage } from '../../context/LanguageContext';
 import PaymentModal from '../../components/common/PaymentModal';
@@ -318,7 +318,9 @@ const DonationPage = () => {
           {/* Recent Donors */}
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}>
             <h2 className="text-2xl font-bold text-[#FFF3DD] mb-6 border-b border-[#D4AF37]/10 pb-4">{t('donate_recent')}</h2>
-            {recentDonors.length > 0 ? (
+            {summaryLoading ? (
+              <SkeletonList items={4} />
+            ) : recentDonors.length > 0 ? (
               <div className="space-y-3">
                 {recentDonors.map((donor, i) => (
                   <div key={i} className="flex items-center gap-4 p-4 bg-[#2A1010] rounded-2xl border border-[#D4AF37]/15 shadow-lg">

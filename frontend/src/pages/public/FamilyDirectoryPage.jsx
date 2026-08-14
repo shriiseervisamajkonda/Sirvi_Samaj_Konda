@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FiSearch, FiUsers, FiMapPin, FiPhone } from 'react-icons/fi';
 import { familyAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 import Pagination from '../../components/common/Pagination';
 
@@ -131,7 +131,7 @@ const FamilyDirectoryPage = () => {
 
         {/* List Content */}
         {loading ? (
-          <LoadingSpinner />
+          <SkeletonCardGrid count={6} />
         ) : families.length === 0 ? (
           <EmptyState
             icon={FiUsers}

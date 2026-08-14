@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiBook, FiSearch, FiCalendar, FiUsers, FiChevronDown, FiChevronUp, FiFileText, FiCheckCircle } from 'react-icons/fi';
 import { panchSettlementAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonList } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 
 const PanchSettlementsPage = () => {
@@ -66,9 +66,7 @@ const PanchSettlementsPage = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <LoadingSpinner />
-          </div>
+          <SkeletonList items={5} />
         ) : items.length === 0 ? (
           <EmptyState icon={FiBook} title="कोई रिकॉर्ड नहीं मिला" description="वर्तमान में कोई भी समझौता रिकॉर्ड दर्ज नहीं है।" />
         ) : (

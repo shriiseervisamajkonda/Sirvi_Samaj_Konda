@@ -10,7 +10,7 @@ import {
   FiDollarSign, FiActivity, FiTrendingUp, FiArrowRight,
 } from 'react-icons/fi';
 import { dashboardAPI, activityLogAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonDashboard } from '../../components/common/Skeleton';
 
 const COLORS = ['#FF6B00', '#0D6EFD', '#198754', '#DC3545', '#6f42c1', '#fd7e14'];
 
@@ -57,7 +57,7 @@ const DashboardPage = () => {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <SkeletonDashboard />;
 
   const statCards = [
     { title: 'Total Families', value: stats?.families, icon: FiUsers, color: 'bg-orange-500', link: '/admin/families' },
