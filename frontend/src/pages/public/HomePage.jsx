@@ -58,6 +58,7 @@ const HomePage = () => {
   const [news, setNews] = useState([]);
   const [events, setEvents] = useState([]);
   const [committee, setCommittee] = useState([]);
+  const [activeCommitteeTab, setActiveCommitteeTab] = useState('all');
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
 
@@ -68,7 +69,7 @@ const HomePage = () => {
           dashboardAPI.getPublicStats(),
           newsAPI.getAll({ limit: 3, status: 'published' }),
           eventAPI.getAll({ limit: 4, status: 'published' }),
-          committeeAPI.getAll({ limit: 6 }),
+          committeeAPI.getAll({ limit: 100 }),
         ]);
         if (statsRes.status === 'fulfilled') setStats(statsRes.value.data.data);
         if (newsRes.status === 'fulfilled') setNews(newsRes.value.data.data || []);
@@ -490,7 +491,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Committee Section */}
+      {/* All Committees & Members Section */}
       {committee.length > 0 && (
         <section className="py-20 bg-[#160D08] border-b border-[#D4AF37]/10">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -498,37 +499,110 @@ const HomePage = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="text-center mb-10"
             >
-              <span className="inline-block px-4 py-1.5 bg-[#7A2525]/20 text-[#C85A17] text-xs font-bold rounded-full mb-4 uppercase tracking-wider">
+              <span className="inline-block px-4 py-1.5 bg-[#7A2525]/20 text-[#C85A17] text-xs font-bold rounded-full mb-3 uppercase tracking-wider">
                 {t('committee_badge')}
               </span>
-              <h2 className="text-4xl font-bold text-[#FFF3DD] mb-4">{t('committee_title')}</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#FFF3DD] mb-3">
+                समिति एवं संगठन पदाधिकारी
+              </h2>
+              <p className="text-[#CDBBA4] text-sm sm:text-base max-w-2xl mx-auto">
+                सिर्वी समाज कोणदा की सभी कार्यकारिणी समितियों, संगठन एवं संकल पंच के समर्पित पदाधिकारी एवं सदस्य
+              </p>
             </motion.div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {committee.slice(0, 6).map((member, i) => (
-                <motion.div
-                  key={member._id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.05 }}
-                  className="bg-[#2A1010] rounded-2xl p-4 text-center border border-[#D4AF37]/10 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+            {/* Committee Category Selector Tabs */}
+            <div className="flex flex-wrap justify-center border-b border-[#D4AF37]/20 mb-10 gap-2">
+              {[
+                { id: 'all', label: 'सभी समितियां (All Committees)' },
+                { id: 'committee', label: 'कार्यकारिणी समिति' },
+                { id: 'sangathan', label: 'संगठन' },
+                { id: 'sankal_panch', label: 'संकल पंच' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveCommitteeTab(tab.id)}
+                  className={`px-5 py-2.5 text-xs sm:text-sm font-bold transition-all border-b-2 rounded-t-xl -mb-[2px] cursor-pointer ${
+                    activeCommitteeTab === tab.id
+                      ? 'border-[#D4AF37] text-[#D4AF37] bg-[#7A2525]/30'
+                      : 'border-transparent text-[#CDBBA4] hover:text-[#FFF3DD] hover:bg-[#7A2525]/10'
+                  }`}
                 >
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#C85A17] to-[#D4AF37] flex items-center justify-center text-white text-xl font-bold mx-auto mb-3">
-                    {member.name?.charAt(0) || 'M'}
-                  </div>
-                  <p className="font-semibold text-[#FFF3DD] text-sm mb-1 truncate">{member.name}</p>
-                  <p className="text-[#C85A17] text-xs font-semibold truncate">{member.designation}</p>
-                </motion.div>
+                  {tab.label}
+                </button>
               ))}
             </div>
 
-            <div className="text-center mt-8">
+            {/* Members Display grouped by Committee */}
+            <div className="space-y-10">
+              {[
+                { id: 'committee', title: 'कार्यकारिणी समिति (Executive Committee)', icon: '🏛️' },
+                { id: 'sangathan', title: 'संगठन (Organization)', icon: '📜' },
+                { id: 'sankal_panch', title: 'संकल पंच (Sankal Panch Council)', icon: '⚖️' },
+              ]
+                .filter((cat) => activeCommitteeTab === 'all' || activeCommitteeTab === cat.id)
+                .map((cat) => {
+                  const categoryMembers = committee.filter(
+                    (m) => m.type === cat.id || (!m.type && cat.id === 'committee')
+                  );
+                  if (categoryMembers.length === 0) return null;
+
+                  return (
+                    <div key={cat.id} className="bg-[#220D08]/60 p-6 sm:p-8 rounded-3xl border border-[#D4AF37]/15">
+                      <div className="flex items-center gap-3 border-b border-[#D4AF37]/15 pb-4 mb-6">
+                        <span className="text-2xl">{cat.icon}</span>
+                        <div>
+                          <h3 className="text-xl sm:text-2xl font-bold text-[#FFF3DD]">{cat.title}</h3>
+                          <p className="text-xs text-[#CDBBA4]">{categoryMembers.length} सदस्य नामांकित</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {categoryMembers.map((member, i) => (
+                          <motion.div
+                            key={member._id || i}
+                            initial={{ opacity: 0, y: 15 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: i * 0.04 }}
+                            className="flex items-center gap-4 p-4 bg-[#2A1010] rounded-2xl border border-[#D4AF37]/10 hover:border-[#D4AF37]/40 hover:shadow-lg transition-all duration-300 group"
+                          >
+                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#C85A17] to-[#D4AF37] p-0.5 shrink-0 overflow-hidden shadow-md">
+                              {member.photo ? (
+                                <img src={member.photo} alt={member.name} className="w-full h-full object-cover rounded-full" />
+                              ) : (
+                                <div className="w-full h-full bg-[#160D08] rounded-full flex items-center justify-center text-[#FFF3DD] text-lg font-bold">
+                                  {member.name?.charAt(0) || 'M'}
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-bold text-[#FFF3DD] text-sm group-hover:text-[#D4AF37] transition-colors truncate">
+                                {member.name}
+                              </p>
+                              <p className="text-[#C85A17] text-xs font-semibold truncate">{member.designation}</p>
+                              {member.phone && (
+                                <a
+                                  href={`tel:${member.phone}`}
+                                  className="inline-flex items-center gap-1 text-[11px] text-[#CDBBA4] hover:text-[#D4AF37] transition-colors mt-1"
+                                >
+                                  <FiPhone className="w-3 h-3 text-[#C85A17]" /> {member.phone}
+                                </a>
+                              )}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+
+            <div className="text-center mt-12">
               <Link
                 to="/committee"
-                className="inline-flex items-center gap-2 px-6 py-3 border border-[#C85A17]/30 text-[#C85A17] rounded-xl hover:bg-[#C85A17]/10 transition-colors font-bold"
+                className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-[#C85A17] to-[#7A2525] text-white rounded-xl hover:from-[#7A2525] hover:to-[#C85A17] transition-all font-bold shadow-lg hover:shadow-xl cursor-pointer text-sm"
               >
                 {t('committee_view_full')} <FiArrowRight className="w-4 h-4" />
               </Link>
