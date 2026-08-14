@@ -8,7 +8,7 @@ const Footer = () => {
   const { t } = useLanguage();
 
   return (
-    <footer className="bg-[#2A1010] text-[#CDBBA4] border-t border-[#D4AF37]/20">
+    <footer className="bg-[#3B0A0A] text-[#FDE68A]/90 border-t border-[#F59E0B]/20">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
