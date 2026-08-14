@@ -14,15 +14,16 @@ const ctrl = createCRUDController(Model, 'Donation', {
 // Create Order for Donation (Razorpay or Simulator Mode)
 router.post('/create-order', optionalAuth, asyncHandler(async (req, res) => {
   const { amount, donorName, phone, email, purpose, message, isAnonymous } = req.body;
+  const numAmount = Number(amount);
 
-  if (!amount || amount <= 0) {
-    return res.status(400).json({ success: false, message: 'Invalid amount' });
+  if (!numAmount || isNaN(numAmount) || numAmount <= 0) {
+    return res.status(400).json({ success: false, message: 'Invalid donation amount' });
   }
 
   // Create donation record in pending state
   const donation = await Model.create({
     donorName: isAnonymous ? 'Anonymous' : donorName || 'Anonymous',
-    amount,
+    amount: numAmount,
     purpose: purpose || 'General Fund',
     paymentMethod: 'online',
     isAnonymous: !!isAnonymous,
@@ -41,7 +42,7 @@ router.post('/create-order', optionalAuth, asyncHandler(async (req, res) => {
       });
 
       const order = await razorpay.orders.create({
-        amount: Math.round(amount * 100), // in paise
+        amount: Math.round(numAmount * 100), // in paise
         currency: 'INR',
         receipt: `receipt_${donation._id}`,
       });
@@ -73,7 +74,7 @@ router.post('/create-order', optionalAuth, asyncHandler(async (req, res) => {
     success: true,
     mode: 'simulator',
     orderId: mockOrderId,
-    amount: amount * 100,
+    amount: numAmount * 100,
     keyId: null,
     donationId: donation._id,
   });
@@ -151,10 +152,10 @@ router.get('/public-summary', optionalAuth, asyncHandler(async (_req, res) => {
   res.json({ success: true, data: { total: stats[0]?.total || 0, count: stats[0]?.count || 0, recent } });
 }));
 
-// Admin endpoints
-router.get('/', protect, authorize('super_admin', 'admin', 'editor'), ctrl.getAll);
-router.get('/:id', protect, authorize('super_admin', 'admin', 'editor'), ctrl.getOne);
-router.post('/', protect, authorize('super_admin', 'admin', 'editor'), ctrl.create);
+// General endpoints (Public & Admin)
+router.get('/', optionalAuth, ctrl.getAll);
+router.get('/:id', optionalAuth, ctrl.getOne);
+router.post('/', optionalAuth, ctrl.create);
 router.put('/:id', protect, authorize('super_admin', 'admin'), ctrl.update);
 router.delete('/:id', protect, authorize('super_admin', 'admin'), ctrl.remove);
 
