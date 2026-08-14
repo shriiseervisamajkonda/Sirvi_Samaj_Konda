@@ -16,6 +16,7 @@ import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Badge from '../../components/common/Badge';
+import { FormSection, FormField, FormActions } from '../../components/common/FormComponents';
 import toast from 'react-hot-toast';
 import { gramUnitAPI, gramUnitMemberAPI, formationEventAPI } from '../../services/api';
 
@@ -467,95 +468,72 @@ const GramUnitsPage = () => {
         onClose={() => setModalOpen(false)}
         title={
           editItem
-            ? `संपादित करें (${editItem.name})`
+            ? `सदस्य विवरण संपादित करें (${editItem.name})`
             : activeTab === 'office_bearers'
-            ? 'नया पदाधिकारी जोड़ें'
+            ? 'नया पदाधिकारी जोड़ें (Add Office Bearer)'
             : activeTab === 'members'
-            ? 'नया सदस्य जोड़ें'
-            : 'नया प्रतिनिधि जोड़ें'
+            ? 'नया ग्राम सदस्य जोड़ें (Add Member)'
+            : 'नया प्रतिनिधि जोड़ें (Add Representative)'
         }
-        size="md"
+        size="lg"
       >
-        <form onSubmit={handleMemberSubmit(onSaveMember)} className="p-6 space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
-              पूरा नाम (Name with Father/Family details) <span className="text-red-500">*</span>
-            </label>
-            <input
-              {...registerMember('name', { required: true })}
-              placeholder="उदा. सुनिल/पन्नालाल जी भायल"
-              className="input-field"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
-                श्रेणी (Category)
-              </label>
-              <select {...registerMember('category')} className="input-field">
-                <option value="office_bearer">पदाधिकारी (Office Bearer)</option>
-                <option value="member">सदस्य (Member)</option>
-                <option value="representative">प्रतिनिधि (Representative)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
-                पद / दायित्व (Designation)
-              </label>
+        <form onSubmit={handleMemberSubmit(onSaveMember)} className="p-6 sm:p-8 space-y-6">
+          <FormSection title="1. नाम व पद विवरण (Member & Designation)" icon={FiUsers}>
+            <FormField label="पूरा नाम व पिता/पति का नाम (Full Name with Father/Family)" required>
               <input
-                {...registerMember('designation', { required: true })}
-                placeholder="अध्यक्ष, महासचिव, सदस्य, आदि"
+                {...registerMember('name', { required: true })}
+                placeholder="उदा. सुनिल/पन्नालाल जी भायल"
                 className="input-field"
               />
-            </div>
-          </div>
+            </FormField>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
-                प्रतिनिधि स्तर (Representative Level)
-              </label>
-              <select {...registerMember('representativeLevel')} className="input-field">
-                <option value="none">लागू नहीं (None)</option>
-                <option value="tehsil">तहसील प्रतिनिधि (Tehsil)</option>
-                <option value="district">जिला प्रतिनिधि (District)</option>
-                <option value="state">प्रदेश प्रतिनिधि (State)</option>
-                <option value="gram">ग्राम प्रतिनिधि (Gram)</option>
-              </select>
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="श्रेणी (Category)">
+                <select {...registerMember('category')} className="input-field">
+                  <option value="office_bearer">पदाधिकारी (Office Bearer)</option>
+                  <option value="member">ग्राम सदस्य (Member)</option>
+                  <option value="representative">प्रतिनिधि (Representative)</option>
+                </select>
+              </FormField>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
-                प्रदर्शन क्रम (Order)
-              </label>
-              <input
-                type="number"
-                {...registerMember('order')}
-                defaultValue={1}
-                className="input-field"
-              />
+              <FormField label="पद / दायित्व (Designation)" required>
+                <input
+                  {...registerMember('designation', { required: true })}
+                  placeholder="उदा. अध्यक्ष, उपाध्यक्ष, सचिव, आदि"
+                  className="input-field"
+                />
+              </FormField>
             </div>
-          </div>
+          </FormSection>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-[#7F1D1D]/40">
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              className="px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition cursor-pointer"
-            >
-              रद्द करें (Cancel)
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-5 py-2 text-sm font-bold text-white bg-orange-500 rounded-xl hover:bg-orange-600 transition disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-md shadow-orange-500/20"
-            >
-              {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-              {editItem ? 'सहेजें (Save Changes)' : 'जोड़ें (Add)'}
-            </button>
-          </div>
+          <FormSection title="2. प्रतिनिधि स्तर एवं प्राथमिकता (Level & Order)" icon={FiAward}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="प्रतिनिधि स्तर (Representative Level)">
+                <select {...registerMember('representativeLevel')} className="input-field">
+                  <option value="none">लागू नहीं (None)</option>
+                  <option value="tehsil">तहसील प्रतिनिधि (कुक्षी)</option>
+                  <option value="district">जिला प्रतिनिधि (धार)</option>
+                  <option value="state">प्रदेश प्रतिनिधि (मध्यप्रदेश)</option>
+                  <option value="gram">ग्राम प्रतिनिधि (कोणदा)</option>
+                </select>
+              </FormField>
+
+              <FormField label="प्रदर्शन क्रम संख्या (Display Order)">
+                <input
+                  type="number"
+                  {...registerMember('order')}
+                  defaultValue={1}
+                  className="input-field font-mono"
+                />
+              </FormField>
+            </div>
+          </FormSection>
+
+          <FormActions
+            onCancel={() => setModalOpen(false)}
+            submitText={editItem ? 'परिवर्तन सहेजें (Save Changes)' : 'सहेजें व जोड़ें (Save)'}
+            loading={saving}
+          />
         </form>
       </Modal>
 

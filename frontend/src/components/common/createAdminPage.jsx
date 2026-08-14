@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import { FormActions } from '../../components/common/FormComponents';
 import toast from 'react-hot-toast';
 
 const createAdminPage = ({
@@ -105,17 +106,21 @@ const createAdminPage = ({
     ];
 
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-6 text-[#2B211B]">
+        {/* Top Header Card */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-sm">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h1>
-            {subtitle && <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{subtitle}</p>}
+            <div className="flex items-center gap-2 mb-1">
+              {PageIcon && <PageIcon className="w-5 h-5 text-[#C85A17]" />}
+              <h1 className="text-xl sm:text-2xl font-black text-[#2B211B]">{title}</h1>
+            </div>
+            {subtitle && <p className="text-[#766A60] text-xs sm:text-sm font-medium">{subtitle}</p>}
           </div>
           <button
             onClick={openCreate}
-            className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30 transition-all"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#7A2525] to-[#C85A17] hover:from-[#8C2C1D] hover:to-[#A7450D] text-white rounded-2xl text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition cursor-pointer"
           >
-            <FiPlus className="w-4 h-4" /> Add {title.replace(' Management', '')}
+            <FiPlus className="w-4 h-4" /> नया रिकॉर्ड जोड़ें (Add New)
           </button>
         </div>
 
@@ -129,24 +134,22 @@ const createAdminPage = ({
           onSearchChange={(v) => { setSearch(v); setPage(1); }}
           serverSide
           emptyIcon={PageIcon}
-          emptyText={`No ${title.replace(' Management', '')} found`}
+          emptyText={`कोई ${title.replace(' Management', '')} उपलब्ध नहीं है`}
         />
 
         <Modal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
-          title={editItem ? `Edit ${title.replace(' Management', '')}` : `Add ${title.replace(' Management', '')}`}
+          title={editItem ? `संपादित करें: ${title.replace(' Management', '')}` : `नया जोड़ें: ${title.replace(' Management', '')}`}
           size="lg"
         >
-          <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-8 space-y-6">
             <FormFields register={register} errors={errors} control={control} watch={watch} setValue={setValue} editItem={editItem} />
-            <div className="flex justify-end gap-3 pt-2">
-              <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">Cancel</button>
-              <button type="submit" disabled={saving} className="px-4 py-2 text-sm font-medium text-white bg-orange-500 rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center gap-2">
-                {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                {editItem ? 'Save Changes' : `Add ${title.replace(' Management', '')}`}
-              </button>
-            </div>
+            <FormActions
+              onCancel={() => setModalOpen(false)}
+              submitText={editItem ? 'बदलाव सहेजें (Save Changes)' : 'सहेजें व जोड़ें (Save)'}
+              loading={saving}
+            />
           </form>
         </Modal>
 
@@ -154,8 +157,8 @@ const createAdminPage = ({
           isOpen={!!deleteItem}
           onClose={() => setDeleteItem(null)}
           onConfirm={handleDelete}
-          title={`Delete ${title.replace(' Management', '')}`}
-          message={`Are you sure you want to delete this record? This action cannot be undone.`}
+          title="रिकॉर्ड हटाएँ"
+          message={`क्या आप सुनिश्चित हैं कि आप इस रिकॉर्ड को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।`}
           isLoading={deleting}
         />
       </div>

@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiUser } from 'react-icons/fi';
+import { motion } from 'framer-motion';
+import { FiPlus, FiEdit2, FiTrash2, FiUser, FiBriefcase, FiUsers, FiPhone, FiImage } from 'react-icons/fi';
 import { memberAPI, familyAPI } from '../../services/api';
 import { useForm } from 'react-hook-form';
 import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Badge from '../../components/common/Badge';
+import ImageUpload from '../../components/common/ImageUpload';
+import { FormSection, FormField, FormActions } from '../../components/common/FormComponents';
 import toast from 'react-hot-toast';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -23,41 +26,40 @@ const MembersPage = () => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
 
-  const fetchData = useCallback(async () => {
+  const fetchMembers = useCallback(async () => {
     setLoading(true);
     try {
-      const [membersRes, famRes] = await Promise.all([
-        memberAPI.getAll({ page, limit: 10, search }),
-        familyAPI.getAll({ limit: 100 }),
-      ]);
-      setMembers(membersRes.data.data || []);
-      setTotalPages(membersRes.data.pagination?.pages || 1);
-      setFamilies(famRes.data.data || []);
-    } catch { toast.error('Failed to load members'); }
+      const res = await memberAPI.getAll({ page, limit: 10, search });
+      setMembers(res.data.data || []);
+      setTotalPages(res.data.pagination?.pages || 1);
+    } catch { toast.error('सदस्य सूची लोड करने में त्रुटि'); }
     finally { setLoading(false); }
   }, [page, search]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchMembers();
+    familyAPI.getAll({ limit: 200 }).then(res => setFamilies(res.data.data || [])).catch(() => {});
+  }, [fetchMembers]);
 
-  const openCreate = () => { setEditItem(null); reset({}); setModalOpen(true); };
-  const openEdit = (item) => { setEditItem(item); reset(item); setModalOpen(true); };
+  const openCreate = () => { setEditItem(null); reset({ village: 'Konda', status: 'active', gender: 'Male' }); setModalOpen(true); };
+  const openEdit = (member) => { setEditItem(member); reset(member); setModalOpen(true); };
 
   const onSubmit = async (data) => {
     setSaving(true);
     try {
       if (editItem) {
         await memberAPI.update(editItem._id, data);
-        toast.success('Member updated!');
+        toast.success('सदस्य विवरण सफलतापूर्वक अपडेट हुआ!');
       } else {
         await memberAPI.create(data);
-        toast.success('Member added!');
+        toast.success('नया सदस्य सफलतापूर्वक जुड़ गया!');
       }
       setModalOpen(false);
-      fetchData();
+      fetchMembers();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Save failed');
+      toast.error(err.response?.data?.message || 'डेटा सेव करने में त्रुटि');
     } finally { setSaving(false); }
   };
 
@@ -68,142 +70,211 @@ const MembersPage = () => {
     try {
       await memberAPI.delete(targetId);
       setMembers((prev) => prev.filter((item) => item._id !== targetId));
-      toast.success('Member deleted successfully!');
+      toast.success('सदस्य रिकॉर्ड हटा दिया गया!');
       setDeleteItem(null);
       if (members.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
-        fetchData();
+        fetchMembers();
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Delete failed');
+      toast.error(err.response?.data?.message || 'रिकॉर्ड हटाने में त्रुटि');
     } finally {
       setDeleting(false);
     }
   };
 
   const columns = [
-    { key: 'firstName', label: 'Name', render: (_, r) => <span className="font-medium">{r.firstName} {r.lastName}</span> },
-    { key: 'gender', label: 'Gender', render: (v) => <Badge variant={v === 'Male' ? 'info' : 'purple'}>{v}</Badge> },
-    { key: 'bloodGroup', label: 'Blood Group', render: (v) => v ? <Badge variant="danger">{v}</Badge> : '—' },
-    { key: 'occupation', label: 'Occupation', sortable: true },
-    { key: 'education', label: 'Education' },
-    { key: 'village', label: 'Village', sortable: true },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'active' ? 'success' : 'warning'}>{v}</Badge> },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'photo',
+      label: 'फ़ोटो',
+      render: (v, r) => (
+        <div className="w-10 h-10 rounded-2xl overflow-hidden bg-gradient-to-br from-[#7A2525] to-[#C85A17] p-0.5 shadow-xs">
+          {v ? (
+            <img src={v} alt={r.firstName} className="w-full h-full object-cover rounded-2xl" />
+          ) : (
+            <div className="w-full h-full bg-[#FFF8EC] rounded-2xl flex items-center justify-center font-black text-xs text-[#7A2525]">
+              {r.firstName?.charAt(0) || 'M'}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    { key: 'firstName', label: 'नाम', sortable: true, render: (_, r) => <span className="font-bold text-[#2B211B]">{r.firstName} {r.lastName}</span> },
+    { key: 'gender', label: 'लिंग', render: (v) => <Badge variant={v === 'Male' ? 'info' : 'warning'}>{v === 'Male' ? 'पुरुष' : v === 'Female' ? 'महिला' : v}</Badge> },
+    { key: 'bloodGroup', label: 'रक्त समूह', render: (v) => v ? <span className="px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-md font-mono text-xs font-bold">{v}</span> : '—' },
+    { key: 'occupation', label: 'व्यवसाय', render: (v) => v || '—' },
+    { key: 'family', label: 'परिवार', render: (v) => v?.headOfFamily ? `${v.headOfFamily} (${v.familyId || ''})` : '—' },
+    { key: 'phone', label: 'फ़ोन', render: (v) => v ? <span className="font-mono text-xs">{v}</span> : '—' },
+    { key: 'status', label: 'स्थिति', render: (v) => <Badge variant={v === 'active' ? 'success' : 'danger'}>{v === 'active' ? 'सक्रिय' : 'निष्क्रिय'}</Badge> },
+    {
+      key: '_actions',
+      label: 'कार्यवाही',
+      render: (_, row) => (
         <div className="flex gap-2">
-          <button onClick={() => openEdit(r)} className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => openEdit(row)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition cursor-pointer" title="संपादित करें">
+            <FiEdit2 className="w-4 h-4" />
+          </button>
+          <button onClick={() => setDeleteItem(row)} className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition cursor-pointer" title="हटाएँ">
+            <FiTrash2 className="w-4 h-4" />
+          </button>
         </div>
       ),
     },
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 text-[#2B211B]">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-sm">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Member Management</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage all community members</p>
+          <div className="flex items-center gap-2 mb-1">
+            <FiUser className="w-5 h-5 text-[#C85A17]" />
+            <h1 className="text-xl sm:text-2xl font-black text-[#2B211B]">समाज सदस्य प्रबंधन (Member Directory)</h1>
+          </div>
+          <p className="text-[#766A60] text-xs sm:text-sm font-medium">समाज के सभी पंजीकृत महिला, पुरुष व बच्चों की जानकारी प्रबंधित करें।</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
-          <FiPlus className="w-4 h-4" /> Add Member
+        <button
+          onClick={openCreate}
+          className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#7A2525] to-[#C85A17] hover:from-[#8C2C1D] hover:to-[#A7450D] text-white rounded-2xl text-xs sm:text-sm font-bold shadow-md hover:shadow-lg transition cursor-pointer"
+        >
+          <FiPlus className="w-4 h-4" /> नया सदस्य जोड़ें (Add Member)
         </button>
       </div>
 
-      <DataTable columns={columns} data={members} loading={loading} totalPages={totalPages} currentPage={page}
-        onPageChange={setPage} onSearchChange={(v) => { setSearch(v); setPage(1); }} serverSide
-        emptyIcon={FiUser} emptyText="No members found" />
+      <DataTable
+        columns={columns}
+        data={members}
+        loading={loading}
+        totalPages={totalPages}
+        currentPage={page}
+        onPageChange={setPage}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        serverSide
+        emptyIcon={FiUser}
+        emptyText="कोई सदस्य नहीं मिला"
+      />
 
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Member' : 'Add Member'} size="xl">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name *</label>
-              <input {...register('firstName', { required: true })} placeholder="First name" className="input-field" />
+      {/* Form Modal */}
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editItem ? 'सदस्य विवरण संपादित करें (Edit Member)' : 'नया सदस्य जोड़ें (Add Member)'}
+        size="xl"
+      >
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-8 space-y-6">
+          <FormSection title="1. व्यक्तिगत जानकारी (Personal Information)" icon={FiUser}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="प्रथम नाम (First Name)" required error={errors.firstName}>
+                <input {...register('firstName', { required: 'प्रथम नाम आवश्यक है' })} placeholder="उदा. राहुल" className="input-field" />
+              </FormField>
+
+              <FormField label="उपनाम / गोत्र (Last Name)">
+                <input {...register('lastName')} placeholder="उदा. पंवार / बर्फा / काग" className="input-field" />
+              </FormField>
+
+              <FormField label="लिंग (Gender)" required error={errors.gender}>
+                <select {...register('gender', { required: 'लिंग चुनें' })} className="input-field">
+                  <option value="Male">पुरुष (Male)</option>
+                  <option value="Female">महिला (Female)</option>
+                  <option value="Other">अन्य (Other)</option>
+                </select>
+              </FormField>
+
+              <FormField label="रक्त समूह (Blood Group)">
+                <select {...register('bloodGroup')} className="input-field">
+                  <option value="">रक्त समूह चुनें</option>
+                  {bloodGroups.map(bg => <option key={bg} value={bg}>{bg}</option>)}
+                </select>
+              </FormField>
+
+              <FormField label="जन्म दिनांक (Date of Birth)">
+                <input {...register('dateOfBirth')} type="date" className="input-field" />
+              </FormField>
+
+              <FormField label="वैवाहिक स्थिति (Marital Status)">
+                <select {...register('maritalStatus')} className="input-field">
+                  <option value="">स्थिति चुनें</option>
+                  <option value="Single">अविवाहित (Single)</option>
+                  <option value="Married">विवाहित (Married)</option>
+                  <option value="Divorced">तलाकशुदा (Divorced)</option>
+                  <option value="Widowed">विधवा / विधुर (Widowed)</option>
+                </select>
+              </FormField>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
-              <input {...register('lastName')} placeholder="Last name" className="input-field" />
+          </FormSection>
+
+          <FormSection title="2. शिक्षा एवं व्यवसाय (Education & Occupation)" icon={FiBriefcase}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="शैक्षणिक योग्यता (Education)">
+                <input {...register('education')} placeholder="उदा. B.Com / 12th / MBA" className="input-field" />
+              </FormField>
+
+              <FormField label="व्यवसाय / पद (Occupation)">
+                <input {...register('occupation')} placeholder="उदा. कृषि / व्यापार / इंजीनियर" className="input-field" />
+              </FormField>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gender *</label>
-              <select {...register('gender', { required: true })} className="input-field">
-                <option value="">Select gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
+          </FormSection>
+
+          <FormSection title="3. परिवार व निवास (Family & Residence)" icon={FiUsers}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="संबंधित परिवार (Family)">
+                <select {...register('family')} className="input-field">
+                  <option value="">परिवार चुनें</option>
+                  {families.map(f => <option key={f._id} value={f._id}>{f.headOfFamily} ({f.familyId})</option>)}
+                </select>
+              </FormField>
+
+              <FormField label="गाँव (Village)">
+                <input {...register('village')} defaultValue="Konda" className="input-field" />
+              </FormField>
+
+              <FormField label="सक्रिय स्थिति (Status)">
+                <select {...register('status')} className="input-field">
+                  <option value="active">सक्रिय (Active)</option>
+                  <option value="inactive">निष्क्रिय (Inactive)</option>
+                </select>
+              </FormField>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Blood Group</label>
-              <select {...register('bloodGroup')} className="input-field">
-                <option value="">Select blood group</option>
-                {bloodGroups.map(bg => <option key={bg} value={bg}>{bg}</option>)}
-              </select>
+          </FormSection>
+
+          <FormSection title="4. संपर्क व फ़ोटो (Contact & Photo)" icon={FiPhone}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="फ़ोन / मोबाइल नंबर">
+                <input {...register('phone')} placeholder="+91-9876543210" className="input-field font-mono" />
+              </FormField>
+
+              <FormField label="ईमेल पता (Email)">
+                <input {...register('email')} type="email" placeholder="example@domain.com" className="input-field" />
+              </FormField>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date of Birth</label>
-              <input {...register('dateOfBirth')} type="date" className="input-field" />
+
+            <div className="pt-2">
+              <ImageUpload
+                value={watch('photo')}
+                onChange={(url) => setValue('photo', url, { shouldDirty: true })}
+                label="सदस्य फ़ोटो (Member Photo)"
+                folder="members"
+              />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Education</label>
-              <input {...register('education')} placeholder="Highest qualification" className="input-field" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Occupation</label>
-              <input {...register('occupation')} placeholder="Job/Profession" className="input-field" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
-              <input {...register('phone')} placeholder="+91..." className="input-field" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-              <input {...register('email')} type="email" placeholder="email@..." className="input-field" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Marital Status</label>
-              <select {...register('maritalStatus')} className="input-field">
-                <option value="">Select</option>
-                <option value="Single">Single</option>
-                <option value="Married">Married</option>
-                <option value="Divorced">Divorced</option>
-                <option value="Widowed">Widowed</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Family</label>
-              <select {...register('family')} className="input-field">
-                <option value="">Select family</option>
-                {families.map(f => <option key={f._id} value={f._id}>{f.headOfFamily} ({f.familyId})</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Village</label>
-              <input {...register('village')} defaultValue="Konda" className="input-field" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-              <select {...register('status')} className="input-field">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex justify-end gap-3">
-            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">Cancel</button>
-            <button type="submit" disabled={saving} className="px-4 py-2 text-sm text-white bg-orange-500 rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center gap-2">
-              {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
-              {editItem ? 'Save Changes' : 'Add Member'}
-            </button>
-          </div>
+          </FormSection>
+
+          <FormActions
+            onCancel={() => setModalOpen(false)}
+            submitText={editItem ? 'बदलाव सहेजें (Save Changes)' : 'सदस्य जोड़ें (Add Member)'}
+            loading={saving}
+          />
         </form>
       </Modal>
 
-      <ConfirmDialog isOpen={!!deleteItem} onClose={() => setDeleteItem(null)} onConfirm={handleDelete}
-        title="Delete Member" message={`Delete "${deleteItem?.firstName} ${deleteItem?.lastName}"?`} isLoading={deleting} />
+      <ConfirmDialog
+        isOpen={!!deleteItem}
+        onClose={() => setDeleteItem(null)}
+        onConfirm={handleDelete}
+        title="सदस्य रिकॉर्ड हटाएँ"
+        message={`क्या आप "${deleteItem?.firstName} ${deleteItem?.lastName || ''}" का सदस्य रिकॉर्ड हटाना चाहते हैं?`}
+        isLoading={deleting}
+      />
     </div>
   );
 };
