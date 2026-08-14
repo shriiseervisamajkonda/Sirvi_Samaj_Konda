@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiBook, FiSearch } from 'react-icons/fi';
 import { studentAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 import Pagination from '../../components/common/Pagination';
 import Badge from '../../components/common/Badge';
@@ -50,7 +50,7 @@ const StudentPage = () => {
           </div>
         </div>
 
-        {loading ? <LoadingSpinner /> : students.length === 0 ? (
+        {loading ? <SkeletonCardGrid count={6} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" /> : students.length === 0 ? (
           <EmptyState icon={FiBook} title="No students found" description="Student records will be updated soon." />
         ) : (
           <>

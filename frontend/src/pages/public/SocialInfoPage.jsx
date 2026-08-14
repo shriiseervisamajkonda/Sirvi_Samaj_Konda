@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FiBookOpen, FiSearch, FiFileText, FiInfo, FiAward } from 'react-icons/fi';
 import { socialInfoAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 
 const SocialInfoPage = () => {
@@ -94,9 +94,7 @@ const SocialInfoPage = () => {
 
         {/* Content lists */}
         {loading ? (
-          <div className="flex justify-center py-20">
-            <LoadingSpinner />
-          </div>
+          <SkeletonCardGrid count={6} cols="grid-cols-1 md:grid-cols-2" />
         ) : items.length === 0 ? (
           <EmptyState icon={FiBookOpen} title="जानकारी उपलब्ध नहीं" description="इस श्रेणी में कोई सामाजिक जानकारी दर्ज नहीं की गई है।" />
         ) : (

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiDroplet, FiSearch, FiPhone, FiMapPin } from 'react-icons/fi';
 import { bloodDonorAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 import Badge from '../../components/common/Badge';
 
@@ -85,7 +85,7 @@ const BloodDonorPage = () => {
           </div>
         </div>
 
-        {loading ? <LoadingSpinner /> : donors.length === 0 ? (
+        {loading ? <SkeletonCardGrid count={8} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" /> : donors.length === 0 ? (
           <EmptyState icon={FiDroplet} title="No donors found" description={selectedBG ? `No ${selectedBG} donors available` : 'No blood donors registered.'} />
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">

@@ -6,7 +6,7 @@ import {
   FiArrowRight, FiMapPin, FiPhone, FiChevronRight,
 } from 'react-icons/fi';
 import { dashboardAPI, newsAPI, eventAPI, committeeAPI } from '../../services/api';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonHomePage } from '../../components/common/Skeleton';
 import { useLanguage } from '../../context/LanguageContext';
 
 // Animated counter component
@@ -102,7 +102,7 @@ const HomePage = () => {
     { label: t('nav_donate'), path: '/donations', icon: FiHeart, color: 'from-pink-400 to-pink-600' },
   ];
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <SkeletonHomePage />;
 
   return (
     <div className="overflow-hidden bg-slate-950 text-gray-100">

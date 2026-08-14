@@ -7,7 +7,7 @@ import {
 } from 'react-icons/fi';
 import { dashboardAPI, newsAPI, eventAPI, committeeAPI, galleryAPI } from '../services/api';
 import StatCard from '../components/common/StatCard';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import { SkeletonHomePage } from '../components/common/Skeleton';
 
 const quickLinks = [
   { label: 'Family Directory', path: '/families', icon: FiUsers, color: 'primary' },
@@ -48,7 +48,7 @@ const Home = () => {
     fetchData();
   }, []);
 
-  if (loading) return <LoadingSpinner fullScreen />;
+  if (loading) return <SkeletonHomePage />;
 
   return (
     <div>
