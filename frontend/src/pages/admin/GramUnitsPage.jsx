@@ -196,7 +196,7 @@ const GramUnitsPage = () => {
     {
       key: 'name',
       label: 'नाम (Name)',
-      render: (v) => <span className="font-bold text-gray-900 dark:text-[#FFF8F0]">{v}</span>,
+      render: (v) => <span className="font-bold text-gray-900 [#FFF8F0]">{v}</span>,
     },
     {
       key: 'designation',
@@ -237,14 +237,14 @@ const GramUnitsPage = () => {
         <div className="flex gap-2">
           <button
             onClick={() => handleOpenEdit(r)}
-            className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg transition-colors cursor-pointer"
             title="Edit"
           >
             <FiEdit2 className="w-4 h-4" />
           </button>
           <button
             onClick={() => setDeleteItem(r)}
-            className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg transition-colors cursor-pointer"
             title="Delete"
           >
             <FiTrash2 className="w-4 h-4" />
@@ -259,10 +259,10 @@ const GramUnitsPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-[#FFF8F0]">
+          <h1 className="text-2xl font-bold text-gray-900 [#FFF8F0]">
             अखिल भारतीय सिर्वी महासभा — कोणदा ग्राम इकाई
           </h1>
-          <p className="text-gray-500 dark:text-[#FDE68A] text-sm mt-0.5">
+          <p className="text-gray-500 [#FDE68A] text-sm mt-0.5">
             ग्राम इकाई पदाधिकारी, सदस्य, प्रतिनिधि एवं गठन विवरण प्रबंधन
           </p>
         </div>
@@ -279,7 +279,7 @@ const GramUnitsPage = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap border-b border-gray-200 dark:border-[#7F1D1D] gap-1">
+      <div className="flex flex-wrap border-b border-gray-200 [#7F1D1D] gap-1">
         {[
           { id: 'office_bearers', label: 'पदाधिकारी (Office Bearers)', icon: FiAward },
           { id: 'members', label: 'सदस्य (Members)', icon: FiUsers },
@@ -295,8 +295,8 @@ const GramUnitsPage = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 -mb-[2px] transition-all cursor-pointer rounded-t-lg ${
                 isActive
-                  ? 'border-orange-500 text-orange-500 dark:text-[#F59E0B] bg-orange-500/10'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-[#FFF8F0]'
+                  ? 'border-orange-500 text-orange-500 [#F59E0B] bg-orange-500/10'
+                  : 'border-transparent text-gray-500 hover:text-gray-900 :text-[#FFF8F0]'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -327,8 +327,8 @@ const GramUnitsPage = () => {
 
       {/* TAB 2: Unit Information Edit Form */}
       {activeTab === 'unit_info' && (
-        <div className="bg-white dark:bg-[#3B0A0A] rounded-2xl p-6 border border-gray-200 dark:border-[#7F1D1D] shadow-lg">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-[#FFF8F0] mb-4 flex items-center gap-2">
+        <div className="bg-white [#3B0A0A] rounded-2xl p-6 border border-gray-200 [#7F1D1D] shadow-lg">
+          <h2 className="text-lg font-bold text-gray-900 [#FFF8F0] mb-4 flex items-center gap-2">
             <FiMapPin className="text-[#F59E0B]" />
             ग्राम इकाई एवं संगठन विवरण संपादित करें
           </h2>
@@ -336,7 +336,7 @@ const GramUnitsPage = () => {
           <form onSubmit={handleUnitSubmit(onSaveUnit)} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
+                <label className="block text-xs font-bold text-gray-700 [#FDE68A] mb-1">
                   संगठन का नाम (Organization)
                 </label>
                 <input
@@ -347,7 +347,7 @@ const GramUnitsPage = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
+                <label className="block text-xs font-bold text-gray-700 [#FDE68A] mb-1">
                   इकाई का नाम (Gram Unit Name)
                 </label>
                 <input
@@ -358,42 +358,42 @@ const GramUnitsPage = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
+                <label className="block text-xs font-bold text-gray-700 [#FDE68A] mb-1">
                   ग्राम (Village)
                 </label>
                 <input {...registerUnit('village')} className="input-field" />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
+                <label className="block text-xs font-bold text-gray-700 [#FDE68A] mb-1">
                   तहसील (Tehsil)
                 </label>
                 <input {...registerUnit('tehsil')} className="input-field" />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
+                <label className="block text-xs font-bold text-gray-700 [#FDE68A] mb-1">
                   जिला (District)
                 </label>
                 <input {...registerUnit('district')} className="input-field" />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
+                <label className="block text-xs font-bold text-gray-700 [#FDE68A] mb-1">
                   राज्य (State)
                 </label>
                 <input {...registerUnit('state')} className="input-field" />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
+                <label className="block text-xs font-bold text-gray-700 [#FDE68A] mb-1">
                   नियुक्त पर्यवेक्षक (Supervisor)
                 </label>
                 <input {...registerUnit('supervisor')} className="input-field" />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
+                <label className="block text-xs font-bold text-gray-700 [#FDE68A] mb-1">
                   चयन प्रक्रिया (Selection Method)
                 </label>
                 <input {...registerUnit('selectionMethod')} className="input-field" />
@@ -401,7 +401,7 @@ const GramUnitsPage = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 dark:text-[#FDE68A] mb-1">
+              <label className="block text-xs font-bold text-gray-700 [#FDE68A] mb-1">
                 आधिकारिक विवरण (Official Description)
               </label>
               <textarea
@@ -431,13 +431,13 @@ const GramUnitsPage = () => {
 
       {/* TAB 3: Formation Event Overview & Edit */}
       {activeTab === 'formation_event' && (
-        <div className="bg-white dark:bg-[#3B0A0A] rounded-2xl p-6 border border-gray-200 dark:border-[#7F1D1D] shadow-lg space-y-4">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-[#FFF8F0] mb-2 flex items-center gap-2">
+        <div className="bg-white [#3B0A0A] rounded-2xl p-6 border border-gray-200 [#7F1D1D] shadow-lg space-y-4">
+          <h2 className="text-lg font-bold text-gray-900 [#FFF8F0] mb-2 flex items-center gap-2">
             <FiCalendar className="text-[#F59E0B]" />
             ग्राम इकाई गठन समारोह विवरण
           </h2>
 
-          <div className="p-4 rounded-xl bg-gray-50 dark:bg-[#230505] border border-gray-200 dark:border-[#7F1D1D]/60 space-y-3 text-sm">
+          <div className="p-4 rounded-xl bg-gray-50 [#230505] border border-gray-200 [#7F1D1D]/60 space-y-3 text-sm">
             <p>
               <strong className="text-orange-500">कार्यक्रम शीर्षक:</strong>{' '}
               {unitData?.formationEvent?.title || 'कोणदा ग्राम इकाई गठन'}

@@ -155,7 +155,7 @@ const FamiliesPage = () => {
               <FormField label="मुखिया का नाम (Head of Family)" required error={errors.headOfFamily}>
                 <input
                   {...register('headOfFamily', { required: 'मुखिया का नाम आवश्यक है' })}
-                  placeholder="उदा. श्री रमेश जी सीरवी"
+                  placeholder="उदा. श्री रमेश जी सिर्वी"
                   className="input-field"
                 />
               </FormField>

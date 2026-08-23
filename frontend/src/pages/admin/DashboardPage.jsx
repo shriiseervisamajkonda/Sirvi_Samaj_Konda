@@ -109,7 +109,6 @@ const DashboardPage = () => {
     { title: 'कुल परिवार (Families)', value: stats?.totalFamilies ?? stats?.families, icon: FiUsers, link: '/admin/families', badge: 'पंजीकृत परिवार' },
     { title: 'समाज सदस्य (Members)', value: stats?.totalMembers ?? stats?.members, icon: FiUsers, link: '/admin/members', badge: 'कुल जनसंख्या' },
     { title: 'विद्यार्थी (Students)', value: stats?.students ?? stats?.studentCount, icon: FiBook, link: '/admin/students', badge: 'शिक्षा प्रतिभा' },
-    { title: 'प्रतिष्ठान (Businesses)', value: stats?.businesses ?? stats?.businessCount, icon: FiBriefcase, link: '/admin/businesses', badge: 'व्यापार निर्देशिका' },
     { title: 'रक्तदाता (Blood Donors)', value: stats?.bloodDonors ?? stats?.bloodDonorCount, icon: FiDroplet, link: '/admin/blood-donors', badge: 'जीवनदाता' },
     { title: 'सक्रिय कार्यक्रम (Events)', value: stats?.events ?? stats?.eventCount, icon: FiCalendar, link: '/admin/events', badge: 'सामाजिक आयोजन' },
     { title: 'समाचार (News)', value: stats?.news ?? stats?.newsCount, icon: FiFileText, link: '/admin/news', badge: 'उद्घोषणाएं' },
@@ -139,7 +138,7 @@ const DashboardPage = () => {
       <div className="relative overflow-hidden bg-gradient-to-br from-[#7A2525] via-[#8C2C1D] to-[#C85A17] rounded-3xl p-6 sm:p-10 text-white shadow-xl">
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-xs font-bold uppercase tracking-wider mb-3 text-amber-200">
-            <FiShield className="w-3.5 h-3.5" /> श्री सीरवी समाज कोणदा • केंद्रीय प्रशासन
+            <FiShield className="w-3.5 h-3.5" /> श्री सिर्वी समाज कोणदा • केंद्रीय प्रशासन
           </div>
           <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight mb-2">
             प्रशासन नियंत्रण डैशबोर्ड

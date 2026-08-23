@@ -40,35 +40,35 @@ const ProfilePage = () => {
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Profile</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Manage your account settings</p>
+        <h1 className="text-2xl font-bold text-gray-900 ">My Profile</h1>
+        <p className="text-gray-500 text-sm mt-1">Manage your account settings</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Profile Info */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+          className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 ">
+          <h2 className="font-semibold text-gray-900 mb-5 flex items-center gap-2">
             <FiUser className="w-5 h-5 text-orange-500" /> Profile Information
           </h2>
           <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
               <input {...register('name', { required: true })} className="input-field" placeholder="Your name" />
               {errors.name && <p className="text-red-500 text-xs mt-1">Required</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-              <input {...register('email')} type="email" className="input-field bg-gray-100 dark:bg-slate-700/50" readOnly />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input {...register('email')} type="email" className="input-field bg-gray-100 " readOnly />
               <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
               <input {...register('phone')} placeholder="+91..." className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-              <input value={user?.role || ''} className="input-field bg-gray-100 dark:bg-slate-700/50" readOnly />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+              <input value={user?.role || ''} className="input-field bg-gray-100 " readOnly />
             </div>
             <button type="submit" disabled={loading} className="w-full py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
               {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FiSave className="w-4 h-4" />}
@@ -79,23 +79,23 @@ const ProfilePage = () => {
 
         {/* Change Password */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+          className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 ">
+          <h2 className="font-semibold text-gray-900 mb-5 flex items-center gap-2">
             <FiKey className="w-5 h-5 text-orange-500" /> Change Password
           </h2>
           <form onSubmit={handlePwd(onPasswordSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
               <input {...regPwd('currentPassword', { required: true })} type="password" placeholder="••••••••" className="input-field" />
               {pwdErrors.currentPassword && <p className="text-red-500 text-xs mt-1">Required</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
               <input {...regPwd('newPassword', { required: true, minLength: { value: 6, message: 'Min 6 chars' } })} type="password" placeholder="••••••••" className="input-field" />
               {pwdErrors.newPassword && <p className="text-red-500 text-xs mt-1">{pwdErrors.newPassword.message}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm New Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
               <input {...regPwd('confirmPassword', { required: true, validate: (v) => v === newPassword || 'Passwords do not match' })} type="password" placeholder="••••••••" className="input-field" />
               {pwdErrors.confirmPassword && <p className="text-red-500 text-xs mt-1">{pwdErrors.confirmPassword.message}</p>}
             </div>
@@ -109,8 +109,8 @@ const ProfilePage = () => {
 
       {/* Account Info */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-        className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
-        <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Account Details</h2>
+        className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 ">
+        <h2 className="font-semibold text-gray-900 mb-4">Account Details</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: 'User ID', value: user?._id?.slice(-8)?.toUpperCase() },
@@ -118,9 +118,9 @@ const ProfilePage = () => {
             { label: 'Status', value: user?.isVerified ? 'Verified ✓' : 'Pending' },
             { label: 'Member Since', value: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : 'N/A' },
           ].map(({ label, value }) => (
-            <div key={label} className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
+            <div key={label} className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{label}</p>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm">{value || '—'}</p>
+              <p className="font-semibold text-gray-900 text-sm">{value || '—'}</p>
             </div>
           ))}
         </div>

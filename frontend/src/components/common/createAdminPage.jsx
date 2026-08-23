@@ -94,10 +94,10 @@ const createAdminPage = ({
         label: 'Actions',
         render: (_, row) => (
           <div className="flex gap-2">
-            <button onClick={() => openEdit(row)} className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors">
+            <button onClick={() => openEdit(row)} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg transition-colors">
               <FiEdit2 className="w-4 h-4" />
             </button>
-            <button onClick={() => setDeleteItem(row)} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors">
+            <button onClick={() => setDeleteItem(row)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg transition-colors">
               <FiTrash2 className="w-4 h-4" />
             </button>
           </div>

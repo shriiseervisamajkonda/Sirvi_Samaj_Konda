@@ -104,8 +104,6 @@ const HomePage = () => {
     { icon: FiUsers, key: 'families', label: t('stats_families'), color: 'bg-orange-500', delay: 0 },
     { icon: FiUsers, key: 'members', label: t('stats_members'), color: 'bg-blue-500', delay: 0.1 },
     { icon: FiBook, key: 'students', label: t('stats_students'), color: 'bg-green-500', delay: 0.2 },
-    { icon: FiBriefcase, key: 'businesses', label: t('stats_businesses'), color: 'bg-purple-500', delay: 0.3 },
-    { icon: FiDroplet, key: 'bloodDonors', label: t('stats_donors'), color: 'bg-red-500', delay: 0.4 },
     { icon: FiCalendar, key: 'events', label: t('stats_events'), color: 'bg-yellow-500', delay: 0.5 },
   ];
 
@@ -113,7 +111,6 @@ const HomePage = () => {
     { label: t('nav_families'), path: '/families', icon: FiUsers, color: 'from-orange-400 to-orange-600' },
     { label: t('nav_members'), path: '/members', icon: FiUsers, color: 'from-blue-400 to-blue-600' },
     { label: 'श्री आई जी महिला समिती', path: '/women-committee', icon: FiHeart, color: 'from-rose-400 to-red-600' },
-    { label: t('nav_donors'), path: '/blood-donors', icon: FiDroplet, color: 'from-red-400 to-red-600' },
     { label: t('nav_events'), path: '/events', icon: FiCalendar, color: 'from-green-400 to-green-600' },
     { label: t('nav_gallery'), path: '/gallery', icon: FiHeart, color: 'from-purple-400 to-purple-600' },
     { label: t('nav_donate'), path: '/donations', icon: FiHeart, color: 'from-pink-400 to-pink-600' },
@@ -196,7 +193,7 @@ const HomePage = () => {
                       { label: t('stats_families'), value: stats?.families || 500, icon: '👨‍👩‍👧‍👦' },
                       { label: t('stats_members'), value: stats?.members || 2000, icon: '👥' },
                       { label: t('stats_students'), value: stats?.students || 300, icon: '🎓' },
-                      { label: t('stats_businesses'), value: stats?.businesses || 100, icon: '🏪' },
+                      { label: t('stats_events'), value: stats?.events || 12, icon: '📅' },
                     ].map(({ label, value, icon }) => (
                       <div key={label} className="bg-white/20 rounded-2xl p-4 border border-white/10">
                         <div className="text-2xl mb-2">{icon}</div>
@@ -910,7 +907,7 @@ const HomePage = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 max-w-4xl mx-auto gap-4">
             {statCards.map((card) => (
               <StatCard
                 key={card.key}

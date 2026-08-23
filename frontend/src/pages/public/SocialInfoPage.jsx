@@ -55,7 +55,7 @@ const SocialInfoPage = () => {
             <span className="inline-block px-4 py-1.5 bg-white/10 border border-[#D4AF37]/35 rounded-full text-xs font-bold uppercase tracking-wider mb-4">
               संस्कृति, संस्कार व नियम
             </span>
-            <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">सीरवी समाज सामाजिक जानकारी</h1>
+            <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">सिर्वी समाज सामाजिक जानकारी</h1>
             <p className="text-[#FFF3DD] text-lg font-medium opacity-90">हमारे समाज के नियम, रीति-रिवाज, इतिहास एवं सुधार सम्बन्धी महत्वपूर्ण मार्गदर्शिका</p>
           </motion.div>
         </div>

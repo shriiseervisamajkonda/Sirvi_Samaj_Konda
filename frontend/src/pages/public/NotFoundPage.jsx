@@ -3,15 +3,15 @@ import { motion } from 'framer-motion';
 import { FiArrowLeft } from 'react-icons/fi';
 
 const NotFoundPage = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 p-4">
+  <div className="min-h-screen flex items-center justify-center bg-transparent p-4">
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       className="text-center"
     >
       <div className="text-8xl font-black text-orange-500 mb-4">404</div>
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Page Not Found</h1>
-      <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
+      <h1 className="text-3xl font-bold text-[#2B211B] mb-3">Page Not Found</h1>
+      <p className="text-[#766A60] mb-8 max-w-md mx-auto">
         The page you're looking for doesn't exist or has been moved.
       </p>
       <Link

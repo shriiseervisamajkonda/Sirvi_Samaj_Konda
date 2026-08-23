@@ -102,7 +102,7 @@ const GalleryPage = () => {
   };
 
   const columns = [
-    { key: 'url', label: 'Preview', render: (v) => v ? <img src={v} alt="Gallery" className="w-14 h-14 object-cover rounded-xl" /> : <div className="w-14 h-14 bg-gray-100 dark:bg-slate-700 rounded-xl flex items-center justify-center"><FiImage className="w-5 h-5 text-gray-400" /></div> },
+    { key: 'url', label: 'Preview', render: (v) => v ? <img src={v} alt="Gallery" className="w-14 h-14 object-cover rounded-xl" /> : <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center"><FiImage className="w-5 h-5 text-gray-400" /></div> },
     { key: 'title', label: 'Title' },
     { key: 'album', label: 'Album', render: (v) => v?.title ? <Badge variant="purple">{v.title}</Badge> : '—' },
     { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'active' ? 'success' : 'warning'}>{v}</Badge> },
@@ -110,8 +110,8 @@ const GalleryPage = () => {
     {
       key: '_id', label: 'Actions', render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
@@ -121,7 +121,7 @@ const GalleryPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gallery Management</h1>
+          <h1 className="text-2xl font-bold text-gray-900 ">Gallery Management</h1>
           <p className="text-gray-500 text-sm mt-1">Manage photos and albums</p>
         </div>
         <div className="flex gap-3">
@@ -147,18 +147,18 @@ const GalleryPage = () => {
           />
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
               <input {...register('title')} placeholder="Photo title" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Album</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Album</label>
               <select {...register('album')} className="input-field">
                 <option value="">No Album</option>
                 {albums.map(a => <option key={a._id} value={a._id}>{a.title}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select {...register('status')} className="input-field">
                 <option value="active">Active</option>
                 <option value="inactive">Hidden</option>
@@ -166,11 +166,11 @@ const GalleryPage = () => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Caption</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Caption</label>
             <input {...register('caption')} placeholder="Photo caption" className="input-field" />
           </div>
           <div className="flex justify-end gap-3">
-            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
             <button type="submit" disabled={saving} className="px-4 py-2 text-sm text-white bg-orange-500 rounded-xl hover:bg-orange-600 disabled:opacity-50 flex items-center gap-2">
               {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {editItem ? 'Save Changes' : 'Add Photo'}
@@ -183,15 +183,15 @@ const GalleryPage = () => {
       <Modal isOpen={albumModalOpen} onClose={() => setAlbumModalOpen(false)} title="Create Album" size="sm">
         <form onSubmit={handleAlbumSubmit(onAlbumSubmit)} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Album Name *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Album Name *</label>
             <input {...regAlbum('title', { required: true })} placeholder="e.g. Navratri 2024" className="input-field" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea {...regAlbum('description')} rows={2} className="input-field resize-none" />
           </div>
           <div className="flex justify-end gap-3">
-            <button type="button" onClick={() => setAlbumModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+            <button type="button" onClick={() => setAlbumModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
             <button type="submit" disabled={saving} className="px-4 py-2 text-sm text-white bg-purple-500 rounded-xl hover:bg-purple-600 disabled:opacity-50">Create</button>
           </div>
         </form>

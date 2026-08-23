@@ -88,8 +88,8 @@ const EventsPage = () => {
     {
       key: '_id', label: 'Actions', render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
@@ -99,7 +99,7 @@ const EventsPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Events Management</h1>
+          <h1 className="text-2xl font-bold text-gray-900 ">Events Management</h1>
           <p className="text-gray-500 text-sm mt-1">Manage all community events</p>
         </div>
         <button onClick={() => { setEditItem(null); reset({ status: 'published', registrationRequired: false }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
@@ -112,24 +112,24 @@ const EventsPage = () => {
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Event' : 'New Event'} size="xl">
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Event Title *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Event Title *</label>
             <input {...register('title', { required: true })} placeholder="Event name" className="input-field" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date *</label>
               <input {...register('startDate', { required: true })} type="datetime-local" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
               <input {...register('endDate')} type="datetime-local" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Location</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
               <input {...register('location')} defaultValue="Sirvi Samaj Dharmshala, Konda" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Event Type</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Event Type</label>
               <select {...register('eventType')} className="input-field">
                 <option value="cultural">Cultural</option>
                 <option value="religious">Religious</option>
@@ -141,7 +141,7 @@ const EventsPage = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select {...register('status')} className="input-field">
                 <option value="published">Published</option>
                 <option value="draft">Draft</option>
@@ -150,11 +150,11 @@ const EventsPage = () => {
             </div>
             <div className="flex items-center gap-3 pt-4">
               <input {...register('registrationRequired')} type="checkbox" id="regReq" className="w-4 h-4 text-orange-500 rounded" />
-              <label htmlFor="regReq" className="text-sm font-medium text-gray-700 dark:text-gray-300">Registration Required</label>
+              <label htmlFor="regReq" className="text-sm font-medium text-gray-700 ">Registration Required</label>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea {...register('description')} rows={4} placeholder="Event details..." className="input-field resize-none" />
           </div>
           <ImageUpload
@@ -164,7 +164,7 @@ const EventsPage = () => {
             folder="events"
           />
           <div className="flex justify-end gap-3">
-            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
             <button type="submit" disabled={saving} className="px-4 py-2 text-sm text-white bg-orange-500 rounded-xl hover:bg-orange-600 disabled:opacity-50 flex items-center gap-2">
               {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {editItem ? 'Save Changes' : 'Create Event'}

@@ -100,8 +100,8 @@ const LekhaJokhaPage = () => {
     {
       key: '_id', label: 'Actions', render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
@@ -111,7 +111,7 @@ const LekhaJokhaPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">लेखा-जोखा प्रबंधन (Ledger Management)</h1>
+          <h1 className="text-2xl font-bold text-gray-900 ">लेखा-जोखा प्रबंधन (Ledger Management)</h1>
           <p className="text-gray-500 text-sm mt-1">Manage financial records and fund transactions for Sirvi Samaj Konda</p>
         </div>
         <button onClick={() => { setEditItem(null); reset({ type: 'income', category: 'aaiji_kosh', paymentMethod: 'cash', date: new Date().toISOString().split('T')[0] }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 shadow-md shadow-green-600/30">
@@ -126,36 +126,36 @@ const LekhaJokhaPage = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">विवरण / शीर्षक (Description/Title) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">विवरण / शीर्षक (Description/Title) *</label>
               <input {...register('title', { required: true })} placeholder="विवरण (e.g. भवन निर्माण सामग्री, वार्षिक उत्सव गुप्तदान)" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">राशि (Amount - ₹) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">राशि (Amount - ₹) *</label>
               <input {...register('amount', { required: true, min: 1 })} type="number" placeholder="राशि" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">दिनांक (Date) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">दिनांक (Date) *</label>
               <input {...register('date', { required: true })} type="date" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">लेनदेन प्रकार (Transaction Type) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">लेनदेन प्रकार (Transaction Type) *</label>
               <select {...register('type', { required: true })} className="input-field">
                 <option value="income">आवक (Income / Credit)</option>
                 <option value="expense">जावक (Expense / Debit)</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">कोष श्रेणी (Fund Category) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">कोष श्रेणी (Fund Category) *</label>
               <select {...register('category', { required: true })} className="input-field">
                 {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">नाम (Person Name - Optional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">नाम (Person Name - Optional)</label>
               <input {...register('personName')} placeholder="सम्बन्धित व्यक्ति का नाम" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">भुगतान विधि (Payment Method)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">भुगतान विधि (Payment Method)</label>
               <select {...register('paymentMethod')} className="input-field">
                 <option value="cash">नकद (Cash)</option>
                 <option value="upi">UPI (PhonePe/GPay)</option>
@@ -165,17 +165,17 @@ const LekhaJokhaPage = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">रसीद नंबर (Receipt No - Optional)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">रसीद नंबर (Receipt No - Optional)</label>
               <input {...register('receiptNumber')} placeholder="रसीद क्रमांक" className="input-field" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">टिप्पणी / विवरण (Notes)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">टिप्पणी / विवरण (Notes)</label>
             <textarea {...register('notes')} rows={2} className="input-field resize-none" placeholder="कोई विशेष टिप्पणी या जानकारी..." />
           </div>
 
           <div className="flex justify-end gap-3">
-            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
             <button type="submit" disabled={saving} className="px-4 py-2 text-sm text-white bg-green-600 rounded-xl hover:bg-green-700 disabled:opacity-50 flex items-center gap-2">
               {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {editItem ? 'Save Changes' : 'Record'}

@@ -46,7 +46,7 @@ const AboutPage = () => {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center z-10">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="inline-block px-4 py-1.5 bg-white/20 border border-amber-400/30 rounded-full text-xs font-bold mb-6 text-white shadow-sm uppercase tracking-wider">
-              सीरवी समाज कोणदा
+              सिर्वी समाज कोणदा
             </span>
             <h1 className="text-4xl lg:text-5xl font-extrabold mb-4 text-white">{t('nav_about')}</h1>
             <p className="text-lg text-orange-100 max-w-2xl mx-auto leading-relaxed font-medium">

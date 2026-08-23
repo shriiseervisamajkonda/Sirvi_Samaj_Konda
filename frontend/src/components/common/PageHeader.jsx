@@ -19,9 +19,9 @@ const PageHeader = ({ title, subtitle, badge }) => {
           {badge}
         </span>
       )}
-      <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">{title}</h1>
+      <h1 className="text-3xl md:text-4xl font-bold text-[#2B211B] ">{title}</h1>
       {subtitle && (
-        <p className="mt-2 text-gray-600 dark:text-gray-400 text-lg">{subtitle}</p>
+        <p className="mt-2 text-[#766A60] text-lg">{subtitle}</p>
       )}
     </motion.div>
   );

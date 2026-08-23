@@ -105,12 +105,12 @@ const MarriagePage = () => {
         <div className="flex gap-2">
           {r.status === 'pending' && (
             <>
-              <button onClick={() => handleStatusChange(r._id, 'approved')} title="Approve" className="p-1.5 text-green-500 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-lg"><FiCheck className="w-4 h-4" /></button>
-              <button onClick={() => handleStatusChange(r._id, 'rejected')} title="Reject" className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg"><FiX className="w-4 h-4" /></button>
+              <button onClick={() => handleStatusChange(r._id, 'approved')} title="Approve" className="p-1.5 text-green-500 hover:bg-green-50 :bg-green-500/10 rounded-lg"><FiCheck className="w-4 h-4" /></button>
+              <button onClick={() => handleStatusChange(r._id, 'rejected')} title="Reject" className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiX className="w-4 h-4" /></button>
             </>
           )}
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
@@ -120,7 +120,7 @@ const MarriagePage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Marriage Biodata Management</h1>
+          <h1 className="text-2xl font-bold text-gray-900 ">Marriage Biodata Management</h1>
           <p className="text-gray-500 text-sm mt-1">Review and manage matrimonial profiles</p>
         </div>
         <button onClick={() => { setEditItem(null); reset({ status: 'approved' }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl font-medium hover:bg-pink-600 shadow-md shadow-pink-500/30">
@@ -133,14 +133,14 @@ const MarriagePage = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Member *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Member *</label>
               <select {...register('member', { required: true })} className="input-field">
                 <option value="">Select member</option>
                 {members.map(m => <option key={m._id} value={m._id}>{m.firstName} {m.lastName}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gender *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Gender *</label>
               <select {...register('gender', { required: true })} className="input-field">
                 <option value="">Select gender</option>
                 <option value="Male">Male</option>
@@ -148,23 +148,23 @@ const MarriagePage = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date of Birth *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth *</label>
               <input {...register('dob', { required: true })} type="date" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Height</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Height</label>
               <input {...register('height')} placeholder="e.g. 5ft 6in" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Education</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Education</label>
               <input {...register('education')} placeholder="e.g. B.Tech" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Occupation</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
               <input {...register('occupation')} placeholder="e.g. Software Engineer" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select {...register('status')} className="input-field">
                 <option value="pending">Pending</option>
                 <option value="approved">Approved</option>
@@ -173,11 +173,11 @@ const MarriagePage = () => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Family Details / About</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Family Details / About</label>
             <textarea {...register('about')} rows={3} placeholder="About family, expectations..." className="input-field resize-none" />
           </div>
           <div className="flex justify-end gap-3">
-            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
             <button type="submit" disabled={saving} className="px-4 py-2 text-sm text-white bg-pink-500 rounded-xl hover:bg-pink-600 disabled:opacity-50 flex items-center gap-2">
               {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {editItem ? 'Save Changes' : 'Create Profile'}

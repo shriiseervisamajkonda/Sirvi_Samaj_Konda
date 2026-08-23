@@ -44,7 +44,7 @@ const ContactPage = () => {
               संपर्क सूत्र
             </span>
             <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">संपर्क करें (Contact Us)</h1>
-            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">श्री सीरवी समाज कोणदा कार्यकारिणी समिति से संवाद स्थापित करें</p>
+            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">श्री सिर्वी समाज कोणदा कार्यकारिणी समिति से संवाद स्थापित करें</p>
           </motion.div>
         </div>
       </div>
@@ -83,7 +83,7 @@ const ContactPage = () => {
                 style={{ border: 0 }}
                 allowFullScreen
                 loading="lazy"
-                className="grayscale dark:contrast-75 dark:brightness-75"
+                className="grayscale "
               />
             </div>
           </motion.div>

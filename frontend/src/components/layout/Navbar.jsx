@@ -32,8 +32,6 @@ const Navbar = () => {
         { label: t('nav_families'), path: '/families' },
         { label: t('nav_members'), path: '/members' },
         { label: t('nav_students'), path: '/students' },
-        { label: t('nav_businesses'), path: '/businesses' },
-        { label: t('nav_donors'), path: '/blood-donors' },
       ],
     },
     {

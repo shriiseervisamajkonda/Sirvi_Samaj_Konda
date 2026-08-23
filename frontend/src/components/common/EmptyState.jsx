@@ -8,13 +8,13 @@ const EmptyState = ({ icon: Icon, title, description, action }) => {
       className="flex flex-col items-center justify-center py-16 px-4 text-center"
     >
       {Icon && (
-        <div className="w-20 h-20 rounded-2xl bg-gray-100 dark:bg-slate-700/50 flex items-center justify-center mb-5">
-          <Icon className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+        <div className="w-20 h-20 rounded-2xl bg-[#FFF8EC]/60 flex items-center justify-center mb-5">
+          <Icon className="w-10 h-10 text-[#CDBBA4] " />
         </div>
       )}
-      <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">{title}</h3>
+      <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
       {description && (
-        <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">{description}</p>
+        <p className="text-[#766A60] max-w-md mb-6">{description}</p>
       )}
       {action && action}
     </motion.div>

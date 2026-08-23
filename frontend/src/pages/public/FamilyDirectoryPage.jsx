@@ -104,7 +104,7 @@ const FamilyDirectoryPage = () => {
               समाज निर्देशिका
             </span>
             <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">परिवार निर्देशिका (Family Directory)</h1>
-            <p className="text-orange-100 text-lg font-medium">श्री सीरवी समाज कोणदा के सभी पंजीकृत परिवारों की सूची</p>
+            <p className="text-orange-100 text-lg font-medium">श्री सिर्वी समाज कोणदा के सभी पंजीकृत परिवारों की सूची</p>
           </motion.div>
         </div>
       </div>
@@ -113,7 +113,7 @@ const FamilyDirectoryPage = () => {
         {/* Search and Filters */}
         <div className="mb-10 flex flex-col sm:flex-row gap-4 items-center">
           <div className="relative flex-1 max-w-xl w-full">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#CDBBA4]" />
             <input
               type="text"
               value={search}

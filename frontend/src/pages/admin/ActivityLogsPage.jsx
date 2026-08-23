@@ -40,7 +40,7 @@ const ActivityLogsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Activity Logs</h1>
+        <h1 className="text-2xl font-bold text-gray-900 ">Activity Logs</h1>
         <p className="text-gray-500 text-sm mt-1">Audit log of all admin actions and system events</p>
       </div>
       <DataTable columns={columns} data={items} loading={loading} totalPages={totalPages} currentPage={page}

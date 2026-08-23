@@ -69,7 +69,7 @@ const GalleryPage = () => {
               स्मृति वीथिका
             </span>
             <h1 className="text-4xl lg:text-5xl font-extrabold mb-3 text-white">चित्र दीर्घा</h1>
-            <p className="text-orange-100 text-lg font-medium">सीरवी समाज कोणदा के उत्सवों, मंदिर दर्शन और सामूहिक स्मृतियों के सुंदर पल</p>
+            <p className="text-orange-100 text-lg font-medium">सिर्वी समाज कोणदा के उत्सवों, मंदिर दर्शन और सामूहिक स्मृतियों के सुंदर पल</p>
           </motion.div>
         </div>
       </div>
