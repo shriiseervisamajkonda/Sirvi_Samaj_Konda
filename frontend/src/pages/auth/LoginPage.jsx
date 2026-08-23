@@ -73,7 +73,7 @@ const LoginPage = () => {
             <img src="/Logo.webp" alt="Logo" className="w-full h-full object-cover rounded-2xl" />
           </div>
           <h1 className="text-3xl lg:text-4xl font-extrabold mb-2 text-white drop-shadow-sm">
-            श्री सीरवी समाज
+            श्री सिर्वी समाज
           </h1>
           <p className="text-lg font-bold text-amber-200 mb-2">
             ग्राम कोणदा, तहसील कुक्षी (धार, म.प्र.)
@@ -100,7 +100,7 @@ const LoginPage = () => {
 
         {/* Footer Note */}
         <div className="relative z-10 text-center text-xs text-orange-200/80 font-medium">
-          © {new Date().getFullYear()} श्री सीरवी समाज कोणदा • सर्वाधिकार सुरक्षित
+          © {new Date().getFullYear()} श्री सिर्वी समाज कोणदा • सर्वाधिकार सुरक्षित
         </div>
       </div>
 
@@ -118,7 +118,7 @@ const LoginPage = () => {
                 <img src="/Logo.webp" alt="Logo" className="w-full h-full object-cover rounded-xl" />
               </div>
             </Link>
-            <h1 className="text-xl font-extrabold text-[#7A2525]">श्री सीरवी समाज कोणदा</h1>
+            <h1 className="text-xl font-extrabold text-[#7A2525]">श्री सिर्वी समाज कोणदा</h1>
             <p className="text-xs text-[#766A60] font-medium">सदस्य एवं प्रशासक लॉगिन पोर्टल</p>
           </div>
 

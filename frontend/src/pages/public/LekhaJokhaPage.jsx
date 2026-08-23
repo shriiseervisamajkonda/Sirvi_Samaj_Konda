@@ -6,7 +6,7 @@ import { SkeletonTable } from '../../components/common/Skeleton';
 import DataTable from '../../components/common/DataTable';
 
 const LekhaJokhaPage = () => {
-  const [activeCategory, setActiveCategory] = useState('aaiji_kosh');
+  const [activeCategory, setActiveCategory] = useState('all');
   const [stats, setStats] = useState({ categories: [], overall: { totalIncome: 0, totalExpense: 0, count: 0 } });
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +15,7 @@ const LekhaJokhaPage = () => {
   const [search, setSearch] = useState('');
 
   const categories = [
+    { id: 'all', label: 'सभी (All)', desc: 'Complete Financial Ledger' },
     { id: 'aaiji_kosh', label: 'आईजी सहायता कोष', desc: 'Aaiji Relief/Help Fund' },
     { id: 'annapurna_bhavan', label: 'अन्नपूर्णा भवन', desc: 'Annapurna Bhawan Ledger' },
     { id: 'mandir_nirman', label: 'मन्दिर निर्माण', desc: 'Temple Construction Fund' },
@@ -37,7 +38,7 @@ const LekhaJokhaPage = () => {
     setLoading(true);
     try {
       const res = await lekhaJokhaAPI.getPublic({
-        category: activeCategory,
+        ...(activeCategory !== 'all' && { category: activeCategory }),
         page,
         limit: 10,
         search,
@@ -66,11 +67,17 @@ const LekhaJokhaPage = () => {
   };
 
   // Find active category stats
-  const activeCatStats = stats.categories?.find(c => c._id === activeCategory) || {
-    totalIncome: 0,
-    totalExpense: 0,
-    count: 0
-  };
+  const activeCatStats = activeCategory === 'all'
+    ? {
+        totalIncome: stats.categories?.reduce((sum, c) => sum + (c.totalIncome || 0), 0) || 0,
+        totalExpense: stats.categories?.reduce((sum, c) => sum + (c.totalExpense || 0), 0) || 0,
+        count: stats.categories?.reduce((sum, c) => sum + (c.count || 0), 0) || 0,
+      }
+    : stats.categories?.find(c => c._id === activeCategory) || {
+        totalIncome: 0,
+        totalExpense: 0,
+        count: 0
+      };
 
   const netBalance = activeCatStats.totalIncome - activeCatStats.totalExpense;
 

@@ -37,7 +37,7 @@ export const Skeleton = ({
       role="status"
       aria-busy="true"
       aria-label="Loading..."
-      className={`bg-gray-200 dark:bg-slate-700/50 ${variantClasses[variant] || ''} ${animClass} ${className}`}
+      className={`bg-gray-200 ${variantClasses[variant] || ''} ${animClass} ${className}`}
       style={inlineStyles}
       {...props}
     />
@@ -100,7 +100,7 @@ export const SkeletonButton = ({ size = 'md', className = '', width }) => {
  * SkeletonCard: Card placeholder matching public & admin directory cards
  */
 export const SkeletonCard = ({ hasImage = true, className = '' }) => (
-  <div className={`bg-white dark:bg-[#3B0A0A] rounded-2xl p-5 border border-gray-100 dark:border-[#D4AF37]/15 shadow-sm space-y-4 ${className}`}>
+  <div className={`bg-white [#3B0A0A] rounded-2xl p-5 border border-[#E8DCC8] [#D4AF37]/15 shadow-sm space-y-4 ${className}`}>
     {hasImage && <Skeleton variant="rounded" className="w-full h-44 sm:h-48" />}
     <div className="flex items-center gap-3">
       <SkeletonAvatar size="md" />
@@ -110,7 +110,7 @@ export const SkeletonCard = ({ hasImage = true, className = '' }) => (
       </div>
     </div>
     <SkeletonText lines={2} size="sm" />
-    <div className="pt-2 border-t border-gray-100 dark:border-[#D4AF37]/10 flex justify-between items-center">
+    <div className="pt-2 border-t border-[#E8DCC8] [#D4AF37]/10 flex justify-between items-center">
       <Skeleton variant="text" width="30%" className="h-3" />
       <SkeletonButton size="sm" width="80px" />
     </div>
@@ -140,9 +140,9 @@ export const SkeletonTable = ({
   const colCount = typeof columns === 'number' ? columns : columns?.length || 5;
 
   return (
-    <div className={`bg-white dark:bg-[#3B0A0A] rounded-2xl border border-gray-100 dark:border-slate-700/60 overflow-hidden shadow-sm ${className}`}>
+    <div className={`bg-white [#3B0A0A] rounded-2xl border border-[#E8DCC8] overflow-hidden shadow-sm ${className}`}>
       {/* Header action bar */}
-      <div className="p-4 border-b border-gray-100 dark:border-slate-700/60 flex items-center justify-between gap-4">
+      <div className="p-4 border-b border-[#E8DCC8] flex items-center justify-between gap-4">
         <Skeleton variant="text" width="160px" className="h-5" />
         <div className="flex items-center gap-3">
           <Skeleton variant="rounded" width="200px" className="h-9" />
@@ -155,7 +155,7 @@ export const SkeletonTable = ({
         <table className="w-full text-sm">
           {hasHeader && (
             <thead>
-              <tr className="bg-gray-50 dark:bg-slate-800/60 border-b border-gray-100 dark:border-slate-700/60">
+              <tr className="bg-transparent border-b border-[#E8DCC8] ">
                 {Array.from({ length: colCount }).map((_, i) => (
                   <th key={i} className="px-4 py-3.5 text-left">
                     <Skeleton variant="text" width={`${40 + (i % 3) * 20}%`} className="h-3.5" />
@@ -164,9 +164,9 @@ export const SkeletonTable = ({
               </tr>
             </thead>
           )}
-          <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+          <tbody className="divide-y divide-gray-100 ">
             {Array.from({ length: rows }).map((_, rowIndex) => (
-              <tr key={rowIndex} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/30">
+              <tr key={rowIndex} className="hover:bg-transparent/50 :bg-slate-800/30">
                 {Array.from({ length: colCount }).map((_, colIndex) => (
                   <td key={colIndex} className="px-4 py-3.5">
                     {colIndex === 0 ? (
@@ -201,7 +201,7 @@ export const SkeletonList = ({ items = 4, className = '' }) => (
     {Array.from({ length: items }).map((_, i) => (
       <div
         key={i}
-        className="flex items-center gap-4 p-4 bg-white dark:bg-[#3B0A0A] rounded-2xl border border-gray-100 dark:border-slate-700/50"
+        className="flex items-center gap-4 p-4 bg-white [#3B0A0A] rounded-2xl border border-[#E8DCC8] "
       >
         <SkeletonAvatar size="md" />
         <div className="flex-1 space-y-2">
@@ -218,9 +218,9 @@ export const SkeletonList = ({ items = 4, className = '' }) => (
  * SkeletonImage: Image skeleton placeholder
  */
 export const SkeletonImage = ({ aspectRatio = 'aspect-video', className = '' }) => (
-  <div className={`relative overflow-hidden bg-gray-200 dark:bg-slate-800 rounded-2xl flex items-center justify-center ${aspectRatio} ${className}`}>
+  <div className={`relative overflow-hidden bg-gray-200 rounded-2xl flex items-center justify-center ${aspectRatio} ${className}`}>
     <Skeleton variant="rectangular" className="w-full h-full" />
-    <svg className="w-10 h-10 text-gray-300 dark:text-slate-600 absolute" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg className="w-10 h-10 text-gray-300 absolute" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
     </svg>
   </div>
@@ -232,7 +232,7 @@ export const SkeletonImage = ({ aspectRatio = 'aspect-video', className = '' }) 
 export const SkeletonImageGrid = ({ count = 6 }) => (
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
     {Array.from({ length: count }).map((_, i) => (
-      <div key={i} className="space-y-3 bg-white dark:bg-[#3B0A0A] p-4 rounded-2xl border border-gray-100 dark:border-slate-700/50">
+      <div key={i} className="space-y-3 bg-white [#3B0A0A] p-4 rounded-2xl border border-[#E8DCC8] ">
         <SkeletonImage aspectRatio="aspect-video" />
         <Skeleton variant="text" width="80%" className="h-4" />
         <Skeleton variant="text" width="40%" className="h-3" />
@@ -245,12 +245,12 @@ export const SkeletonImageGrid = ({ count = 6 }) => (
  * SkeletonChart: Bar / Line chart placeholder
  */
 export const SkeletonChart = ({ height = 'h-64', className = '' }) => (
-  <div className={`bg-white dark:bg-[#3B0A0A] rounded-2xl p-6 border border-gray-100 dark:border-slate-700/60 space-y-4 ${className}`}>
+  <div className={`bg-white [#3B0A0A] rounded-2xl p-6 border border-[#E8DCC8] space-y-4 ${className}`}>
     <div className="flex justify-between items-center mb-4">
       <Skeleton variant="text" width="40%" className="h-5" />
       <Skeleton variant="rounded" width="100px" className="h-8" />
     </div>
-    <div className={`flex items-end justify-between gap-3 ${height} pt-6 pb-2 border-b border-gray-100 dark:border-slate-700/50`}>
+    <div className={`flex items-end justify-between gap-3 ${height} pt-6 pb-2 border-b border-[#E8DCC8] `}>
       {[40, 70, 45, 90, 60, 80, 55, 100, 75, 50, 85, 65].map((h, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
           <Skeleton variant="rounded" width="100%" height={`${h}%`} />
@@ -269,7 +269,7 @@ export const SkeletonChart = ({ height = 'h-64', className = '' }) => (
  * SkeletonForm: Skeleton form inputs & buttons
  */
 export const SkeletonForm = ({ fields = 4, className = '' }) => (
-  <div className={`space-y-5 bg-white dark:bg-[#3B0A0A] p-6 rounded-2xl border border-gray-100 dark:border-slate-700/60 ${className}`}>
+  <div className={`space-y-5 bg-white [#3B0A0A] p-6 rounded-2xl border border-[#E8DCC8] ${className}`}>
     <SkeletonTitle width="40%" />
     {Array.from({ length: fields }).map((_, i) => (
       <div key={i} className="space-y-2">
@@ -277,7 +277,7 @@ export const SkeletonForm = ({ fields = 4, className = '' }) => (
         <Skeleton variant="rounded" className="w-full h-10" />
       </div>
     ))}
-    <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-slate-700/50">
+    <div className="flex justify-end gap-3 pt-4 border-t border-[#E8DCC8] ">
       <SkeletonButton size="md" width="90px" />
       <SkeletonButton size="md" width="120px" />
     </div>
@@ -290,7 +290,7 @@ export const SkeletonForm = ({ fields = 4, className = '' }) => (
 export const SkeletonDashboard = () => (
   <div className="space-y-8 animate-fadeIn" role="status" aria-busy="true" aria-label="Loading dashboard...">
     {/* Welcome Header */}
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#3B0A0A] p-6 rounded-2xl border border-gray-100 dark:border-slate-700/60">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white [#3B0A0A] p-6 rounded-2xl border border-[#E8DCC8] ">
       <div className="space-y-2">
         <Skeleton variant="text" width="240px" className="h-7" />
         <Skeleton variant="text" width="320px" className="h-4" />
@@ -301,7 +301,7 @@ export const SkeletonDashboard = () => (
     {/* Stat Cards Grid */}
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="bg-white dark:bg-[#3B0A0A] p-5 rounded-2xl border border-gray-100 dark:border-slate-700/60 space-y-3">
+        <div key={i} className="bg-white [#3B0A0A] p-5 rounded-2xl border border-[#E8DCC8] space-y-3">
           <SkeletonAvatar size="md" />
           <Skeleton variant="text" width="50%" className="h-7" />
           <Skeleton variant="text" width="70%" className="h-3.5" />
@@ -314,7 +314,7 @@ export const SkeletonDashboard = () => (
       <div className="lg:col-span-2">
         <SkeletonChart height="h-72" />
       </div>
-      <div className="bg-white dark:bg-[#3B0A0A] p-6 rounded-2xl border border-gray-100 dark:border-slate-700/60 space-y-4">
+      <div className="bg-white [#3B0A0A] p-6 rounded-2xl border border-[#E8DCC8] space-y-4">
         <SkeletonTitle width="50%" />
         <SkeletonList items={5} />
       </div>

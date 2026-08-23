@@ -45,7 +45,6 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               {[
                 [t('nav_students'), '/students'],
-                [t('nav_marriage'), '/marriage'],
                 ['गोपनीयता नीति', '/privacy-policy'],
                 ['नियम एवं शर्तें', '/terms'],
               ].map(([label, path]) => (

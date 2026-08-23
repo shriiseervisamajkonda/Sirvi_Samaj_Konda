@@ -4,15 +4,15 @@ const LoadingSpinner = ({ fullPage = false, size = 'md' }) => {
   const spinner = (
     <div className="flex flex-col items-center justify-center gap-3">
       <div
-        className={`${sizes[size]} border-4 border-orange-100 dark:border-slate-700 border-t-orange-500 rounded-full animate-spin`}
+        className={`${sizes[size]} border-4 border-orange-100 border-t-orange-500 rounded-full animate-spin`}
       />
-      <p className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">Loading...</p>
+      <p className="text-sm text-[#766A60] animate-pulse">Loading...</p>
     </div>
   );
 
   if (fullPage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-white ">
         {spinner}
       </div>
     );

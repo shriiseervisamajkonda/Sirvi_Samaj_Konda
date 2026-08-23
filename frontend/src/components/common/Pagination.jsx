@@ -31,14 +31,14 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="p-2 rounded-lg text-[#766A60] hover:bg-[#FFF8EC]/60 :bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         <FiChevronLeft className="w-5 h-5" />
       </button>
 
       {rangeWithDots.map((page, idx) =>
         page === '...' ? (
-          <span key={`dots-${idx}`} className="px-3 py-2 text-gray-400">
+          <span key={`dots-${idx}`} className="px-3 py-2 text-[#CDBBA4]">
             ...
           </span>
         ) : (
@@ -48,7 +48,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
             className={`min-w-[2.5rem] h-10 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
               currentPage === page
                 ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
-                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
+                : 'text-[#766A60] hover:bg-[#FFF8EC]/60 :bg-slate-700'
             }`}
           >
             {page}
@@ -59,7 +59,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="p-2 rounded-lg text-[#766A60] hover:bg-[#FFF8EC]/60 :bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
         <FiChevronRight className="w-5 h-5" />
       </button>

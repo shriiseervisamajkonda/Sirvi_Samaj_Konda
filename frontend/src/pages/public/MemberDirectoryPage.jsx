@@ -101,7 +101,7 @@ const MemberDirectoryPage = () => {
               समाज निर्देशिका
             </span>
             <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">सदस्य सूची (Member Directory)</h1>
-            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">श्री सीरवी समाज कोणदा के सभी पंजीकृत सदस्यों की सूची</p>
+            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">श्री सिर्वी समाज कोणदा के सभी पंजीकृत सदस्यों की सूची</p>
           </motion.div>
         </div>
       </div>

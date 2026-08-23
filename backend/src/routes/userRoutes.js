@@ -5,13 +5,14 @@ import { protect, authorize } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/validate.js';
 
 const router = express.Router();
-const { getAll, getOne, update, remove } = createCRUDController(User, 'User', {
+const { getAll, getOne, create, update, remove } = createCRUDController(User, 'User', {
   searchFields: ['name', 'email'],
 });
 
 router.use(protect);
 router.use(authorize('super_admin', 'admin'));
 
+router.post('/', create);
 router.get('/', getAll);
 router.get('/:id', getOne);
 

@@ -95,8 +95,8 @@ const BloodDonorsPage = () => {
     {
       key: '_id', label: 'Actions', render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
@@ -106,7 +106,7 @@ const BloodDonorsPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Blood Donor Registry</h1>
+          <h1 className="text-2xl font-bold text-gray-900 ">Blood Donor Registry</h1>
           <p className="text-gray-500 text-sm mt-1">Manage blood donors</p>
         </div>
         <button onClick={() => { setEditItem(null); reset({ status: 'available' }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl font-medium hover:bg-red-600 shadow-md shadow-red-500/30">
@@ -119,37 +119,37 @@ const BloodDonorsPage = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Member</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Member</label>
               <select {...register('member')} className="input-field">
                 <option value="">Select from members (or enter manually)</option>
                 {members.map(m => <option key={m._id} value={m._id}>{m.firstName} {m.lastName}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
               <input {...register('name')} placeholder="Donor name" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Blood Group *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Blood Group *</label>
               <select {...register('bloodGroup', { required: true })} className="input-field">
                 <option value="">Select</option>
                 {bloodGroups.map(bg => <option key={bg} value={bg}>{bg}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
               <input {...register('phone')} placeholder="+91..." className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Village</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Village</label>
               <input {...register('village')} defaultValue="Konda" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Donation Date</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Last Donation Date</label>
               <input {...register('lastDonationDate')} type="date" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
               <select {...register('status')} className="input-field">
                 <option value="available">Available</option>
                 <option value="unavailable">Unavailable</option>
@@ -158,7 +158,7 @@ const BloodDonorsPage = () => {
             </div>
           </div>
           <div className="flex justify-end gap-3">
-            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-slate-700 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+            <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
             <button type="submit" disabled={saving} className="px-4 py-2 text-sm text-white bg-red-500 rounded-xl hover:bg-red-600 disabled:opacity-50 flex items-center gap-2">
               {saving && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
               {editItem ? 'Save Changes' : 'Register Donor'}

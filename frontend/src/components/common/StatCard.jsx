@@ -13,13 +13,13 @@ const StatCard = ({ icon: Icon, label, value, color = 'primary', delay = 0 }) =>
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="glass rounded-2xl p-6 card-hover dark:bg-slate-800/50"
+      className="glass rounded-2xl p-6 card-hover "
     >
       <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${colors[color]} mb-4`}>
         <Icon className="w-6 h-6" />
       </div>
-      <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{label}</p>
+      <p className="text-2xl md:text-3xl font-bold text-[#2B211B] ">{value}</p>
+      <p className="text-sm text-[#766A60] mt-1">{label}</p>
     </motion.div>
   );
 };

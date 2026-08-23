@@ -46,7 +46,7 @@ const CommitteePage = () => {
               संगठन एवं नेतृत्व
             </span>
             <h1 className="text-4xl lg:text-5xl font-extrabold mb-3 text-white">समिती एवं संगठन संकल पंच</h1>
-            <p className="text-orange-100 text-lg font-medium">सीरवी समाज कोणदा के संगठन एवं समाज सुधारक प्रमुखों की सूची</p>
+            <p className="text-orange-100 text-lg font-medium">सिर्वी समाज कोणदा के संगठन एवं समाज सुधारक प्रमुखों की सूची</p>
           </motion.div>
         </div>
       </div>

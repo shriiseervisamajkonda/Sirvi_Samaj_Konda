@@ -44,7 +44,7 @@ const VillagePage = () => {
               हमारा गाँव
             </span>
             <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">गाँव की जानकारी (Village Information)</h1>
-            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">सीरवी समाज कोणदा एवं हमारे गाँव का गौरवशाली इतिहास</p>
+            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">सिर्वी समाज कोणदा एवं हमारे गाँव का गौरवशाली इतिहास</p>
           </motion.div>
         </div>
       </div>
@@ -89,7 +89,7 @@ const VillagePage = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-[#FFF3DD] mb-1 text-lg">सामुदायिक केंद्र (Community Center)</h3>
-                    <p className="text-[#CDBBA4] font-semibold mb-2">{info.communityCenter === 'Sirvi Samaj Dharmshala, Konda' ? 'सीरवी समाज धर्मशाला, कोणदा' : (info.communityCenter || 'सीरवी समाज धर्मशाला, कोणदा')}</p>
+                    <p className="text-[#CDBBA4] font-semibold mb-2">{info.communityCenter === 'Sirvi Samaj Dharmshala, Konda' ? 'सिर्वी समाज धर्मशाला, कोणदा' : (info.communityCenter || 'सिर्वी समाज धर्मशाला, कोणदा')}</p>
                     <p className="text-[#CDBBA4]/80 text-sm leading-relaxed">
                       {info.purpose || 'विवाह, सामाजिक बैठकें, मेधावी छात्र सम्मान समारोह, धार्मिक उत्सव एवं सांस्कृतिक आयोजन।'}
                     </p>
@@ -113,7 +113,7 @@ const VillagePage = () => {
                   style={{ border: 0 }}
                   allowFullScreen
                   loading="lazy"
-                  className="grayscale dark:contrast-75 dark:brightness-75"
+                  className="grayscale "
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="bg-[#160D08] rounded-2xl px-6 py-3 shadow-2xl border border-[#D4AF37]/35">

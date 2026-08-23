@@ -33,18 +33,18 @@ const MarriageBiodataPage = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center p-4">
-        <div className="max-w-md text-center bg-white dark:bg-slate-800 rounded-3xl p-12 shadow-xl border border-gray-100 dark:border-slate-700">
-          <div className="w-20 h-20 bg-pink-100 dark:bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+      <div className="min-h-screen bg-transparent flex items-center justify-center p-4">
+        <div className="max-w-md text-center bg-white rounded-3xl p-12 shadow-xl border border-[#E8DCC8] ">
+          <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <FiLock className="w-10 h-10 text-pink-500" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Login Required</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-8">
+          <h2 className="text-2xl font-bold text-[#2B211B] mb-3">Login Required</h2>
+          <p className="text-[#766A60] mb-8">
             Marriage biodata is only accessible to registered community members. Please login or create an account.
           </p>
           <div className="flex gap-3 justify-center">
             <Link to="/login" className="px-6 py-3 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors">Login</Link>
-            <Link to="/register" className="px-6 py-3 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">Register</Link>
+            <Link to="/register" className="px-6 py-3 border border-[#E8DCC8] text-[#2B211B] rounded-xl font-medium hover:bg-transparent :bg-slate-700 transition-colors">Register</Link>
           </div>
         </div>
       </div>
@@ -52,7 +52,7 @@ const MarriageBiodataPage = () => {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-slate-900 min-h-screen">
+    <div className="bg-transparent min-h-screen">
       <div className="bg-gradient-to-br from-pink-500 to-rose-700 py-16 text-white relative overflow-hidden">
         <div className="relative max-w-4xl mx-auto px-4 text-center">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
@@ -72,7 +72,7 @@ const MarriageBiodataPage = () => {
               key={f}
               onClick={() => { setFilter(f); setPage(1); }}
               className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
-                filter === f ? 'bg-pink-500 border-pink-500 text-white' : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 hover:border-pink-300'
+                filter === f ? 'bg-pink-500 border-pink-500 text-white' : 'bg-white border-[#E8DCC8] text-[#766A60] hover:border-pink-300'
               }`}
             >
               {f === 'all' ? 'All Profiles' : f === 'Male' ? '👨 Groom' : '👩 Bride'}
@@ -92,7 +92,7 @@ const MarriageBiodataPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.05 }}
-                  className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  className="bg-white rounded-2xl overflow-hidden border border-[#E8DCC8] hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
                   <div className="bg-gradient-to-br from-pink-400 to-rose-600 h-32 flex items-center justify-center">
                     {profile.photo ? (
@@ -105,18 +105,18 @@ const MarriageBiodataPage = () => {
                   </div>
                   <div className="p-5">
                     <div className="text-center mb-4">
-                      <h3 className="font-bold text-gray-900 dark:text-white">{profile.member?.firstName} {profile.member?.lastName}</h3>
+                      <h3 className="font-bold text-[#2B211B] ">{profile.member?.firstName} {profile.member?.lastName}</h3>
                       <Badge variant={profile.gender === 'Male' ? 'info' : 'purple'} size="xs">
                         {profile.gender === 'Male' ? '👨 Groom' : '👩 Bride'}
                       </Badge>
                     </div>
-                    <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="space-y-2 text-sm text-[#766A60] ">
                       {profile.dob && <p>📅 Age: {new Date().getFullYear() - new Date(profile.dob).getFullYear()} years</p>}
                       {profile.education && <p>📚 {profile.education}</p>}
                       {profile.occupation && <p>💼 {profile.occupation}</p>}
                       {profile.height && <p>📏 {profile.height}</p>}
                     </div>
-                    <button className="mt-4 w-full py-2 bg-pink-50 dark:bg-pink-500/10 text-pink-600 dark:text-pink-400 rounded-xl text-sm font-medium hover:bg-pink-100 dark:hover:bg-pink-500/20 transition-colors">
+                    <button className="mt-4 w-full py-2 bg-pink-50 text-pink-600 rounded-xl text-sm font-medium hover:bg-pink-100 :bg-pink-500/20 transition-colors">
                       View Full Profile
                     </button>
                   </div>

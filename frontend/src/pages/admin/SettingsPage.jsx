@@ -35,26 +35,26 @@ const SettingsPage = () => {
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">System Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900 ">System Settings</h1>
         <p className="text-gray-500 text-sm mt-1">Configure general portal settings and system preferences</p>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
-        <h2 className="font-semibold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 ">
+        <h2 className="font-semibold text-gray-900 mb-5 flex items-center gap-2">
           <FiSettings className="w-5 h-5 text-orange-500" /> General Configuration
         </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Application Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Application Name</label>
               <input {...register('appName')} className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contact Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
               <input {...register('contactEmail')} type="email" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contact Phone</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
               <input {...register('contactPhone')} className="input-field" />
             </div>
           </div>
@@ -62,11 +62,11 @@ const SettingsPage = () => {
           <div className="space-y-3 pt-2">
             <div className="flex items-center gap-3">
               <input {...register('enableNotifications')} type="checkbox" id="notify" className="w-4 h-4 text-orange-500 rounded" />
-              <label htmlFor="notify" className="text-sm font-medium text-gray-700 dark:text-gray-300">Enable Email Notifications for New Events</label>
+              <label htmlFor="notify" className="text-sm font-medium text-gray-700 ">Enable Email Notifications for New Events</label>
             </div>
             <div className="flex items-center gap-3">
               <input {...register('maintenanceMode')} type="checkbox" id="mMode" className="w-4 h-4 text-orange-500 rounded" />
-              <label htmlFor="mMode" className="text-sm font-medium text-gray-700 dark:text-gray-300">Maintenance Mode (restrict public access)</label>
+              <label htmlFor="mMode" className="text-sm font-medium text-gray-700 ">Maintenance Mode (restrict public access)</label>
             </div>
           </div>
 

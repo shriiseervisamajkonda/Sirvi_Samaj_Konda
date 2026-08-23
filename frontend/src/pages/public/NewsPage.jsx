@@ -47,7 +47,7 @@ const NewsPage = () => {
               सूचना एवं समाचार
             </span>
             <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">समाचार और घोषणाएँ</h1>
-            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">सीरवी समाज कोणदा की गतिविधियों और समाचारों से जुड़े रहें</p>
+            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">सिर्वी समाज कोणदा की गतिविधियों और समाचारों से जुड़े रहें</p>
           </motion.div>
         </div>
       </div>

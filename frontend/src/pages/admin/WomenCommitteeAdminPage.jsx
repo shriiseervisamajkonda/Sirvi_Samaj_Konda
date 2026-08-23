@@ -159,7 +159,7 @@ const WomenCommitteeAdminPage = () => {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">Admin Panel</p>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">श्री आई जी महिला समिती</h1>
+          <h1 className="text-3xl font-bold text-slate-900 ">श्री आई जी महिला समिती</h1>
         </div>
         <button
           onClick={() => toast.success('सभी परिवर्तन सुरक्षित रूप से सेव हो रहे हैं।')}
@@ -171,67 +171,67 @@ const WomenCommitteeAdminPage = () => {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <section className="rounded-3xl border border-white/10 bg-white/95 p-5 shadow-xl shadow-slate-900/5 dark:bg-slate-800/80">
+        <section className="rounded-3xl border border-white/10 bg-white/95 p-5 shadow-xl shadow-slate-900/5 ">
           <div className="mb-4 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <FiHeart className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">सामान्य जानकारी</h2>
+              <h2 className="text-xl font-bold text-slate-900 ">सामान्य जानकारी</h2>
               <p className="text-sm text-slate-500">मुख्य परिचय, संदेश और टैगलाइन</p>
             </div>
           </div>
 
           <div className="space-y-4">
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">मुख्य परिचय</span>
+              <span className="mb-1 block text-sm font-medium text-slate-700 ">मुख्य परिचय</span>
               <textarea
                 rows={5}
                 value={data.intro}
                 onChange={(e) => handleOverviewChange('intro', e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none ring-0 transition focus:border-primary dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none ring-0 transition focus:border-primary "
               />
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">उपशीर्षक</span>
+              <span className="mb-1 block text-sm font-medium text-slate-700 ">उपशीर्षक</span>
               <input
                 value={data.subtitle}
                 onChange={(e) => handleOverviewChange('subtitle', e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary "
               />
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">समिति का संदेश</span>
+              <span className="mb-1 block text-sm font-medium text-slate-700 ">समिति का संदेश</span>
               <textarea
                 rows={4}
                 value={data.message}
                 onChange={(e) => handleOverviewChange('message', e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary "
               />
             </label>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-white/10 bg-white/95 p-5 shadow-xl shadow-slate-900/5 dark:bg-slate-800/80">
+        <section className="rounded-3xl border border-white/10 bg-white/95 p-5 shadow-xl shadow-slate-900/5 ">
           <div className="mb-4 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <FiMapPin className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">संपर्क एवं जानकारी</h2>
+              <h2 className="text-xl font-bold text-slate-900 ">संपर्क एवं जानकारी</h2>
               <p className="text-sm text-slate-500">प्रदर्शित होने वाली संपर्क जानकारी</p>
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <input value={data.contact.address} onChange={(e) => handleContactChange('address', e.target.value)} placeholder="पता" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
-            <input value={data.contact.phone} onChange={(e) => handleContactChange('phone', e.target.value)} placeholder="मोबाइल नंबर" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
-            <input value={data.contact.email} onChange={(e) => handleContactChange('email', e.target.value)} placeholder="ईमेल" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
-            <input value={data.contact.whatsapp} onChange={(e) => handleContactChange('whatsapp', e.target.value)} placeholder="WhatsApp" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100" />
-            <input value={data.contact.social} onChange={(e) => handleContactChange('social', e.target.value)} placeholder="Social media" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
-            <input value={data.contact.timing} onChange={(e) => handleContactChange('timing', e.target.value)} placeholder="संपर्क समय" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100 sm:col-span-2" />
+            <input value={data.contact.address} onChange={(e) => handleContactChange('address', e.target.value)} placeholder="पता" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary " />
+            <input value={data.contact.phone} onChange={(e) => handleContactChange('phone', e.target.value)} placeholder="मोबाइल नंबर" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary " />
+            <input value={data.contact.email} onChange={(e) => handleContactChange('email', e.target.value)} placeholder="ईमेल" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary " />
+            <input value={data.contact.whatsapp} onChange={(e) => handleContactChange('whatsapp', e.target.value)} placeholder="WhatsApp" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary " />
+            <input value={data.contact.social} onChange={(e) => handleContactChange('social', e.target.value)} placeholder="Social media" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary sm:col-span-2" />
+            <input value={data.contact.timing} onChange={(e) => handleContactChange('timing', e.target.value)} placeholder="संपर्क समय" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-primary sm:col-span-2" />
           </div>
         </section>
       </div>
@@ -242,14 +242,14 @@ const WomenCommitteeAdminPage = () => {
           const items = data[section] || [];
 
           return (
-            <section key={section} className="rounded-3xl border border-white/10 bg-white/95 p-5 shadow-xl shadow-slate-900/5 dark:bg-slate-800/80">
+            <section key={section} className="rounded-3xl border border-white/10 bg-white/95 p-5 shadow-xl shadow-slate-900/5 ">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{meta.label}</h3>
+                    <h3 className="text-lg font-bold text-slate-900 ">{meta.label}</h3>
                     <p className="text-xs text-slate-500">{items.length} entries</p>
                   </div>
                 </div>
@@ -263,25 +263,25 @@ const WomenCommitteeAdminPage = () => {
 
               <div className="space-y-3">
                 {items.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-300">
+                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500 ">
                     अभी कोई डेटा उपलब्ध नहीं है। नया आइटम जोड़ें।
                   </div>
                 ) : (
                   items.map((item) => (
-                    <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/50">
+                    <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3 ">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
+                          <p className="truncate text-sm font-semibold text-slate-800 ">
                             {item.title || item.name || item.category || item.position || item.name || 'Untitled'}
                           </p>
                           {item.description && (
-                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{item.description}</p>
+                            <p className="mt-1 text-xs text-slate-500 ">{item.description}</p>
                           )}
                           {item.content && (
-                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{item.content}</p>
+                            <p className="mt-1 text-xs text-slate-500 ">{item.content}</p>
                           )}
                           {item.details && (
-                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{item.details}</p>
+                            <p className="mt-1 text-xs text-slate-500 ">{item.details}</p>
                           )}
                           {item.date && <p className="mt-1 text-xs text-primary">{item.date}</p>}
                           {item.location && <p className="mt-1 text-xs text-slate-500">{item.location}</p>}

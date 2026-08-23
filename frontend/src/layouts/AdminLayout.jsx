@@ -50,9 +50,6 @@ const navigationGroups = [
       { label: 'परिवार निर्देशिका (Families)', path: '/admin/families', icon: FiUsers },
       { label: 'समाज सदस्य (Members)', path: '/admin/members', icon: FiUser },
       { label: 'विद्यार्थी (Students)', path: '/admin/students', icon: FiBook },
-      { label: 'व्यवसाय निर्देशिका (Business)', path: '/admin/businesses', icon: FiBriefcase },
-      { label: 'रक्तदाता सूची (Blood Donors)', path: '/admin/blood-donors', icon: FiDroplet },
-      { label: 'वैवाहिक बायोडाटा (Matrimonial)', path: '/admin/marriage', icon: FiHeart },
     ],
   },
   {
@@ -106,7 +103,7 @@ const AdminLayout = () => {
     <div className="min-h-screen flex bg-[#FFF8EC] text-[#2B211B] selection:bg-[#C85A17]/20 selection:text-[#7A2525]">
       {/* Sidebar Desktop & Mobile Drawer */}
       <aside
-        className={`fixed lg:sticky top-0 h-screen z-50 w-72 bg-white border-r border-[#E8DCC8] shadow-xl lg:shadow-none flex flex-col justify-between transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed lg:sticky top-0 h-screen z-50 w-[300px] xl:w-[320px] shrink-0 bg-white border-r border-[#E8DCC8] shadow-xl lg:shadow-none flex flex-col justify-between transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -121,7 +118,7 @@ const AdminLayout = () => {
               </div>
               <div>
                 <p className="font-extrabold text-sm text-[#7A2525] tracking-tight leading-none">
-                  श्री सीरवी समाज कोणदा
+                  श्री सिर्वी समाज कोणदा
                 </p>
                 <p className="text-[11px] font-bold text-[#C85A17] tracking-wider uppercase mt-1">
                   प्रशासन पैनल
@@ -138,7 +135,7 @@ const AdminLayout = () => {
           </div>
 
           {/* Navigation Scrollable Area */}
-          <nav className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-[#E8DCC8]">
+          <nav className="flex-1 overflow-y-auto pl-4 pr-2 py-4 space-y-6 scrollbar-thin scrollbar-thumb-[#E8DCC8]">
             {navigationGroups.map((group) => (
               <div key={group.groupTitle} className="space-y-1.5">
                 <p className="px-3 text-[10px] font-black uppercase tracking-wider text-[#7A2525]/70">

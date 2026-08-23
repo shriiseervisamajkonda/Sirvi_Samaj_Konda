@@ -18,20 +18,12 @@
   --color-blue-100: #FFF8EC;
 
   /* Custom palette matching Family Directory */
-  --color-slate-950: #FFF8EC; /* Sandalwood Cream Canvas */
-  --color-slate-900: #FFFFFF; /* Pure White Card */
-  --color-slate-800: #FAF1E0; /* Surface Accent */
-  --color-slate-700: #E8DCC8; /* Cream Border */
-  --color-slate-600: #766A60; /* Muted Espresso Text */
-  --color-slate-500: #C85A17;
-
-  --color-gray-900: #2B211B; /* Primary Deep Espresso Text */
-  --color-gray-800: #2B211B;
-  --color-gray-750: #FFFFFF;
-  --color-gray-700: #766A60;
-  --color-gray-600: #C85A17;
-  --color-gray-200: #E8DCC8;
-  --color-gray-100: #FFF8EC;
+  --color-theme-950: #FFF8EC; /* Sandalwood Cream Canvas */
+  --color-theme-900: #FFFFFF; /* Pure White Card */
+  --color-theme-800: #FAF1E0; /* Surface Accent */
+  --color-theme-700: #E8DCC8; /* Cream Border */
+  --color-theme-600: #766A60; /* Muted Espresso Text */
+  --color-theme-500: #C85A17;
 }
 
 html {

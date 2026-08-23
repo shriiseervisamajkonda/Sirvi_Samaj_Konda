@@ -242,14 +242,14 @@ const CommitteePage = () => {
         <div className="flex gap-2">
           <button
             onClick={() => handleOpenEdit(r)}
-            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition cursor-pointer"
+            className="p-2 text-blue-600 hover:bg-blue-50 :bg-blue-900/20 rounded-xl transition cursor-pointer"
             title="संपादित करें"
           >
             <FiEdit2 className="w-4 h-4" />
           </button>
           <button
             onClick={() => setDeleteItem(r)}
-            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition cursor-pointer"
+            className="p-2 text-red-600 hover:bg-red-50 :bg-red-900/20 rounded-xl transition cursor-pointer"
             title="हटाएँ"
           >
             <FiTrash2 className="w-4 h-4" />

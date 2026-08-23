@@ -44,49 +44,49 @@ const VillagePage = () => {
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Village Information Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900 ">Village Information Settings</h1>
         <p className="text-gray-500 text-sm mt-1">Update general information about Konda Village displayed on the public page</p>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-slate-700">
-        <h2 className="font-semibold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 ">
+        <h2 className="font-semibold text-gray-900 mb-5 flex items-center gap-2">
           <FiMapPin className="w-5 h-5 text-orange-500" /> Geography & Demographics
         </h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Village Name *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Village Name *</label>
               <input {...register('name', { required: true })} placeholder="Konda" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tehsil *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tehsil *</label>
               <input {...register('tehsil', { required: true })} placeholder="Kukshi" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">District *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">District *</label>
               <input {...register('district', { required: true })} placeholder="Dhar" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">State *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
               <input {...register('state', { required: true })} placeholder="Madhya Pradesh" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">PIN Code *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">PIN Code *</label>
               <input {...register('pinCode', { required: true })} placeholder="454335" className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Community Center (Dharmshala)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Community Center (Dharmshala)</label>
               <input {...register('communityCenter')} placeholder="Sirvi Samaj Dharmshala, Konda" className="input-field" />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">About Konda Village</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">About Konda Village</label>
             <textarea {...register('description')} rows={4} placeholder="Brief summary of geography, community history..." className="input-field resize-none" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dharmshala Purpose / Facilities</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Dharmshala Purpose / Facilities</label>
             <textarea {...register('purpose')} rows={2} placeholder="Used for weddings, public gatherings, religious events..." className="input-field resize-none" />
           </div>
 

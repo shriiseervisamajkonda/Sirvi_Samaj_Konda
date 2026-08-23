@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { FiSearch, FiChevronUp, FiChevronDown } from 'react-icons/fi';
+import { FiSearch, FiChevronUp, FiChevronDown, FiDownload } from 'react-icons/fi';
 import Pagination from './Pagination';
 import EmptyState from './EmptyState';
 import { SkeletonTable } from './Skeleton';
@@ -12,6 +12,7 @@ const DataTable = ({
   currentPage = 1,
   onPageChange,
   searchable = true,
+  downloadable = true,
   title,
   actions,
   emptyIcon,
@@ -62,10 +63,40 @@ const DataTable = ({
     });
   }, [filtered, sortField, sortDir]);
 
+  const exportToCSV = () => {
+    if (!sorted || sorted.length === 0) return;
+    
+    // Get headers from columns
+    const exportColumns = columns.filter(col => col.key && col.label !== 'Actions');
+    const headers = exportColumns.map(col => col.label);
+    const keys = exportColumns.map(col => col.key);
+
+    const csvContent = [
+      headers.join(','),
+      ...sorted.map(row => 
+        keys.map(key => {
+          let val = row[key];
+          if (val === null || val === undefined) val = '';
+          else val = String(val).replace(/"/g, '""');
+          return `"${val}"`;
+        }).join(',')
+      )
+    ].join('\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' }); // Added BOM for UTF-8 Excel support
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${title ? title.replace(/\s+/g, '_') : 'export'}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-[#E8DCC8] overflow-hidden">
       {/* Header */}
-      {(title || searchable || actions) && (
+      {(title || searchable || downloadable || actions) && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 sm:p-6 border-b border-[#E8DCC8] bg-gradient-to-r from-[#FFF8EC]/60 to-white">
           {title && <h3 className="font-extrabold text-[#2B211B] text-base sm:text-lg">{title}</h3>}
           <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -80,6 +111,16 @@ const DataTable = ({
                   className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-2xl text-xs sm:text-sm text-[#2B211B] placeholder-[#766A60]/70 focus:outline-none focus:ring-2 focus:ring-[#C85A17]/20 focus:border-[#C85A17] font-medium transition-all"
                 />
               </div>
+            )}
+            {downloadable && sorted.length > 0 && (
+              <button
+                onClick={exportToCSV}
+                className="p-2.5 bg-white border border-[#E8DCC8] rounded-2xl text-[#C85A17] hover:bg-[#FFF8EC] hover:border-[#C85A17] transition-all shadow-sm flex items-center gap-2 shrink-0"
+                title="CSV डाउनलोड करें (Download CSV)"
+              >
+                <FiDownload className="w-4 h-4" />
+                <span className="hidden sm:inline text-sm font-bold">CSV</span>
+              </button>
             )}
             {actions}
           </div>

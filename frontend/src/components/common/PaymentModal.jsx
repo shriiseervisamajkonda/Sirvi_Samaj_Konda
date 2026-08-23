@@ -7,27 +7,27 @@ const PaymentModal = ({ isOpen, onClose, amount, onComplete }) => {
     <Modal isOpen={isOpen} onClose={() => onComplete('fail')} title="सुरक्षित भुगतान गेटवे (Payment Gateway Simulator)" size="md">
       <div className="p-6 space-y-6 text-center">
         {/* Banner */}
-        <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900/30 rounded-2xl p-4 text-left flex items-start gap-3">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 text-left flex items-start gap-3">
           <FiInfo className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
-          <div className="text-xs text-yellow-800 dark:text-yellow-400 font-medium">
+          <div className="text-xs text-yellow-800 font-medium">
             <strong>सिम्युलेटर मोड सक्रिय है:</strong> बैकएंड में Razorpay API कीज कॉन्फ़िगर नहीं हैं। आप इस सिम्युलेटर का उपयोग करके पूरी दान प्रक्रिया का परीक्षण कर सकते हैं।
           </div>
         </div>
 
         {/* Amount */}
         <div>
-          <p className="text-sm font-semibold text-gray-500">कुल भुगतान राशि (Payable Amount)</p>
-          <h3 className="text-4xl font-extrabold text-gray-900 dark:text-white mt-1">
+          <p className="text-sm font-semibold text-[#766A60]">कुल भुगतान राशि (Payable Amount)</p>
+          <h3 className="text-4xl font-extrabold text-[#2B211B] mt-1">
             ₹{amount?.toLocaleString('en-IN')}
           </h3>
-          <p className="text-xs text-gray-400 mt-2 flex items-center justify-center gap-1">
+          <p className="text-xs text-[#CDBBA4] mt-2 flex items-center justify-center gap-1">
             <FiLock className="w-3.5 h-3.5 text-green-500" /> Secure 256-bit SSL Transaction
           </p>
         </div>
 
         {/* Simulation Buttons */}
-        <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-slate-700">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">भुगतान विकल्प सिमुलेट करें (Simulate Action)</p>
+        <div className="space-y-3 pt-4 border-t border-[#E8DCC8] ">
+          <p className="text-xs font-bold text-[#CDBBA4] uppercase tracking-wider">भुगतान विकल्प सिमुलेट करें (Simulate Action)</p>
           
           <button
             type="button"
@@ -49,7 +49,7 @@ const PaymentModal = ({ isOpen, onClose, amount, onComplete }) => {
         </div>
 
         {/* Footer info */}
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-[#CDBBA4]">
           यह केवल एक परीक्षण वातावरण (testing environment) है। कोई वास्तविक पैसा नहीं कटेगा।
         </p>
       </div>

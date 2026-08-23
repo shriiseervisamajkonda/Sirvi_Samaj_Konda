@@ -111,7 +111,7 @@ const EventsPage = () => {
               आयोजन एवं उत्सव
             </span>
             <h1 className="text-4xl lg:text-5xl font-extrabold mb-3">कार्यक्रम एवं उत्सव (Events)</h1>
-            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">सीरवी समाज कोणदा के धार्मिक, सांस्कृतिक और सामाजिक कार्यक्रम</p>
+            <p className="text-[#FFF3DD] text-lg font-medium opacity-90">सिर्वी समाज कोणदा के धार्मिक, सांस्कृतिक और सामाजिक कार्यक्रम</p>
           </motion.div>
         </div>
       </div>
