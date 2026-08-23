@@ -188,7 +188,7 @@ const HomePage = () => {
               <div className="relative pl-10">
                 {/* Main card */}
                 <div className="bg-white/15 backdrop-blur-xl border border-white/30 rounded-3xl p-8 shadow-2xl">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[
                       { label: t('stats_families'), value: stats?.families || 500, icon: '👨‍👩‍👧‍👦' },
                       { label: t('stats_members'), value: stats?.members || 2000, icon: '👥' },
@@ -907,7 +907,7 @@ const HomePage = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 max-w-4xl mx-auto gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl mx-auto gap-4">
             {statCards.map((card) => (
               <StatCard
                 key={card.key}
@@ -939,7 +939,7 @@ const HomePage = () => {
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {quickLinks.map(({ label, path, icon: Icon, color }, i) => (
               <motion.div
                 key={path}
