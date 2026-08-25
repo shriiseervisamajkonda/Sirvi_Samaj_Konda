@@ -1,58 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FiSearch, FiUsers, FiMapPin, FiPhone } from 'react-icons/fi';
+import { FiSearch, FiUsers, FiMapPin, FiPhone, FiMap, FiInbox } from 'react-icons/fi';
 import { familyAPI } from '../../services/api';
-import { SkeletonCardGrid } from '../../components/common/Skeleton';
-import EmptyState from '../../components/common/EmptyState';
-import Pagination from '../../components/common/Pagination';
-
-const FamilyCard = ({ family }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.95 }}
-    whileInView={{ opacity: 1, scale: 1 }}
-    viewport={{ once: true }}
-    className="bg-white rounded-3xl p-6 border border-[#E8DCC8] shadow-md hover:shadow-xl hover:border-[#C9A44C]/50 hover:-translate-y-1 transition-all duration-300"
-  >
-    <div className="flex items-start gap-4">
-      <div className="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#C85A17] to-[#C9A44C] text-white text-lg font-bold shadow-lg shadow-orange-500/10 shrink-0 bg-white">
-        {family.familyPhoto ? (
-          <img src={family.familyPhoto} alt="Family" className="w-full h-full object-cover" />
-        ) : (
-          family.surname?.charAt(0) || 'F'
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <p className="font-bold text-[#2B211B] text-base leading-tight">{family.headOfFamily}</p>
-            <p className="text-[#C85A17] text-xs font-semibold mt-0.5">{family.surname} परिवार</p>
-          </div>
-          <span className="shrink-0 text-[10px] px-2 py-0.5 bg-[#FFF8EC] border border-[#E8DCC8] text-[#C85A17] rounded-full font-bold">
-            ID: {family.familyId}
-          </span>
-        </div>
-        <div className="mt-4 space-y-1.5 border-t border-[#E8DCC8]/40 pt-3 text-xs">
-          {family.village && (
-            <div className="flex items-center gap-2 text-[#766A60] font-medium">
-              <FiMapPin className="w-3.5 h-3.5 text-[#C9A44C]" />
-              {[family.village, family.district, family.state].filter(Boolean).join(', ')}
-            </div>
-          )}
-          {family.mobileNumber && (
-            <div className="flex items-center gap-2 text-[#766A60] font-medium">
-              <FiPhone className="w-3.5 h-3.5 text-[#C9A44C]" />
-              {family.mobileNumber}
-            </div>
-          )}
-          <div className="flex items-center gap-2 text-[#766A60] font-medium">
-            <FiUsers className="w-3.5 h-3.5 text-[#C9A44C]" />
-            {family.numberOfMembers || 0} सदस्य (Members)
-          </div>
-        </div>
-      </div>
-    </div>
-  </motion.div>
-);
+import DataTable from '../../components/common/DataTable';
 
 const FamilyDirectoryPage = () => {
   const [families, setFamilies] = useState([]);
@@ -65,7 +15,7 @@ const FamilyDirectoryPage = () => {
   const fetchFamilies = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await familyAPI.getAll({ page, limit: 12, search, status: 'active' });
+      const res = await familyAPI.getAll({ page, limit: 10, search, status: 'active' });
       setFamilies(res.data.data || []);
       setTotalPages(res.data.pagination?.pages || 1);
       setTotal(res.data.pagination?.total || 0);
@@ -87,6 +37,32 @@ const FamilyDirectoryPage = () => {
     setSearch(e.target.value);
     setPage(1);
   };
+
+  const columns = [
+    { key: 'familyId', label: 'S.No.', sortable: false, render: (v, row, idx) => <span className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] px-2.5 py-1 rounded-lg border border-[#E8DCC8]">{(page - 1) * 10 + idx + 1}</span> },
+    { 
+      key: 'headOfFamily', 
+      label: 'मुखिया (Head)', 
+      sortable: true, 
+      render: (v, row) => (
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#C85A17] to-[#C9A44C] text-white text-sm font-bold shrink-0">
+            {row.familyPhoto ? (
+              <img src={row.familyPhoto} alt="Family" className="w-full h-full object-cover" />
+            ) : (
+              row.surname?.charAt(0) || 'F'
+            )}
+          </div>
+          <span className="font-bold text-[#2B211B]">{v}</span>
+        </div>
+      ) 
+    },
+    { key: 'surname', label: 'गोत्र (Surname)', sortable: true, render: (v) => <span className="font-medium text-[#C85A17]">{v}</span> },
+    { key: 'village', label: 'गाँव (Village)' },
+    { key: 'mobileNumber', label: 'मोबाइल (Mobile)', render: (v) => v ? <span className="font-mono text-sm">{v}</span> : '—' },
+    { key: 'numberOfMembers', label: 'सदस्य (Members)', render: (v) => <span className="font-bold">{v || 0}</span> },
+    { key: 'agriculturalLandArea', label: 'कृषि भूमि (Land Area)', render: (v) => v ? <span className="font-bold text-[#3F7655]">{v}</span> : '—' },
+  ];
 
   return (
     <div className="bg-[#FFF8EC] min-h-screen text-[#2B211B]">
@@ -129,27 +105,22 @@ const FamilyDirectoryPage = () => {
           )}
         </div>
 
-        {/* List Content */}
-        {loading ? (
-          <SkeletonCardGrid count={6} />
-        ) : families.length === 0 ? (
-          <EmptyState
-            icon={FiUsers}
-            title="कोई परिवार नहीं मिला"
-            description={search ? `"${search}" के लिए कोई परिणाम नहीं मिले।` : 'अभी तक कोई परिवार पंजीकृत नहीं किया गया है।'}
+        {/* Data Table */}
+        <div className="bg-white rounded-3xl border border-[#E8DCC8] shadow-sm overflow-hidden p-2 sm:p-6">
+          <DataTable
+            columns={columns}
+            data={families}
+            loading={loading}
+            totalPages={totalPages}
+            currentPage={page}
+            onPageChange={setPage}
+            searchable={false}
+            serverSide
+            emptyIcon={FiInbox}
+            emptyText="कोई परिवार नहीं मिला"
+            emptyDescription={search ? `"${search}" के लिए कोई परिणाम नहीं मिले।` : 'अभी तक कोई परिवार पंजीकृत नहीं किया गया है।'}
           />
-        ) : (
-          <>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {families.map((family) => (
-                <FamilyCard key={family._id} family={family} />
-              ))}
-            </div>
-            <div className="mt-10">
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-            </div>
-          </>
-        )}
+        </div>
       </div>
     </div>
   );

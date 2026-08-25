@@ -174,6 +174,24 @@ const FamiliesPage = () => {
                   <option value="inactive">निष्क्रिय (Inactive)</option>
                 </select>
               </FormField>
+
+              <FormField label="कृषि भूमि रकबा (Agricultural Land Area)">
+                <input
+                  {...register('agriculturalLandArea')}
+                  placeholder="उदा. 10 बीघा / 5 एकड़"
+                  className="input-field"
+                />
+              </FormField>
+
+              <FormField label="कुल सदस्य (Number of Members)">
+                <input
+                  type="number"
+                  {...register('numberOfMembers')}
+                  placeholder="सदस्यों की संख्या (उदा. 5)"
+                  className="input-field"
+                  min="0"
+                />
+              </FormField>
             </div>
           </FormSection>
 
