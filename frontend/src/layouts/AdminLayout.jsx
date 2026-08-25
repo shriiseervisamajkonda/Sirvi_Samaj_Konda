@@ -25,6 +25,7 @@ import {
   FiCompass,
   FiChevronDown,
   FiLayers,
+  FiMessageSquare,
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 
@@ -59,12 +60,12 @@ const navigationGroups = [
       { label: 'समाचार (News)', path: '/admin/news', icon: FiFileText },
       { label: 'फ़ोटो गैलरी (Gallery)', path: '/admin/gallery', icon: FiImage },
       { label: 'दस्तावेज़ (Documents)', path: '/admin/documents', icon: FiLayers },
+      { label: 'संपर्क संदेश (Contacts)', path: '/admin/contacts', icon: FiMessageSquare },
     ],
   },
   {
     groupTitle: 'लेखा-जोखा एवं समाज कार्य',
     items: [
-      { label: 'दान सहयोग (Donations)', path: '/admin/donations', icon: FiDollarSign },
       { label: 'आय-व्यय लेखा-जोखा', path: '/admin/lekha-jokha', icon: FiDollarSign },
       { label: 'पंच निर्णय (Settlements)', path: '/admin/panch-settlements', icon: FiBook },
       { label: 'सामाजिक नियम (Social Info)', path: '/admin/social-info', icon: FiCompass },

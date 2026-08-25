@@ -113,7 +113,6 @@ const HomePage = () => {
     { label: 'श्री आई जी महिला समिती', path: '/women-committee', icon: FiHeart, color: 'from-rose-400 to-red-600' },
     { label: t('nav_events'), path: '/events', icon: FiCalendar, color: 'from-green-400 to-green-600' },
     { label: t('nav_gallery'), path: '/gallery', icon: FiHeart, color: 'from-purple-400 to-purple-600' },
-    { label: t('nav_donate'), path: '/donations', icon: FiHeart, color: 'from-pink-400 to-pink-600' },
   ];
 
   return (

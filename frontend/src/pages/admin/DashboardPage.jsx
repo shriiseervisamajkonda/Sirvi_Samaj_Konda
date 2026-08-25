@@ -112,7 +112,6 @@ const DashboardPage = () => {
     { title: 'रक्तदाता (Blood Donors)', value: stats?.bloodDonors ?? stats?.bloodDonorCount, icon: FiDroplet, link: '/admin/blood-donors', badge: 'जीवनदाता' },
     { title: 'सक्रिय कार्यक्रम (Events)', value: stats?.events ?? stats?.eventCount, icon: FiCalendar, link: '/admin/events', badge: 'सामाजिक आयोजन' },
     { title: 'समाचार (News)', value: stats?.news ?? stats?.newsCount, icon: FiFileText, link: '/admin/news', badge: 'उद्घोषणाएं' },
-    { title: 'कुल दान सहयोग (₹)', value: stats?.donations, icon: FiDollarSign, link: '/admin/donations', badge: 'सहयोग राशि' },
   ];
 
   const genderData = [

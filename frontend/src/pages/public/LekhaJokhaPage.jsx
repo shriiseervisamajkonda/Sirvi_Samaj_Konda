@@ -233,6 +233,7 @@ const LekhaJokhaPage = () => {
             totalPages={totalPages}
             currentPage={page}
             onPageChange={setPage}
+            searchable={false}
             serverSide
             emptyIcon={FiInbox}
             emptyText="इस कोष में कोई लेनदेन दर्ज नहीं है।"

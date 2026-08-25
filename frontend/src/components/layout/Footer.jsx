@@ -31,7 +31,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               {[
                 [t('nav_about'), '/about'], [t('nav_families'), '/families'], [t('nav_events'), '/events'],
-                [t('nav_gallery'), '/gallery'], [t('nav_donate'), '/donations'], [t('nav_contact'), '/contact'],
+                [t('nav_gallery'), '/gallery'], [t('nav_contact'), '/contact'],
               ].map(([label, path]) => (
                 <li key={path}>
                   <Link to={path} className="hover:text-primary transition-colors">{label}</Link>

@@ -48,7 +48,6 @@ const Navbar = () => {
     { label: t('nav_events'), path: '/events' },
     { label: t('nav_news'), path: '/news' },
     { label: t('nav_gallery'), path: '/gallery' },
-    { label: t('nav_donate'), path: '/donations' },
     { label: t('nav_contact'), path: '/contact' },
   ];
 

@@ -15,6 +15,7 @@ const familySchema = new mongoose.Schema(
     mobileNumber: String,
     whatsappNumber: String,
     numberOfMembers: { type: Number, default: 0 },
+    agriculturalLandArea: { type: String },
     familyTree: [{ type: mongoose.Schema.Types.ObjectId, ref: 'FamilyMember' }],
     qrCode: String,
     status: { type: String, enum: ['active', 'inactive', 'pending'], default: 'active' },

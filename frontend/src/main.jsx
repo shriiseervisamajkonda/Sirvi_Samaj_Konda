@@ -42,7 +42,6 @@ const EventsPage = lazy(() => import('./pages/public/EventsPage'));
 const NewsPage = lazy(() => import('./pages/public/NewsPage'));
 const GalleryPage = lazy(() => import('./pages/public/GalleryPage'));
 const DocumentsPage = lazy(() => import('./pages/public/DocumentsPage'));
-const DonationPage = lazy(() => import('./pages/public/DonationPage'));
 const ContactPage = lazy(() => import('./pages/public/ContactPage'));
 const LekhaJokhaPage = lazy(() => import('./pages/public/LekhaJokhaPage'));
 const PanchSettlementsPage = lazy(() => import('./pages/public/PanchSettlementsPage'));
@@ -64,7 +63,6 @@ const AdminEventsPage = lazy(() => import('./pages/admin/EventsPage'));
 const AdminGalleryPage = lazy(() => import('./pages/admin/GalleryPage'));
 const AdminNewsPage = lazy(() => import('./pages/admin/NewsPage'));
 const AdminDocumentsPage = lazy(() => import('./pages/admin/DocumentsPage'));
-const AdminDonationsPage = lazy(() => import('./pages/admin/DonationsPage'));
 const AdminCommitteePage = lazy(() => import('./pages/admin/CommitteePage'));
 const AdminWomenCommitteePage = lazy(() => import('./pages/admin/WomenCommitteeAdminPage'));
 const AdminGramUnitsPage = lazy(() => import('./pages/admin/GramUnitsPage'));
@@ -76,6 +74,7 @@ const AdminUsersPage = lazy(() => import('./pages/admin/UsersPage'));
 const AdminActivityLogsPage = lazy(() => import('./pages/admin/ActivityLogsPage'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
 const AdminProfilePage = lazy(() => import('./pages/admin/ProfilePage'));
+const AdminContactsPage = lazy(() => import('./pages/admin/ContactsPage'));
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -125,7 +124,6 @@ createRoot(document.getElementById('root')).render(
                     <Route path="/news" element={<NewsPage />} />
                     <Route path="/gallery" element={<GalleryPage />} />
                     <Route path="/documents" element={<DocumentsPage />} />
-                    <Route path="/donations" element={<DonationPage />} />
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/lekha-jokha" element={<LekhaJokhaPage />} />
                     <Route path="/panch-settlements" element={<PanchSettlementsPage />} />
@@ -156,7 +154,6 @@ createRoot(document.getElementById('root')).render(
                     <Route path="gallery" element={<AdminGalleryPage />} />
                     <Route path="news" element={<AdminNewsPage />} />
                     <Route path="documents" element={<AdminDocumentsPage />} />
-                    <Route path="donations" element={<AdminDonationsPage />} />
                     <Route path="committee" element={<AdminCommitteePage />} />
                     <Route path="women-committee" element={<AdminWomenCommitteePage />} />
                     <Route path="gram-units" element={<AdminGramUnitsPage />} />
@@ -165,6 +162,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path="lekha-jokha" element={<AdminLekhaJokhaPage />} />
                     <Route path="panch-settlements" element={<AdminPanchSettlementsPage />} />
                     <Route path="social-info" element={<AdminSocialInfoPage />} />
+                    <Route path="contacts" element={<AdminContactsPage />} />
                     <Route path="users" element={<AdminUsersPage />} />
                     <Route path="activity-logs" element={<AdminActivityLogsPage />} />
                     <Route path="settings" element={<AdminSettingsPage />} />

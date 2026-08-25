@@ -104,16 +104,6 @@ export const documentAPI = {
   delete: (id) => api.delete(`/documents/${id}`),
 };
 
-export const donationAPI = {
-  getAll: (params) => api.get('/donations', { params }),
-  getPublicSummary: () => api.get('/donations/public-summary'),
-  create: (data) => api.post('/donations', data),
-  createOrder: (data) => api.post('/donations/create-order', data),
-  verifyPayment: (data) => api.post('/donations/verify-payment', data),
-  update: (id, data) => api.put(`/donations/${id}`, data),
-  delete: (id) => api.delete(`/donations/${id}`),
-};
-
 export const committeeAPI = {
   getAll: (params) => api.get('/committee', { params }),
   getOne: (id) => api.get(`/committee/${id}`),
@@ -156,6 +146,9 @@ export const villageAPI = {
 export const contactAPI = {
   submit: (data) => api.post('/contacts', data),
   getAll: (params) => api.get('/contacts', { params }),
+  getOne: (id) => api.get(`/contacts/${id}`),
+  update: (id, data) => api.put(`/contacts/${id}`, data),
+  delete: (id) => api.delete(`/contacts/${id}`),
 };
 
 export const settingsAPI = {

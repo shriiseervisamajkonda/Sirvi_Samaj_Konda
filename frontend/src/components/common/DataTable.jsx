@@ -3,6 +3,7 @@ import { FiSearch, FiChevronUp, FiChevronDown, FiDownload } from 'react-icons/fi
 import Pagination from './Pagination';
 import EmptyState from './EmptyState';
 import { SkeletonTable } from './Skeleton';
+import { useAuth } from '../../context/AuthContext';
 
 const DataTable = ({
   columns,
@@ -24,6 +25,8 @@ const DataTable = ({
   const [localSearch, setLocalSearch] = useState('');
   const [sortField, setSortField] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
+  
+  const { isAdmin } = useAuth();
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -112,7 +115,7 @@ const DataTable = ({
                 />
               </div>
             )}
-            {downloadable && sorted.length > 0 && (
+            {downloadable && isAdmin && sorted.length > 0 && (
               <button
                 onClick={exportToCSV}
                 className="p-2.5 bg-white border border-[#E8DCC8] rounded-2xl text-[#C85A17] hover:bg-[#FFF8EC] hover:border-[#C85A17] transition-all shadow-sm flex items-center gap-2 shrink-0"
@@ -163,7 +166,7 @@ const DataTable = ({
                 >
                   {columns.map((col) => (
                     <td key={col.key || col.label} className="px-5 py-4 text-[#2B211B] whitespace-nowrap font-medium">
-                      {col.render ? col.render(row[col.key], row) : (row[col.key] ?? '—')}
+                      {col.render ? col.render(row[col.key], row, idx) : (row[col.key] ?? '—')}
                     </td>
                   ))}
                 </tr>
