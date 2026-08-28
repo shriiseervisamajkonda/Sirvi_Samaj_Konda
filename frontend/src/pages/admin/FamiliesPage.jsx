@@ -78,7 +78,7 @@ const FamiliesPage = () => {
   };
 
   const columns = [
-    { key: 'familyId', label: 'परिवार कोड (ID)', sortable: true, render: (v) => <span className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] px-2.5 py-1 rounded-lg border border-[#E8DCC8]">{v}</span> },
+    { key: 'familyId', label: 'S.No.', sortable: false, render: (v, row, idx) => <span className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] px-2.5 py-1 rounded-lg border border-[#E8DCC8]">{(page - 1) * 10 + idx + 1}</span> },
     { key: 'headOfFamily', label: 'मुखिया का नाम (Head)', sortable: true, render: (v) => <span className="font-bold text-[#2B211B]">{v}</span> },
     { key: 'surname', label: 'गोत्र / उपनाम', sortable: true, render: (v) => <Badge variant="warning">{v}</Badge> },
     { key: 'mobileNumber', label: 'मोबाइल नंबर', render: (v) => v ? <span className="font-mono text-xs">{v}</span> : '—' },
