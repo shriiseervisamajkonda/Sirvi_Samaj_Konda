@@ -8,6 +8,7 @@ import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Badge from '../../components/common/Badge';
 import ImageUpload from '../../components/common/ImageUpload';
+import SearchableSelect from '../../components/common/SearchableSelect';
 import { FormSection, FormField, FormActions } from '../../components/common/FormComponents';
 import toast from 'react-hot-toast';
 
@@ -43,17 +44,24 @@ const MembersPage = () => {
     familyAPI.getAll({ limit: 200 }).then(res => setFamilies(res.data.data || [])).catch(() => {});
   }, [fetchMembers]);
 
-  const openCreate = () => { setEditItem(null); reset({ village: 'Konda', status: 'active', gender: 'Male' }); setModalOpen(true); };
+  const openCreate = () => { setEditItem(null); reset({ village: 'Konda', status: 'active', gender: 'male' }); setModalOpen(true); };
   const openEdit = (member) => { setEditItem(member); reset(member); setModalOpen(true); };
 
   const onSubmit = async (data) => {
     setSaving(true);
+    
+    // Clean empty enum/reference values before submitting
+    const payload = { ...data };
+    if (!payload.bloodGroup) payload.bloodGroup = 'Unknown';
+    if (!payload.maritalStatus) payload.maritalStatus = 'single';
+    if (!payload.family) delete payload.family;
+
     try {
       if (editItem) {
-        await memberAPI.update(editItem._id, data);
+        await memberAPI.update(editItem._id, payload);
         toast.success('सदस्य विवरण सफलतापूर्वक अपडेट हुआ!');
       } else {
-        await memberAPI.create(data);
+        await memberAPI.create(payload);
         toast.success('नया सदस्य सफलतापूर्वक जुड़ गया!');
       }
       setModalOpen(false);
@@ -100,8 +108,13 @@ const MembersPage = () => {
         </div>
       ),
     },
-    { key: 'firstName', label: 'नाम', sortable: true, render: (_, r) => <span className="font-bold text-[#2B211B]">{r.firstName} {r.lastName}</span> },
-    { key: 'gender', label: 'लिंग', render: (v) => <Badge variant={v === 'Male' ? 'info' : 'warning'}>{v === 'Male' ? 'पुरुष' : v === 'Female' ? 'महिला' : v}</Badge> },
+    { key: 'firstName', label: 'नाम', sortable: true, render: (_, r) => (
+      <div>
+        <div className="font-bold text-[#2B211B]">{r.firstName} {r.lastName}</div>
+        {r.guardianName && <div className="text-xs text-gray-500">S/O, W/O: {r.guardianName}</div>}
+      </div>
+    )},
+    { key: 'gender', label: 'लिंग', render: (v) => <Badge variant={v === 'male' ? 'info' : 'warning'}>{v === 'male' ? 'पुरुष' : v === 'female' ? 'महिला' : v}</Badge> },
     { key: 'bloodGroup', label: 'रक्त समूह', render: (v) => v ? <span className="px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-md font-mono text-xs font-bold">{v}</span> : '—' },
     { key: 'occupation', label: 'व्यवसाय', render: (v) => v || '—' },
     { key: 'family', label: 'परिवार', render: (v) => v?.headOfFamily ? `${v.headOfFamily} (${v.familyId || ''})` : '—' },
@@ -169,15 +182,19 @@ const MembersPage = () => {
                 <input {...register('firstName', { required: 'प्रथम नाम आवश्यक है' })} placeholder="उदा. राहुल" className="input-field" />
               </FormField>
 
+              <FormField label="पिता/पति का नाम (Father/Husband Name)">
+                <input {...register('guardianName')} placeholder="उदा. सुरेश जी" className="input-field" />
+              </FormField>
+
               <FormField label="उपनाम / गोत्र (Last Name)">
                 <input {...register('lastName')} placeholder="उदा. पंवार / बर्फा / काग" className="input-field" />
               </FormField>
 
               <FormField label="लिंग (Gender)" required error={errors.gender}>
                 <select {...register('gender', { required: 'लिंग चुनें' })} className="input-field">
-                  <option value="Male">पुरुष (Male)</option>
-                  <option value="Female">महिला (Female)</option>
-                  <option value="Other">अन्य (Other)</option>
+                  <option value="male">पुरुष (Male)</option>
+                  <option value="female">महिला (Female)</option>
+                  <option value="other">अन्य (Other)</option>
                 </select>
               </FormField>
 
@@ -195,10 +212,10 @@ const MembersPage = () => {
               <FormField label="वैवाहिक स्थिति (Marital Status)">
                 <select {...register('maritalStatus')} className="input-field">
                   <option value="">स्थिति चुनें</option>
-                  <option value="Single">अविवाहित (Single)</option>
-                  <option value="Married">विवाहित (Married)</option>
-                  <option value="Divorced">तलाकशुदा (Divorced)</option>
-                  <option value="Widowed">विधवा / विधुर (Widowed)</option>
+                  <option value="single">अविवाहित (Single)</option>
+                  <option value="married">विवाहित (Married)</option>
+                  <option value="divorced">तलाकशुदा (Divorced)</option>
+                  <option value="widowed">विधवा / विधुर (Widowed)</option>
                 </select>
               </FormField>
             </div>
@@ -219,10 +236,13 @@ const MembersPage = () => {
           <FormSection title="3. परिवार व निवास (Family & Residence)" icon={FiUsers}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="संबंधित परिवार (Family)">
-                <select {...register('family')} className="input-field">
-                  <option value="">परिवार चुनें</option>
-                  {families.map(f => <option key={f._id} value={f._id}>{f.headOfFamily} ({f.familyId})</option>)}
-                </select>
+                <SearchableSelect
+                  options={families.map(f => ({ value: f._id, label: `${f.headOfFamily} (${f.familyId})` }))}
+                  value={watch('family')}
+                  onChange={(val) => setValue('family', val, { shouldDirty: true })}
+                  placeholder="परिवार चुनें (Select Family)"
+                  searchPlaceholder="परिवार मुखिया या ID खोजें..."
+                />
               </FormField>
 
               <FormField label="गाँव (Village)">

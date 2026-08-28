@@ -83,3 +83,8 @@ export const paginateResponse = (data, total, page, limit) => ({
     pages: Math.ceil(total / limit),
   },
 });
+
+export const escapeRegex = (string) => {
+  if (!string) return '';
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};

@@ -4,7 +4,7 @@ import Family from '../models/Family.js';
 import { createCRUDController } from '../controllers/baseController.js';
 import { protect, authorize, optionalAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/validate.js';
-import { paginateResponse } from '../utils/helpers.js';
+import { paginateResponse, escapeRegex } from '../utils/helpers.js';
 
 const router = express.Router();
 
@@ -22,15 +22,16 @@ router.get('/', optionalAuth, asyncHandler(async (req, res) => {
     : { status: 'active' };
 
   if (req.query.search) {
+    const escapedSearch = escapeRegex(req.query.search);
     filter.$or = [
-      { firstName: { $regex: req.query.search, $options: 'i' } },
-      { lastName: { $regex: req.query.search, $options: 'i' } },
-      { occupation: { $regex: req.query.search, $options: 'i' } },
+      { firstName: { $regex: escapedSearch, $options: 'i' } },
+      { lastName: { $regex: escapedSearch, $options: 'i' } },
+      { occupation: { $regex: escapedSearch, $options: 'i' } },
     ];
   }
   if (req.query.gender) filter.gender = req.query.gender;
-  if (req.query.education) filter.education = { $regex: req.query.education, $options: 'i' };
-  if (req.query.occupation) filter.occupation = { $regex: req.query.occupation, $options: 'i' };
+  if (req.query.education) filter.education = { $regex: escapeRegex(req.query.education), $options: 'i' };
+  if (req.query.occupation) filter.occupation = { $regex: escapeRegex(req.query.occupation), $options: 'i' };
   if (req.query.village) filter.village = req.query.village;
   if (req.query.bloodGroup) filter.bloodGroup = req.query.bloodGroup;
 

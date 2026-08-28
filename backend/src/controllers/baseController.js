@@ -1,5 +1,5 @@
 import { asyncHandler } from '../middleware/validate.js';
-import { paginateResponse } from '../utils/helpers.js';
+import { paginateResponse, escapeRegex } from '../utils/helpers.js';
 
 // Default sensitive/internal fields to exclude from all client responses
 const DEFAULT_EXCLUDE_FIELDS = '-__v -password -refreshToken -otp -resetPasswordToken -emailVerificationToken -internalNotes -adminNotes';
@@ -40,8 +40,9 @@ export const createCRUDController = (Model, moduleName, options = {}) => {
     if (req.query.village) filter.village = req.query.village;
     if (req.query.category) filter.category = req.query.category;
     if (req.query.search && searchFields.length) {
+      const escapedSearch = escapeRegex(req.query.search);
       filter.$or = searchFields.map((field) => ({
-        [field]: { $regex: req.query.search, $options: 'i' },
+        [field]: { $regex: escapedSearch, $options: 'i' },
       }));
     }
 

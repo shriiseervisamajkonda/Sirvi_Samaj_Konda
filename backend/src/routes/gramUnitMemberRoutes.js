@@ -1,7 +1,7 @@
 import express from 'express';
 import GramUnitMember from '../models/GramUnitMember.js';
 import { asyncHandler } from '../middleware/validate.js';
-import { paginateResponse } from '../utils/helpers.js';
+import { paginateResponse, escapeRegex } from '../utils/helpers.js';
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -22,10 +22,11 @@ router.get(
     }
     if (req.query.designation) filter.designation = req.query.designation;
     if (req.query.search) {
+      const escapedSearch = escapeRegex(req.query.search);
       filter.$or = [
-        { name: { $regex: req.query.search, $options: 'i' } },
-        { designation: { $regex: req.query.search, $options: 'i' } },
-        { phone: { $regex: req.query.search, $options: 'i' } },
+        { name: { $regex: escapedSearch, $options: 'i' } },
+        { designation: { $regex: escapedSearch, $options: 'i' } },
+        { phone: { $regex: escapedSearch, $options: 'i' } },
       ];
     }
 
