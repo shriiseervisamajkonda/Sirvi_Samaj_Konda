@@ -5,6 +5,7 @@ const familyMemberSchema = new mongoose.Schema(
     photo: String,
     firstName: { type: String, required: true, trim: true },
     lastName: { type: String, trim: true },
+    guardianName: { type: String, trim: true },
     gender: { type: String, enum: ['male', 'female', 'other'], required: true },
     dateOfBirth: Date,
     age: Number,

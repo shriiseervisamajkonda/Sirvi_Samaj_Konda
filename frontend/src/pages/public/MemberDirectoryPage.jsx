@@ -35,6 +35,11 @@ const MemberCard = ({ member }) => (
         </Badge>
       )}
       <div className="mt-4 space-y-1.5 text-left w-full border-t border-[#D4AF37]/10 pt-3">
+        {member.guardianName && (
+          <div className="flex items-center gap-2 text-[#CDBBA4] text-xs font-semibold">
+            <span className="text-xs">👤</span> पिता/पति: {member.guardianName}
+          </div>
+        )}
         {member.occupation && (
           <div className="flex items-center gap-2 text-[#CDBBA4] text-xs font-semibold">
             <FiBriefcase className="w-3.5 h-3.5 text-[#C85A17]" /> {member.occupation}
@@ -123,23 +128,6 @@ const MemberDirectoryPage = () => {
             {!loading && <p className="text-[#CDBBA4] text-sm font-semibold shrink-0">{total} कुल सदस्य</p>}
           </div>
 
-          {/* Blood group filter */}
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-sm font-semibold text-[#FFF3DD] mr-2">रक्त समूह (Blood Group):</span>
-            {bloodGroups.map(bg => (
-              <button
-                key={bg}
-                onClick={() => handleBloodGroup(bg)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                  bloodGroup === bg
-                    ? 'bg-[#7A2525] border-[#D4AF37]/40 text-[#D4AF37] shadow-lg'
-                    : 'bg-[#2A1010] border-[#D4AF37]/15 text-[#CDBBA4] hover:border-[#D4AF37]/45'
-                }`}
-              >
-                {bg}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Grid */}
