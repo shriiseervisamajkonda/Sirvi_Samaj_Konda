@@ -1,9 +1,9 @@
 import express from 'express';
-import { globalSearch, searchBloodDonors } from '../controllers/searchController.js';
+import { globalSearch } from '../controllers/searchController.js';
+import { optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.get('/', globalSearch);
-router.get('/blood-donors', searchBloodDonors);
+router.get('/', optionalAuth, globalSearch);
 
 export default router;
