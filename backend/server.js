@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
-import connectDB from './src/config/db.js';
 import app from './src/app.js';
+import { checkSupabaseConnection } from './src/config/supabase.js';
 
 dotenv.config();
 
@@ -14,11 +14,13 @@ process.on('uncaughtException', (err) => {
 
 const PORT = process.env.PORT || 5000;
 
-connectDB();
+// Initialize Supabase Connection
+checkSupabaseConnection();
 
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    console.log(`🚀 Shri Seervi Samaj Konda API Server running on port ${PORT}`);
+    console.log(`📡 Architecture: Express Strict MVC + Supabase PostgreSQL`);
   });
 }
 

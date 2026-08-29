@@ -1,20 +1,21 @@
 import express from 'express';
-import Model from '../models/BloodDonor.js';
-import { createCRUDController } from '../controllers/baseController.js';
+import {
+  getBloodDonors,
+  getBloodDonorById,
+  createBloodDonor,
+  updateBloodDonor,
+  deleteBloodDonor,
+} from '../controllers/bloodDonorController.js';
 import { protect, authorize, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
-const ctrl = createCRUDController(Model, 'BloodDonor', {
-  populate: [{ path: 'member', select: 'firstName lastName photo' }],
-  searchFields: ['name', 'bloodGroup', 'village'],
-  publicFilter: { status: 'active' },
-});
 
-router.get('/', optionalAuth, ctrl.getAll);
-router.get('/:id', ctrl.getOne);
+router.get('/', optionalAuth, getBloodDonors);
+router.get('/:id', optionalAuth, getBloodDonorById);
+
 router.use(protect);
-router.post('/', authorize('super_admin', 'admin', 'editor', 'member'), ctrl.create);
-router.put('/:id', authorize('super_admin', 'admin', 'editor'), ctrl.update);
-router.delete('/:id', authorize('super_admin', 'admin'), ctrl.remove);
+router.post('/', authorize('developer', 'super_admin', 'admin', 'blood_donors:write'), createBloodDonor);
+router.put('/:id', authorize('developer', 'super_admin', 'admin', 'blood_donors:write'), updateBloodDonor);
+router.delete('/:id', authorize('developer', 'super_admin', 'admin', 'blood_donors:write'), deleteBloodDonor);
 
 export default router;

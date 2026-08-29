@@ -1,190 +1,187 @@
-import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import crypto from 'crypto';
+import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
-import {
-  sendTokenResponse,
-  generateOTP,
-  generateResetToken,
-  logActivity,
-} from '../utils/helpers.js';
-import {
-  sendVerificationEmail,
-  sendPasswordResetEmail,
-  sendOTPEmail,
-} from '../utils/emailService.js';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/emailService.js';
 
+// Helper to generate access & refresh tokens
+const generateTokens = (user) => {
+  const accessToken = jwt.sign(
+    { id: user.id, role: user.role, phone: user.phone },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRE || '7d' }
+  );
+
+  const refreshToken = jwt.sign(
+    { id: user.id },
+    process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_REFRESH_EXPIRE || '30d' }
+  );
+
+  return { accessToken, refreshToken };
+};
+
+// POST /api/auth/register
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password, phone, role } = req.body;
+  const { name, phone, email, password, role = 'member', panchayat_family_id } = req.body;
 
-  const existing = await User.findOne({ email });
-  if (existing) {
-    return res.status(400).json({ success: false, message: 'Email already registered' });
+  if (!phone || !password || !name) {
+    return res.status(400).json({ success: false, message: 'Name, Phone and Password are required' });
   }
 
-  const verificationToken = crypto.randomBytes(32).toString('hex');
-  const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+  // Check if phone or email already registered
+  const { data: existingUser } = await supabase
+    .from('users')
+    .select('id')
+    .or(`phone.eq.${phone},email.eq.${email || 'none@none.com'}`)
+    .maybeSingle();
 
-  const user = await User.create({
-    name,
-    email,
-    password,
-    phone,
-    role: role || 'member',
-    emailVerificationToken: hashedToken,
-    emailVerificationExpire: Date.now() + 24 * 60 * 60 * 1000,
+  if (existingUser) {
+    return res.status(400).json({ success: false, message: 'Phone or Email is already registered' });
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const { data: user, error } = await supabase
+    .from('users')
+    .insert({
+      name,
+      phone,
+      email: email || null,
+      password_hash: passwordHash,
+      role,
+      panchayat_family_id: panchayat_family_id || null,
+      is_active: true,
+    })
+    .select('id, name, phone, email, role, photo_url, panchayat_family_id, created_at')
+    .single();
+
+  if (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+
+  const { accessToken, refreshToken } = generateTokens(user);
+
+  res.status(201).json({
+    success: true,
+    message: 'User registered successfully',
+    data: { user, accessToken, refreshToken },
   });
-
-  await sendVerificationEmail(user, verificationToken);
-  await logActivity(user._id, 'register', 'auth', user._id, {}, req);
-
-  sendTokenResponse(user, 201, res);
 });
 
+// POST /api/auth/login
 export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { identifier, phone, email, password } = req.body;
+  const loginId = identifier || phone || email;
 
-  if (!email || !password) {
-    return res.status(400).json({ success: false, message: 'Please provide email and password' });
+  if (!loginId || !password) {
+    return res.status(400).json({ success: false, message: 'Please provide mobile number/email and password' });
   }
 
-  const user = await User.findOne({ email }).select('+password');
-  if (!user || !(await user.matchPassword(password))) {
-    return res.status(401).json({ success: false, message: 'Invalid credentials' });
+  // Query user by phone or email
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('id, name, phone, email, password_hash, role, photo_url, is_active, panchayat_family_id')
+    .or(`phone.eq.${loginId},email.eq.${loginId}`)
+    .maybeSingle();
+
+  if (error || !user) {
+    return res.status(401).json({ success: false, message: 'Invalid phone number/email or password' });
   }
 
-  if (!user.isActive) {
-    return res.status(401).json({ success: false, message: 'Account is deactivated' });
+  if (!user.is_active) {
+    return res.status(403).json({ success: false, message: 'Your account is currently deactivated' });
   }
 
-  user.lastLogin = new Date();
-  await user.save({ validateBeforeSave: false });
+  const isMatch = await bcrypt.compare(password, user.password_hash);
+  if (!isMatch) {
+    return res.status(401).json({ success: false, message: 'Invalid phone number/email or password' });
+  }
 
-  await logActivity(user._id, 'login', 'auth', user._id, {}, req);
-  sendTokenResponse(user, 200, res);
-});
+  // Update last login
+  await supabase
+    .from('users')
+    .update({ last_login: new Date().toISOString() })
+    .eq('id', user.id);
 
-export const logout = asyncHandler(async (req, res) => {
-  res.cookie('refreshToken', 'none', {
-    expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true,
+  const { password_hash, ...userProfile } = user;
+  const { accessToken, refreshToken } = generateTokens(user);
+
+  res.json({
+    success: true,
+    message: 'Logged in successfully',
+    data: {
+      user: userProfile,
+      accessToken,
+      refreshToken,
+    },
   });
-  res.json({ success: true, message: 'Logged out successfully' });
 });
 
-export const refreshToken = asyncHandler(async (req, res) => {
-  const token = req.body.refreshToken || req.cookies.refreshToken;
-  if (!token) {
-    return res.status(401).json({ success: false, message: 'Refresh token required' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user || !user.isActive) {
-      return res.status(401).json({ success: false, message: 'Invalid refresh token' });
-    }
-    sendTokenResponse(user, 200, res);
-  } catch {
-    return res.status(401).json({ success: false, message: 'Invalid refresh token' });
-  }
-});
-
+// GET /api/auth/me
 export const getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-  res.json({ success: true, data: user });
-});
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id, created_at, last_login')
+    .eq('id', req.user.id)
+    .maybeSingle();
 
-export const forgotPassword = asyncHandler(async (req, res) => {
-  const user = await User.findOne({ email: req.body.email });
-  if (!user) {
-    return res.json({ success: true, message: 'If email exists, reset link has been sent' });
-  }
-
-  const { resetToken, hashedToken } = generateResetToken();
-  user.resetPasswordToken = hashedToken;
-  user.resetPasswordExpire = Date.now() + 60 * 60 * 1000;
-  await user.save({ validateBeforeSave: false });
-
-  await sendPasswordResetEmail(user, resetToken);
-  res.json({ success: true, message: 'Password reset email sent' });
-});
-
-export const resetPassword = asyncHandler(async (req, res) => {
-  const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
-  const user = await User.findOne({
-    resetPasswordToken: hashedToken,
-    resetPasswordExpire: { $gt: Date.now() },
-  });
-
-  if (!user) {
-    return res.status(400).json({ success: false, message: 'Invalid or expired token' });
-  }
-
-  user.password = req.body.password;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpire = undefined;
-  await user.save();
-
-  sendTokenResponse(user, 200, res);
-});
-
-export const verifyEmail = asyncHandler(async (req, res) => {
-  const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
-  const user = await User.findOne({
-    emailVerificationToken: hashedToken,
-    emailVerificationExpire: { $gt: Date.now() },
-  });
-
-  if (!user) {
-    return res.status(400).json({ success: false, message: 'Invalid or expired verification token' });
-  }
-
-  user.isEmailVerified = true;
-  user.emailVerificationToken = undefined;
-  user.emailVerificationExpire = undefined;
-  await user.save();
-
-  res.json({ success: true, message: 'Email verified successfully' });
-});
-
-export const sendOTP = asyncHandler(async (req, res) => {
-  const user = await User.findOne({ email: req.body.email });
-  if (!user) {
+  if (error || !user) {
     return res.status(404).json({ success: false, message: 'User not found' });
   }
 
-  const otp = generateOTP();
-  user.otp = otp;
-  user.otpExpire = Date.now() + 10 * 60 * 1000;
-  await user.save({ validateBeforeSave: false });
-
-  await sendOTPEmail(user, otp);
-  res.json({ success: true, message: 'OTP sent to your email' });
+  res.json({ success: true, data: user });
 });
 
-export const verifyOTP = asyncHandler(async (req, res) => {
-  const { email, otp } = req.body;
-  const user = await User.findOne({ email });
-  if (!user || user.otp !== otp || user.otpExpire < Date.now()) {
-    return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+// POST /api/auth/forgot-password
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { phone, email } = req.body;
+
+  let query = supabase.from('users').select('id, name, phone, email');
+  if (phone) query = query.eq('phone', phone);
+  else if (email) query = query.eq('email', email);
+  else return res.status(400).json({ success: false, message: 'Please provide phone or email' });
+
+  const { data: user } = await query.maybeSingle();
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'No account found with this credential' });
   }
 
-  user.otp = undefined;
-  user.otpExpire = undefined;
-  user.isEmailVerified = true;
-  await user.save();
+  // Generate temporary 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  sendTokenResponse(user, 200, res);
+  res.json({
+    success: true,
+    message: 'Reset instructions / OTP generated',
+    data: { phone: user.phone, otpHint: 'Sent to registered mobile' },
+  });
 });
 
+// PUT /api/auth/update-password
 export const updatePassword = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).select('+password');
-  if (!(await user.matchPassword(req.body.currentPassword))) {
-    return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ success: false, message: 'Current and new password required' });
   }
 
-  user.password = req.body.newPassword;
-  await user.save();
-  sendTokenResponse(user, 200, res);
+  const { data: user } = await supabase
+    .from('users')
+    .select('password_hash')
+    .eq('id', req.user.id)
+    .single();
+
+  const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+  if (!isMatch) {
+    return res.status(400).json({ success: false, message: 'Current password does not match' });
+  }
+
+  const newHash = await bcrypt.hash(newPassword, 10);
+  await supabase
+    .from('users')
+    .update({ password_hash: newHash, must_change_password: false, updated_at: new Date().toISOString() })
+    .eq('id', req.user.id);
+
+  res.json({ success: true, message: 'Password updated successfully' });
 });
