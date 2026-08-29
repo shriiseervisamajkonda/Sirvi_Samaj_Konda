@@ -1,114 +1,208 @@
-import Family from '../models/Family.js';
-import FamilyMember from '../models/FamilyMember.js';
+import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
-import { createCRUDController } from './baseController.js';
-import { generateFamilyQR, generateFamilyId } from '../utils/qrCode.js';
-import { logActivity, paginateResponse, escapeRegex } from '../utils/helpers.js';
 
-const base = createCRUDController(Family, 'Family', {
-  populate: [{ path: 'familyTree', select: 'firstName lastName photo gender age' }],
-  searchFields: ['headOfFamily', 'surname', 'familyId', 'village'],
-  publicFilter: { status: 'active' },
-  beforeCreate: async (data) => {
-    if (!data.familyId) {
-      data.familyId = await generateFamilyId(data.surname);
-    }
-    return data;
-  },
-  afterCreate: async (family) => {
-    const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-    family.qrCode = await generateFamilyQR(family.familyId, baseUrl);
-    await family.save();
-  },
-});
-
+// GET /api/families (Public & Admin with pagination, search, gotra filter)
 export const getFamilies = asyncHandler(async (req, res) => {
-  const isAdmin = req.user && ['super_admin', 'admin', 'editor'].includes(req.user.role);
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 12;
-  const skip = (page - 1) * limit;
-  const filter = isAdmin ? {} : { status: 'active' };
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 12));
+  const offset = (page - 1) * limit;
 
+  let query = supabase
+    .from('families')
+    .select('*, family_members(*)', { count: 'exact' });
+
+  // Status filtering (Public sees active only)
+  const isAdmin = req.user && ['developer', 'super_admin', 'admin', 'editor', 'treasurer'].includes(req.user.role);
+  if (!isAdmin) {
+    query = query.eq('status', 'active');
+  } else if (req.query.status) {
+    query = query.eq('status', req.query.status);
+  }
+
+  // Filters
+  if (req.query.gotra) query = query.eq('gotra', req.query.gotra);
+  if (req.query.village) query = query.ilike('village', `%${req.query.village}%`);
+  if (req.query.panchayat_family_id) query = query.eq('panchayat_family_id', req.query.panchayat_family_id);
+
+  // Search
   if (req.query.search) {
-    const escapedSearch = escapeRegex(req.query.search);
-    filter.$or = [
-      { headOfFamily: { $regex: escapedSearch, $options: 'i' } },
-      { surname: { $regex: escapedSearch, $options: 'i' } },
-      { familyId: { $regex: escapedSearch, $options: 'i' } },
-    ];
+    const s = req.query.search;
+    query = query.or(`head_name.ilike.%${s}%,gotra.ilike.%${s}%,head_mobile.ilike.%${s}%,panchayat_family_id.ilike.%${s}%`);
   }
-  if (req.query.surname) filter.surname = req.query.surname;
-  if (req.query.village) filter.village = req.query.village;
 
-  const [data, total] = await Promise.all([
-    Family.find(filter)
-      .populate('familyTree', 'firstName lastName photo gender age')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit),
-    Family.countDocuments(filter),
-  ]);
+  query = query.order('panchayat_family_id', { ascending: true }).range(offset, offset + limit - 1);
 
-  res.json(paginateResponse(data, total, page, limit));
-});
+  const { data, count, error } = await query;
 
-export const getFamily = base.getOne;
-
-export const getFamilyByFamilyId = asyncHandler(async (req, res) => {
-  const family = await Family.findOne({ familyId: req.params.familyId })
-    .populate('familyTree');
-  if (!family) {
-    return res.status(404).json({ success: false, message: 'Family not found' });
+  if (error) {
+    return res.status(400).json({ success: false, message: error.message });
   }
-  res.json({ success: true, data: family });
-});
 
-export const createFamily = asyncHandler(async (req, res) => {
-  const data = { ...req.body, createdBy: req.user._id };
-  if (!data.familyId) {
-    data.familyId = await generateFamilyId(data.surname);
-  }
-  const family = await Family.create(data);
-  const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-  family.qrCode = await generateFamilyQR(family.familyId, baseUrl);
-  await family.save();
-  await logActivity(req.user._id, 'create', 'families', family._id, {}, req);
-  res.status(201).json({ success: true, data: family });
-});
+  const total = count || 0;
+  const totalPages = Math.ceil(total / limit) || 1;
 
-export const updateFamily = asyncHandler(async (req, res) => {
-  const family = await Family.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
+  res.json({
+    success: true,
+    data: data || [],
+    pagination: {
+      total,
+      page,
+      limit,
+      pages: totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    },
   });
-  if (!family) {
-    return res.status(404).json({ success: false, message: 'Family not found' });
-  }
-  await logActivity(req.user._id, 'update', 'families', family._id, {}, req);
-  res.json({ success: true, data: family });
 });
 
-export const deleteFamily = base.remove;
+// GET /api/families/:id (Full Family Details with all members & donation history)
+export const getFamilyById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
 
-export const getFamilyStats = asyncHandler(async (_req, res) => {
-  const [total, bySurname] = await Promise.all([
-    Family.countDocuments({ status: 'active' }),
-    Family.aggregate([
-      { $match: { status: 'active' } },
-      { $group: { _id: '$surname', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-    ]),
-  ]);
-  res.json({ success: true, data: { total, bySurname } });
+  // Query family
+  let query = supabase.from('families').select('*, family_members(*)');
+  if (id.includes('-') && id.length > 30) {
+    query = query.eq('id', id);
+  } else {
+    query = query.eq('panchayat_family_id', id);
+  }
+
+  const { data: family, error } = await query.maybeSingle();
+
+  if (error || !family) {
+    return res.status(404).json({ success: false, message: 'Family record not found' });
+  }
+
+  // Query donations for this family
+  const { data: donations } = await supabase
+    .from('donations')
+    .select('*')
+    .eq('family_id', family.id)
+    .order('financial_year', { ascending: false });
+
+  res.json({
+    success: true,
+    data: {
+      ...family,
+      donations: donations || [],
+    },
+  });
 });
 
-export const syncFamilyMemberCount = asyncHandler(async (req, res) => {
-  const family = await Family.findById(req.params.id);
-  if (!family) {
-    return res.status(404).json({ success: false, message: 'Family not found' });
+// POST /api/families (Create Family Header + Optional Members in one step)
+export const createFamily = asyncHandler(async (req, res) => {
+  const {
+    panchayat_family_id,
+    gotra,
+    head_name,
+    head_mobile,
+    land_area_acres,
+    land_details_text,
+    village = 'Konda',
+    tehsil = 'Kukshi',
+    district = 'Dhar',
+    state = 'Madhya Pradesh',
+    pin_code = '454335',
+    faliya_or_ward,
+    members = [],
+  } = req.body;
+
+  if (!panchayat_family_id || !gotra || !head_name) {
+    return res.status(400).json({ success: false, message: 'Family number, gotra and Mukhiya name are required' });
   }
-  const count = await FamilyMember.countDocuments({ family: family._id, status: 'active' });
-  family.numberOfMembers = count;
-  await family.save();
-  res.json({ success: true, data: family });
+
+  // Insert Family Header
+  const { data: family, error: fError } = await supabase
+    .from('families')
+    .insert({
+      panchayat_family_id: String(panchayat_family_id),
+      gotra,
+      head_name,
+      head_mobile,
+      land_area_acres: Number(land_area_acres) || 0,
+      land_details_text,
+      village,
+      tehsil,
+      district,
+      state,
+      pin_code,
+      faliya_or_ward,
+      total_members: members.length > 0 ? members.length : 1,
+      status: 'active',
+      created_by: req.user?.id || null,
+    })
+    .select()
+    .single();
+
+  if (fError) {
+    return res.status(400).json({ success: false, message: fError.message });
+  }
+
+  // Insert Family Members if provided
+  let insertedMembers = [];
+  if (members && members.length > 0) {
+    const formattedMembers = members.map((m, idx) => ({
+      family_id: family.id,
+      member_number: m.member_number || idx + 1,
+      first_name: m.first_name || m.name,
+      last_name: m.last_name || gotra,
+      full_name: m.full_name || `${m.first_name || m.name} ${m.relative_name || ''} ${gotra}`.trim(),
+      relation_to_head: m.relation_to_head || (idx === 0 ? 'self' : 'other'),
+      relative_relation_type: m.relative_relation_type || 'father',
+      relative_name: m.relative_name || head_name,
+      is_head: m.is_head !== undefined ? m.is_head : idx === 0,
+      dob: m.dob || null,
+      education: m.education || null,
+      occupation: m.occupation || null,
+      mobile_number: m.mobile_number || (idx === 0 ? head_mobile : null),
+      gender: m.gender || 'male',
+      marital_status: m.marital_status || 'married',
+      blood_group: m.blood_group || 'unknown',
+    }));
+
+    const { data: memData, error: mError } = await supabase
+      .from('family_members')
+      .insert(formattedMembers)
+      .select();
+
+    if (!mError) insertedMembers = memData;
+  }
+
+  res.status(201).json({
+    success: true,
+    message: 'Family census record created successfully',
+    data: {
+      ...family,
+      family_members: insertedMembers,
+    },
+  });
+});
+
+// PUT /api/families/:id
+export const updateFamily = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { data, error } = await supabase
+    .from('families')
+    .update({ ...req.body, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+
+  res.json({ success: true, message: 'Family updated successfully', data });
+});
+
+// DELETE /api/families/:id
+export const deleteFamily = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { error } = await supabase.from('families').delete().eq('id', id);
+
+  if (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+
+  res.json({ success: true, message: 'Family record deleted successfully' });
 });

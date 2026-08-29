@@ -1,33 +1,19 @@
 import express from 'express';
-import User from '../models/User.js';
-import { createCRUDController } from '../controllers/baseController.js';
+import { createSupabaseCRUDController } from '../controllers/baseSupabaseController.js';
 import { protect, authorize } from '../middleware/auth.js';
-import { asyncHandler } from '../middleware/validate.js';
 
 const router = express.Router();
-const { getAll, getOne, create, update, remove } = createCRUDController(User, 'User', {
-  searchFields: ['name', 'email'],
+const ctrl = createSupabaseCRUDController('users', {
+  searchFields: ['name', 'phone', 'email', 'role'],
+  select: 'id, name, phone, email, role, photo_url, is_active, panchayat_family_id, created_at, last_login',
 });
 
 router.use(protect);
-router.use(authorize('super_admin', 'admin'));
+router.use(authorize('developer', 'super_admin', 'admin'));
 
-router.post('/', create);
-router.get('/', getAll);
-router.get('/:id', getOne);
-
-router.put('/:id', update);
-
-router.put('/:id/role', asyncHandler(async (req, res) => {
-  const user = await User.findByIdAndUpdate(
-    req.params.id,
-    { role: req.body.role },
-    { new: true }
-  );
-  if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-  res.json({ success: true, data: user });
-}));
-
-router.delete('/:id', remove);
+router.get('/', ctrl.getAll);
+router.get('/:id', ctrl.getOne);
+router.put('/:id', ctrl.update);
+router.delete('/:id', ctrl.remove);
 
 export default router;

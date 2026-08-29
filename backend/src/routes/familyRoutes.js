@@ -1,22 +1,22 @@
 import express from 'express';
 import {
-  getFamilies, getFamily, getFamilyByFamilyId,
-  createFamily, updateFamily, deleteFamily,
-  getFamilyStats, syncFamilyMemberCount,
+  getFamilies,
+  getFamilyById,
+  createFamily,
+  updateFamily,
+  deleteFamily,
 } from '../controllers/familyController.js';
 import { protect, authorize, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.get('/stats', getFamilyStats);
-router.get('/family-id/:familyId', getFamilyByFamilyId);
 router.get('/', optionalAuth, getFamilies);
-router.get('/:id', getFamily);
+router.get('/:id', optionalAuth, getFamilyById);
 
+// Admin & Staff operations
 router.use(protect);
-router.post('/', authorize('super_admin', 'admin', 'editor'), createFamily);
-router.put('/:id', authorize('super_admin', 'admin', 'editor'), updateFamily);
-router.put('/:id/sync-members', authorize('super_admin', 'admin', 'editor'), syncFamilyMemberCount);
-router.delete('/:id', authorize('super_admin', 'admin'), deleteFamily);
+router.post('/', authorize('developer', 'super_admin', 'admin', 'families:write'), createFamily);
+router.put('/:id', authorize('developer', 'super_admin', 'admin', 'families:write'), updateFamily);
+router.delete('/:id', authorize('developer', 'super_admin', 'admin', 'families:write'), deleteFamily);
 
 export default router;
