@@ -5,6 +5,7 @@ import BloodDonor from '../models/BloodDonor.js';
 import News from '../models/News.js';
 import Event from '../models/Event.js';
 import { asyncHandler } from '../middleware/validate.js';
+import { escapeRegex } from '../utils/helpers.js';
 
 export const globalSearch = asyncHandler(async (req, res) => {
   const q = req.query.q;
@@ -12,7 +13,8 @@ export const globalSearch = asyncHandler(async (req, res) => {
     return res.json({ success: true, data: { families: [], members: [], businesses: [], news: [], events: [] } });
   }
 
-  const regex = { $regex: q, $options: 'i' };
+  const escapedQ = escapeRegex(q);
+  const regex = { $regex: escapedQ, $options: 'i' };
   const limit = 5;
 
   const [families, members, businesses, news, events] = await Promise.all([

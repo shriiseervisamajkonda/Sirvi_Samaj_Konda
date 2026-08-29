@@ -3,7 +3,7 @@ import FamilyMember from '../models/FamilyMember.js';
 import { asyncHandler } from '../middleware/validate.js';
 import { createCRUDController } from './baseController.js';
 import { generateFamilyQR, generateFamilyId } from '../utils/qrCode.js';
-import { logActivity, paginateResponse } from '../utils/helpers.js';
+import { logActivity, paginateResponse, escapeRegex } from '../utils/helpers.js';
 
 const base = createCRUDController(Family, 'Family', {
   populate: [{ path: 'familyTree', select: 'firstName lastName photo gender age' }],
@@ -30,10 +30,11 @@ export const getFamilies = asyncHandler(async (req, res) => {
   const filter = isAdmin ? {} : { status: 'active' };
 
   if (req.query.search) {
+    const escapedSearch = escapeRegex(req.query.search);
     filter.$or = [
-      { headOfFamily: { $regex: req.query.search, $options: 'i' } },
-      { surname: { $regex: req.query.search, $options: 'i' } },
-      { familyId: { $regex: req.query.search, $options: 'i' } },
+      { headOfFamily: { $regex: escapedSearch, $options: 'i' } },
+      { surname: { $regex: escapedSearch, $options: 'i' } },
+      { familyId: { $regex: escapedSearch, $options: 'i' } },
     ];
   }
   if (req.query.surname) filter.surname = req.query.surname;
