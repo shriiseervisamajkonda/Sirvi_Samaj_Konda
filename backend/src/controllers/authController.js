@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import supabase from '../config/supabase.js';
+import { supabase, isSupabaseConfigured } from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/emailService.js';
 
