@@ -1,39 +1,52 @@
-import Family from '../models/Family.js';
-import FamilyMember from '../models/FamilyMember.js';
-import Business from '../models/Business.js';
-import BloodDonor from '../models/BloodDonor.js';
-import News from '../models/News.js';
-import Event from '../models/Event.js';
+import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
-import { escapeRegex } from '../utils/helpers.js';
 
+// GET /api/search
 export const globalSearch = asyncHandler(async (req, res) => {
-  const q = req.query.q;
+  const q = req.query.q || req.query.search;
   if (!q || q.length < 2) {
-    return res.json({ success: true, data: { families: [], members: [], businesses: [], news: [], events: [] } });
+    return res.json({
+      success: true,
+      data: { families: [], members: [], news: [], events: [] },
+    });
   }
 
-  const escapedQ = escapeRegex(q);
-  const regex = { $regex: escapedQ, $options: 'i' };
-  const limit = 5;
-
-  const [families, members, businesses, news, events] = await Promise.all([
-    Family.find({ status: 'active', $or: [{ headOfFamily: regex }, { surname: regex }, { familyId: regex }] }).limit(limit),
-    FamilyMember.find({ status: 'active', $or: [{ firstName: regex }, { lastName: regex }, { occupation: regex }] }).limit(limit),
-    Business.find({ status: 'active', $or: [{ businessName: regex }, { owner: regex }, { category: regex }] }).limit(limit),
-    News.find({ status: 'published', $or: [{ title: regex }, { content: regex }] }).limit(limit),
-    Event.find({ status: 'published', title: regex }).limit(limit),
+  const [
+    { data: families },
+    { data: members },
+    { data: news },
+    { data: events },
+  ] = await Promise.all([
+    supabase
+      .from('families')
+      .select('id, panchayat_family_id, head_name, gotra, head_mobile, village')
+      .or(`head_name.ilike.%${q}%,gotra.ilike.%${q}%,panchayat_family_id.ilike.%${q}%`)
+      .limit(5),
+    supabase
+      .from('family_members')
+      .select('id, full_name, relative_name, occupation, education, mobile_number, family_id')
+      .or(`full_name.ilike.%${q}%,occupation.ilike.%${q}%,education.ilike.%${q}%`)
+      .limit(5),
+    supabase
+      .from('news')
+      .select('id, title, category, published_at')
+      .ilike('title', `%${q}%`)
+      .eq('status', 'published')
+      .limit(5),
+    supabase
+      .from('events')
+      .select('id, title, event_type, start_date, location')
+      .ilike('title', `%${q}%`)
+      .limit(5),
   ]);
 
-  res.json({ success: true, data: { families, members, businesses, news, events } });
-});
-
-export const searchBloodDonors = asyncHandler(async (req, res) => {
-  const filter = { status: 'active' };
-  if (req.query.bloodGroup) filter.bloodGroup = req.query.bloodGroup;
-  if (req.query.village) filter.village = req.query.village;
-  if (req.query.availability) filter.availability = req.query.availability;
-
-  const donors = await BloodDonor.find(filter).sort({ createdAt: -1 });
-  res.json({ success: true, data: donors });
+  res.json({
+    success: true,
+    data: {
+      families: families || [],
+      members: members || [],
+      news: news || [],
+      events: events || [],
+    },
+  });
 });

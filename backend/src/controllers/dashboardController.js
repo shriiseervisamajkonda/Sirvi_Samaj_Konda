@@ -1,108 +1,75 @@
-import Family from '../models/Family.js';
-import FamilyMember from '../models/FamilyMember.js';
-import Student from '../models/Student.js';
-import Business from '../models/Business.js';
-import BloodDonor from '../models/BloodDonor.js';
-import Event from '../models/Event.js';
-import News from '../models/News.js';
-import Donation from '../models/Donation.js';
-import ActivityLog from '../models/ActivityLog.js';
+import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
 
+// GET /api/dashboard
 export const getDashboardStats = asyncHandler(async (_req, res) => {
   const [
-    totalFamilies,
-    totalMembers,
-    maleCount,
-    femaleCount,
-    studentCount,
-    businessCount,
-    bloodDonorCount,
-    eventCount,
-    newsCount,
-    donationStats,
-    recentActivities,
+    { count: totalFamilies },
+    { count: totalMembers },
+    { count: maleCount },
+    { count: femaleCount },
+    { count: bloodDonorCount },
+    { count: eventCount },
+    { count: newsCount },
+    { data: donations },
+    { data: recentLogs },
   ] = await Promise.all([
-    Family.countDocuments({ status: 'active' }),
-    FamilyMember.countDocuments({ status: 'active' }),
-    FamilyMember.countDocuments({ status: 'active', gender: 'male' }),
-    FamilyMember.countDocuments({ status: 'active', gender: 'female' }),
-    Student.countDocuments({ status: 'active' }),
-    Business.countDocuments({ status: 'active' }),
-    BloodDonor.countDocuments({ status: 'active' }),
-    Event.countDocuments(),
-    News.countDocuments({ status: 'published' }),
-    Donation.aggregate([
-      { $match: { status: 'confirmed' } },
-      { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
-    ]),
-    ActivityLog.find().populate('user', 'name email').sort({ createdAt: -1 }).limit(10),
+    supabase.from('families').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+    supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active'),
+    supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active').eq('gender', 'male'),
+    supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active').eq('gender', 'female'),
+    supabase.from('blood_donors').select('*', { count: 'exact', head: true }).eq('is_available', true),
+    supabase.from('events').select('*', { count: 'exact', head: true }),
+    supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published'),
+    supabase.from('donations').select('amount').eq('payment_status', 'confirmed'),
+    supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(8),
   ]);
 
-  const childrenCount = await FamilyMember.countDocuments({
-    status: 'active',
-    age: { $lt: 18 },
-  });
-
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-  const monthlyGrowth = await FamilyMember.aggregate([
-    { $match: { createdAt: { $gte: sixMonthsAgo } } },
-    {
-      $group: {
-        _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
-        count: { $sum: 1 },
-      },
-    },
-    { $sort: { _id: 1 } },
-  ]);
-
-  const donationsByMonth = await Donation.aggregate([
-    { $match: { status: 'confirmed', createdAt: { $gte: sixMonthsAgo } } },
-    {
-      $group: {
-        _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
-        total: { $sum: '$amount' },
-      },
-    },
-    { $sort: { _id: 1 } },
-  ]);
+  const totalDonationAmount = (donations || []).reduce((sum, d) => sum + Number(d.amount || 0), 0);
 
   res.json({
     success: true,
     data: {
       stats: {
-        totalFamilies,
-        totalMembers,
-        male: maleCount,
-        female: femaleCount,
-        children: childrenCount,
-        students: studentCount,
-        businesses: businessCount,
-        bloodDonors: bloodDonorCount,
-        events: eventCount,
-        news: newsCount,
-        donations: donationStats[0]?.total || 0,
-        donationCount: donationStats[0]?.count || 0,
+        totalFamilies: totalFamilies || 0,
+        totalMembers: totalMembers || 0,
+        maleCount: maleCount || 0,
+        femaleCount: femaleCount || 0,
+        bloodDonorCount: bloodDonorCount || 0,
+        eventCount: eventCount || 0,
+        newsCount: newsCount || 0,
+        totalDonations: totalDonationAmount,
+        totalDonationRecords: donations?.length || 0,
       },
-      monthlyGrowth,
-      donationsByMonth,
-      recentActivities,
+      recentActivities: recentLogs || [],
     },
   });
 });
 
+// GET /api/dashboard/public
 export const getPublicStats = asyncHandler(async (_req, res) => {
-  const [families, members, events, businesses] = await Promise.all([
-    Family.countDocuments({ status: 'active' }),
-    FamilyMember.countDocuments({ status: 'active' }),
-    Event.countDocuments({ status: 'published', eventType: 'upcoming' }),
-    Business.countDocuments({ status: 'active' }),
+  const [
+    { count: totalFamilies },
+    { count: totalMembers },
+    { count: bloodDonorCount },
+    { count: eventCount },
+    { count: newsCount },
+  ] = await Promise.all([
+    supabase.from('families').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+    supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active'),
+    supabase.from('blood_donors').select('*', { count: 'exact', head: true }).eq('is_available', true),
+    supabase.from('events').select('*', { count: 'exact', head: true }).eq('status', 'published'),
+    supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published'),
   ]);
 
   res.json({
     success: true,
-    data: { families, members, events, businesses },
+    data: {
+      totalFamilies: totalFamilies || 0,
+      totalMembers: totalMembers || 0,
+      bloodDonorCount: bloodDonorCount || 0,
+      eventCount: eventCount || 0,
+      newsCount: newsCount || 0,
+    },
   });
 });

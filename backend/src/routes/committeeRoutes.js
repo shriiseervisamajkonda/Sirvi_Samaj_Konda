@@ -1,18 +1,21 @@
 import express from 'express';
-import Model from '../models/Committee.js';
-import { createCRUDController } from '../controllers/baseController.js';
-import { protect, authorize } from '../middleware/auth.js';
+import {
+  getCommittees,
+  getCommitteeById,
+  createCommittee,
+  updateCommittee,
+  deleteCommittee,
+} from '../controllers/committeeController.js';
+import { protect, authorize, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
-const ctrl = createCRUDController(Model, 'Committee', {
-  searchFields: ['name', 'designation'],
-});
 
-router.get('/', ctrl.getAll);
-router.get('/:id', ctrl.getOne);
+router.get('/', optionalAuth, getCommittees);
+router.get('/:id', optionalAuth, getCommitteeById);
+
 router.use(protect);
-router.post('/', authorize('super_admin', 'admin'), ctrl.create);
-router.put('/:id', authorize('super_admin', 'admin'), ctrl.update);
-router.delete('/:id', authorize('super_admin', 'admin'), ctrl.remove);
+router.post('/', authorize('developer', 'super_admin', 'admin', 'committees:write'), createCommittee);
+router.put('/:id', authorize('developer', 'super_admin', 'admin', 'committees:write'), updateCommittee);
+router.delete('/:id', authorize('developer', 'super_admin', 'admin', 'committees:write'), deleteCommittee);
 
 export default router;

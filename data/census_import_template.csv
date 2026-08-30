@@ -1,0 +1,7 @@
+panchayat_family_id,gotra,land_area,faliya_or_ward,member_number,first_name,last_name,name_hi,relation_to_head,relative_relation_type,relative_name,is_head,dob,approximate_age,gender,education,occupation,mobile_number,blood_group,marital_status
+1,chouhan,03 एकड़,माताजी फलिया,1,Shantilal,Chouhan,शांतिलाल चौहान,self,father,Mohan,TRUE,1981-01-01,45,male,6th,tailoring,7724878027,O+,married
+1,chouhan,03 एकड़,माताजी फलिया,2,Urmila,Chouhan,उर्मिला चौहान,spouse,husband,Shantilal,FALSE,1978-01-01,48,female,2nd,homemaker,,unknown,married
+1,chouhan,03 एकड़,माताजी फलिया,3,Anil,Chouhan,अनिल चौहान,son,father,Shantilal,FALSE,1997-01-01,29,male,8th,shopkeeper,9981644564,B+,single
+1,chouhan,03 एकड़,माताजी फलिया,4,Sunil,Chouhan,सुनिल चौहान,son,father,Shantilal,FALSE,2003-01-01,23,male,9th,agriculture,7909784358,O+,single
+2,bhayal,05 एकड़,बडेर मार्ग,1,Kailash,Bhayal,कैलाश भायल,self,father,Ratna,TRUE,1975-05-12,51,male,10th,agriculture,9826012345,A+,married
+2,bhayal,05 एकड़,बडेर मार्ग,2,Kamla,Bhayal,कमला भायल,spouse,husband,Kailash,FALSE,1979-08-20,47,female,5th,homemaker,,unknown,married

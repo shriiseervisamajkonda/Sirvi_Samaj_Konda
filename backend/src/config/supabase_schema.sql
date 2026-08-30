@@ -1,385 +1,383 @@
 -- ============================================================================
--- SHRI SEERVI SAMAJ KONDA — COMPLETE SUPABASE POSTGRESQL SCHEMA
--- Fully relational, normalized, indexed, and compatible with MongoDB datasets.
+-- SHRI SEERVI SAMAJ KONDA — COMPLETE PRODUCTION SUPABASE POSTGRESQL SCHEMA
+-- Single, Canonical, Fully-Relational PostgreSQL Schema
+-- Platform: Supabase PostgreSQL (Supports RLS, Dynamic RBAC, Auditing & Realtime)
 -- ============================================================================
 
--- Enable UUID extension
+-- Enable required PostgreSQL extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- 1. ROLES TABLE
+-- ============================================================================
+-- 1. ROLES & PERMISSIONS TABLE (Dynamic RBAC)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.roles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    name VARCHAR(50) UNIQUE NOT NULL,
-    permissions JSONB DEFAULT '["view"]'::jsonb,
+    name VARCHAR(50) UNIQUE NOT NULL,                          -- 'developer', 'super_admin', 'admin', 'treasurer', 'editor', 'member'
+    display_name_en VARCHAR(100) NOT NULL,                     -- 'Developer / Super Admin', 'Treasurer / Cashier'
+    display_name_hi VARCHAR(100) NOT NULL,                     -- 'डेवलपर / सुपर एडमिन', 'कोषाध्यक्ष / खजांची'
+    permissions JSONB NOT NULL DEFAULT '["public:read"]'::jsonb, 
+    -- Sample permissions: ["*", "families:read", "families:write", "donations:read", "donations:write", "news:write", "roles:manage"]
     description TEXT,
+    is_system_role BOOLEAN DEFAULT FALSE,                      -- System roles cannot be deleted
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. VILLAGE INFORMATION TABLE
-CREATE TABLE IF NOT EXISTS public.village_information (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    community_name VARCHAR(255) NOT NULL DEFAULT 'Shri Seervi Samaj Konda',
-    village VARCHAR(100) NOT NULL DEFAULT 'Konda',
-    tehsil VARCHAR(100) NOT NULL DEFAULT 'Kukshi',
-    district VARCHAR(100) NOT NULL DEFAULT 'Dhar',
-    state VARCHAR(100) NOT NULL DEFAULT 'Madhya Pradesh',
-    pin_code VARCHAR(20) NOT NULL DEFAULT '454335',
-    country VARCHAR(100) DEFAULT 'India',
-    community_center TEXT,
-    purpose TEXT,
-    religious_tradition TEXT,
-    main_spiritual_seat TEXT,
-    community_heritage TEXT,
-    known_surnames JSONB DEFAULT '["Barfa", "Kag", "Bhayal", "Pawar", "Solanki", "Choyal", "Padiyar", "Gehlot", "Agalcha", "Lacheta", "Rathore", "Chouhan", "Shinada", "Sencha"]'::jsonb,
-    major_celebrations JSONB DEFAULT '[]'::jsonb,
-    history TEXT,
-    mission TEXT,
-    vision TEXT,
-    about TEXT,
-    emergency_contacts JSONB DEFAULT '[]'::jsonb,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 3. USERS TABLE
+-- ============================================================================
+-- 2. USERS TABLE (Accounts, Staff, Family Heads & Developers)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    phone VARCHAR(50),
-    photo TEXT,
-    role VARCHAR(50) DEFAULT 'member' CHECK (role IN ('super_admin', 'admin', 'editor', 'member', 'visitor')),
-    is_email_verified BOOLEAN DEFAULT FALSE,
-    email_verification_token VARCHAR(255),
-    email_verification_expire TIMESTAMPTZ,
-    reset_password_token VARCHAR(255),
-    reset_password_expire TIMESTAMPTZ,
-    otp VARCHAR(20),
-    otp_expire TIMESTAMPTZ,
-    refresh_token TEXT,
+    role_id UUID REFERENCES public.roles(id) ON DELETE SET NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'member',                -- Cached role name for fast JWT lookups
+    name VARCHAR(255) NOT NULL,                                -- Full name
+    phone VARCHAR(20) UNIQUE NOT NULL,                         -- Primary login identifier
+    email VARCHAR(255) UNIQUE,                                 -- Optional email
+    password_hash VARCHAR(255) NOT NULL,                       -- Bcrypt password hash
+    photo_url TEXT,
     is_active BOOLEAN DEFAULT TRUE,
+    must_change_password BOOLEAN DEFAULT FALSE,
     last_login TIMESTAMPTZ,
-    village_id UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
+    panchayat_family_id VARCHAR(50),                           -- Links to family if user is a Family Head
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. SETTINGS TABLE
-CREATE TABLE IF NOT EXISTS public.settings (
+CREATE INDEX idx_users_phone ON public.users(phone);
+CREATE INDEX idx_users_role ON public.users(role);
+
+-- ============================================================================
+-- 3. VILLAGE INFORMATION TABLE (कोणदा गाँव एवं समाज इतिहास)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.village_information (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    site_name VARCHAR(255) DEFAULT 'Shri Seervi Samaj Konda',
-    site_tagline VARCHAR(255) DEFAULT 'Unity • Heritage • Progress',
-    primary_color VARCHAR(50) DEFAULT '#7A2525',
-    secondary_color VARCHAR(50) DEFAULT '#C85A17',
-    accent_color VARCHAR(50) DEFAULT '#C9A44C',
-    contact_email VARCHAR(255) DEFAULT 'contact@seervisamajkonda.org',
-    contact_phone VARCHAR(50) DEFAULT '+91 98765 43210',
-    address TEXT,
-    social_links JSONB DEFAULT '{}'::jsonb,
-    maintenance_mode BOOLEAN DEFAULT FALSE,
-    allow_registrations BOOLEAN DEFAULT TRUE,
-    village_ref UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
+    community_name_en VARCHAR(255) NOT NULL DEFAULT 'Shri Seervi Samaj Konda',
+    community_name_hi VARCHAR(255) NOT NULL DEFAULT 'श्री सीरवी समाज कोणदा',
+    village_en VARCHAR(100) NOT NULL DEFAULT 'Konda',
+    village_hi VARCHAR(100) NOT NULL DEFAULT 'कोणदा',
+    tehsil_en VARCHAR(100) NOT NULL DEFAULT 'Kukshi',
+    tehsil_hi VARCHAR(100) NOT NULL DEFAULT 'कुक्षी',
+    district_en VARCHAR(100) NOT NULL DEFAULT 'Dhar',
+    district_hi VARCHAR(100) NOT NULL DEFAULT 'धार',
+    state_en VARCHAR(100) NOT NULL DEFAULT 'Madhya Pradesh',
+    state_hi VARCHAR(100) NOT NULL DEFAULT 'मध्यप्रदेश',
+    pin_code VARCHAR(20) NOT NULL DEFAULT '454335',
+    country_en VARCHAR(100) DEFAULT 'India',
+    country_hi VARCHAR(100) DEFAULT 'भारत',
+    history_en TEXT,
+    history_hi TEXT,
+    spiritual_seat_en VARCHAR(255) DEFAULT 'Aai Mataji Bader & Akhand Jyot',
+    spiritual_seat_hi VARCHAR(255) DEFAULT 'श्री आई माताजी बडेर एवं अखंड ज्योति',
+    emergency_contacts JSONB DEFAULT '[]'::jsonb,
+    known_gotras JSONB DEFAULT '["chouhan", "bhayal", "kag", "pawar", "solanki", "choyal", "padiyar", "gehlot", "agalcha", "lacheta", "rathore", "shinada", "barfa", "hammad", "sencha"]'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. FAMILIES TABLE
+-- ============================================================================
+-- 4. FAMILIES TABLE (परिवार - जनगणना प्रपत्र हेडर)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.families (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    family_id VARCHAR(100) UNIQUE NOT NULL,
-    photo TEXT,
-    head_of_family VARCHAR(255) NOT NULL,
-    surname VARCHAR(100) NOT NULL,
-    address TEXT,
+    panchayat_family_id VARCHAR(50) UNIQUE NOT NULL,           -- "1", "2", "3" (Official Panchayat Census Number)
+    gotra VARCHAR(100) NOT NULL,                               -- 'chouhan', 'bhayal', 'kag', 'pawar', etc.
+    head_name VARCHAR(255) NOT NULL,                           -- Mukhiya Name: "Shantilal Mohan"
+    head_mobile VARCHAR(20),                                   -- Mukhiya Phone: "7724878027"
+    land_area_acres NUMERIC(8, 2) DEFAULT 0.00,                -- Agricultural Land: 3.00 (Acres)
+    land_details_text VARCHAR(255),                            -- "03 Acres" / "03 एकड़"
+    
+    -- Address & Geography
     village VARCHAR(100) DEFAULT 'Konda',
     tehsil VARCHAR(100) DEFAULT 'Kukshi',
     district VARCHAR(100) DEFAULT 'Dhar',
     state VARCHAR(100) DEFAULT 'Madhya Pradesh',
     pin_code VARCHAR(20) DEFAULT '454335',
-    mobile_number VARCHAR(50),
-    whatsapp_number VARCHAR(50),
-    number_of_members INTEGER DEFAULT 0,
-    qr_code TEXT,
-    status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'pending')),
-    village_ref UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
+    faliya_or_ward VARCHAR(255),                               -- Local ward/faliya/neighborhood
+    house_number VARCHAR(100),
+    
+    -- Metrics & Status
+    total_members INTEGER DEFAULT 1,
+    photo_url TEXT,
+    qr_code_token VARCHAR(255) UNIQUE,                         -- Digital smart card token
+    status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'migrated', 'inactive')),
+    notes TEXT,
     created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 6. FAMILY MEMBERS TABLE
+CREATE INDEX idx_families_panchayat_id ON public.families(panchayat_family_id);
+CREATE INDEX idx_families_gotra ON public.families(gotra);
+CREATE INDEX idx_families_head_mobile ON public.families(head_mobile);
+CREATE INDEX idx_families_status ON public.families(status);
+
+-- ============================================================================
+-- 5. FAMILY MEMBERS TABLE (पारिवारिक सदस्य रिकॉर्ड्स)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.family_members (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    family_id UUID REFERENCES public.families(id) ON DELETE CASCADE,
-    first_name VARCHAR(150) NOT NULL,
-    last_name VARCHAR(150),
-    photo TEXT,
-    gender VARCHAR(20) NOT NULL CHECK (gender IN ('male', 'female', 'other')),
-    date_of_birth DATE,
-    age INTEGER,
-    blood_group VARCHAR(20) DEFAULT 'Unknown',
-    education VARCHAR(255),
-    occupation VARCHAR(255),
-    company VARCHAR(255),
-    business VARCHAR(255),
-    phone_number VARCHAR(50),
+    family_id UUID NOT NULL REFERENCES public.families(id) ON DELETE CASCADE,
+    member_number INTEGER NOT NULL,                            -- S.No on Census sheet (1, 2, 3, 4...)
+    
+    -- Names
+    first_name VARCHAR(150) NOT NULL,                          -- "Shantilal", "Urmila", "Anil"
+    last_name VARCHAR(150),                                    -- "Chouhan"
+    full_name VARCHAR(255) NOT NULL,                           -- "Shantilal Mohan Chouhan"
+    
+    -- Relationship & Lineage
+    relation_to_head VARCHAR(50) NOT NULL CHECK (relation_to_head IN (
+        'self',             -- Mukhiya
+        'spouse',           -- Wife / Husband
+        'son',              -- Son
+        'daughter',         -- Daughter
+        'daughter_in_law',  -- Bahu (Wife of Son)
+        'son_in_law',       -- Damad
+        'father',           -- Father
+        'mother',           -- Mother
+        'brother',          -- Brother
+        'sister',           -- Sister
+        'grandson',         -- Pota
+        'granddaughter',    -- Poti
+        'other'
+    )),
+    relative_relation_type VARCHAR(20) NOT NULL DEFAULT 'father' CHECK (relative_relation_type IN ('father', 'husband')),
+    relative_name VARCHAR(255) NOT NULL,                       -- Father or Husband's Name: "Mohan", "Shantilal"
+    parent_member_id UUID REFERENCES public.family_members(id) ON DELETE SET NULL,
+    spouse_member_id UUID REFERENCES public.family_members(id) ON DELETE SET NULL,
+    is_head BOOLEAN DEFAULT FALSE,
+    
+    -- Demographic Details
+    dob DATE,                                                  -- "1981-01-01"
+    approximate_age INTEGER,
+    gender VARCHAR(20) DEFAULT 'male' CHECK (gender IN ('male', 'female', 'other')),
+    education VARCHAR(150),                                    -- "6th", "8th", "Graduate", "B.Tech", "10th", "12th"
+    occupation VARCHAR(150),                                   -- "tailoring", "shopkeeper", "agriculture", "student", "homemaker", "service", "business"
+    mobile_number VARCHAR(20),
+    
+    -- Directory & Social Flags
+    blood_group VARCHAR(20) DEFAULT 'unknown' CHECK (blood_group IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'unknown')),
+    is_blood_donor BOOLEAN DEFAULT FALSE,
+    marital_status VARCHAR(50) DEFAULT 'married' CHECK (marital_status IN ('single', 'married', 'widowed', 'divorced')),
+    is_matrimonial_profile BOOLEAN DEFAULT FALSE,
+    
+    -- Lifecycle Tracking
+    life_status VARCHAR(50) DEFAULT 'active' CHECK (life_status IN ('active', 'married_out', 'moved_away', 'deceased')),
+    photo_url TEXT,
+    notes TEXT,
+    
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT uq_family_member_seq UNIQUE (family_id, member_number)
+);
+
+CREATE INDEX idx_members_family_id ON public.family_members(family_id);
+CREATE INDEX idx_members_full_name ON public.family_members(full_name);
+CREATE INDEX idx_members_mobile ON public.family_members(mobile_number);
+CREATE INDEX idx_members_blood_group ON public.family_members(blood_group);
+CREATE INDEX idx_members_occupation ON public.family_members(occupation);
+CREATE INDEX idx_members_spouse ON public.family_members(spouse_member_id);
+
+-- ============================================================================
+-- 6. DONATIONS & YEARLY CHANDA TABLE (वार्षिक चंदा एवं दान व्यवस्था)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.donations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    family_id UUID REFERENCES public.families(id) ON DELETE SET NULL,
+    member_id UUID REFERENCES public.family_members(id) ON DELETE SET NULL,
+    
+    -- Donor Snapshot
+    donor_name VARCHAR(255) NOT NULL,                          -- "Shantilal Mohan Chouhan"
+    panchayat_family_id VARCHAR(50),                           -- "1"
+    gotra VARCHAR(100),                                        -- "chouhan"
+    mobile_number VARCHAR(20),                                 -- "7724878027"
+    
+    -- Financials & Purpose
+    financial_year INTEGER NOT NULL,                           -- 2024, 2025, 2026 (Year of Chanda)
+    amount NUMERIC(12, 2) NOT NULL,                            -- 1100.00
+    currency VARCHAR(10) DEFAULT 'INR',
+    purpose VARCHAR(100) NOT NULL DEFAULT 'annual_chanda' CHECK (purpose IN (
+        'annual_chanda',       -- Annual Samaj Membership Chanda
+        'aaiji_kosh',           -- Shri Aaiji Sahayata Kosh
+        'annapurna_bhavan',     -- Maa Annapurna Bhavan Construction Fund
+        'mandir_nirman',        -- Temple Maintenance & Development
+        'melava_utsav',         -- Annual Melava / Padyatra / Festival
+        'education_fund',       -- Student Scholarship Fund
+        'other'
+    )),
+    
+    -- Payment Details (Cashier/Operator or Online Gateway)
+    payment_mode VARCHAR(50) NOT NULL DEFAULT 'cash' CHECK (payment_mode IN (
+        'cash', 'upi_qr', 'bank_transfer', 'cheque', 'online_gateway'
+    )),
+    payment_status VARCHAR(50) NOT NULL DEFAULT 'confirmed' CHECK (payment_status IN (
+        'confirmed', 'pending', 'failed', 'refunded'
+    )),
+    payment_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    
+    -- Physical Receipt Book & Treasurer Audit
+    receipt_number VARCHAR(100) UNIQUE,                        -- "KONDA-2026-0001"
+    receipt_book_number VARCHAR(100),                          -- Physical book serial (e.g. "Book-4")
+    collected_by_name VARCHAR(255),                            -- "Kailash Agalcha (Treasurer)"
+    collected_by_user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    
+    -- Future Online Payment Gateway Metadata
+    payment_gateway VARCHAR(50),                               -- 'razorpay', 'phonepe', etc.
+    gateway_order_id VARCHAR(255),
+    gateway_payment_id VARCHAR(255),
+    gateway_signature VARCHAR(255),
+    
+    -- Audit & Edit History
+    edit_history JSONB DEFAULT '[]'::jsonb,                    -- Tracks [{ modified_at, modified_by, old_amount, new_amount, reason }]
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_donations_family_id ON public.donations(family_id);
+CREATE INDEX idx_donations_year ON public.donations(financial_year);
+CREATE INDEX idx_donations_purpose ON public.donations(purpose);
+CREATE INDEX idx_donations_receipt ON public.donations(receipt_number);
+CREATE INDEX idx_donations_gateway_pid ON public.donations(gateway_payment_id);
+
+-- ============================================================================
+-- 7. COMMITTEES TABLE (कार्यकारिणी, महिला समिति, युवा संगठन, ग्राम इकाई)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.committees (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,                                -- "Sunil Pannalal Bhayal"
+    designation VARCHAR(255) NOT NULL,                         -- "President", "Secretary", "Treasurer", "Member"
+    committee_type VARCHAR(50) NOT NULL CHECK (committee_type IN (
+        'konda_gram_unit',    -- कोणदा ग्राम इकाई
+        'women_committee',    -- श्री आई जी महिला समिती
+        'sankal_panch',       -- सकल पंच
+        'yuva_sangathan',     -- सिर्वी समाज युवा संगठन
+        'sahayata_kosh',      -- श्री आई जी सहायता कोष समिति
+        'bhavan_samiti',      -- माँ अन्नपूर्णा भवन समिति
+        'executive_body'      -- सामान्य कार्यकारिणी
+    )),
+    phone VARCHAR(50),
     email VARCHAR(255),
-    address TEXT,
-    village VARCHAR(100) DEFAULT 'Konda',
-    tehsil VARCHAR(100) DEFAULT 'Kukshi',
-    district VARCHAR(100) DEFAULT 'Dhar',
-    state VARCHAR(100) DEFAULT 'Madhya Pradesh',
-    pin_code VARCHAR(20) DEFAULT '454335',
-    marital_status VARCHAR(50) DEFAULT 'single' CHECK (marital_status IN ('single', 'married', 'widowed', 'divorced')),
-    skills JSONB DEFAULT '[]'::jsonb,
-    achievements JSONB DEFAULT '[]'::jsonb,
-    emergency_contact JSONB DEFAULT '{}'::jsonb,
-    social_media JSONB DEFAULT '{}'::jsonb,
-    documents JSONB DEFAULT '[]'::jsonb,
-    is_head_of_family BOOLEAN DEFAULT FALSE,
-    status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'deceased')),
-    village_ref UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
+    photo_url TEXT,
+    order_priority INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    member_id UUID REFERENCES public.family_members(id) ON DELETE SET NULL,
+    bio TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_committees_type ON public.committees(committee_type, is_active);
+
+-- ============================================================================
+-- 8. NEWS & ANNOUNCEMENTS TABLE (समाचार एवं सूचनाएं)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.news (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    excerpt TEXT,
+    category VARCHAR(50) DEFAULT 'news' CHECK (category IN ('news', 'announcement', 'notice', 'obituary', 'social')),
+    image_url TEXT,
+    is_featured BOOLEAN DEFAULT FALSE,
+    published_at TIMESTAMPTZ DEFAULT NOW(),
+    status VARCHAR(50) DEFAULT 'published' CHECK (status IN ('draft', 'published', 'archived')),
+    author_name VARCHAR(255) DEFAULT 'Shri Seervi Samaj Konda',
     created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 7. COMMITTEES TABLE
-CREATE TABLE IF NOT EXISTS public.committees (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    name VARCHAR(255) NOT NULL,
-    designation VARCHAR(255) NOT NULL,
-    photo TEXT,
-    phone VARCHAR(50),
-    email VARCHAR(255),
-    whatsapp VARCHAR(50),
-    bio TEXT,
-    order_num INTEGER DEFAULT 0,
-    term_start DATE,
-    term_end DATE,
-    is_active BOOLEAN DEFAULT TRUE,
-    type VARCHAR(50) DEFAULT 'committee' CHECK (type IN ('committee', 'sangathan', 'sankal_panch', 'women_committee')),
-    member_id UUID REFERENCES public.family_members(id) ON DELETE SET NULL,
-    village_ref UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+CREATE INDEX idx_news_status ON public.news(status, published_at DESC);
 
--- 8. ORGANIZATIONS TABLE
-CREATE TABLE IF NOT EXISTS public.organizations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    name VARCHAR(255) NOT NULL DEFAULT 'अखिल भारतीय सिर्वी महासभा मध्यप्रदेश',
-    level VARCHAR(50) DEFAULT 'state' CHECK (level IN ('national', 'state', 'district', 'tehsil', 'gram')),
-    state VARCHAR(100) DEFAULT 'मध्यप्रदेश',
-    country VARCHAR(100) DEFAULT 'भारत',
-    description TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 9. GRAM UNITS TABLE (अखिल भारतीय सिर्वी महासभा मध्यप्रदेश — कोणदा ग्राम इकाई)
-CREATE TABLE IF NOT EXISTS public.gram_units (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
-    organization_name VARCHAR(255) DEFAULT 'अखिल भारतीय सिर्वी महासभा मध्यप्रदेश',
-    unit_name VARCHAR(255) NOT NULL DEFAULT 'कोणदा ग्राम इकाई',
-    unit_type VARCHAR(100) DEFAULT 'ग्राम इकाई',
-    village VARCHAR(100) NOT NULL DEFAULT 'कोणदा',
-    tehsil VARCHAR(100) NOT NULL DEFAULT 'कुक्षी',
-    district VARCHAR(100) NOT NULL DEFAULT 'धार',
-    state VARCHAR(100) NOT NULL DEFAULT 'मध्यप्रदेश',
-    country VARCHAR(100) NOT NULL DEFAULT 'भारत',
-    formation_context TEXT DEFAULT 'नवीन मनोनयन प्रक्रिया',
-    supervisor VARCHAR(255) DEFAULT 'हिरालालजी हम्मड कापसी',
-    selection_method VARCHAR(255) DEFAULT 'सर्वसम्मति से',
-    participants JSONB DEFAULT '["सिर्वी समाज सकल पंच", "समाज के नवयुवक", "समाज के वरिष्ठजन"]'::jsonb,
-    description TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 10. GRAM UNIT MEMBERS & REPRESENTATIVES TABLE
-CREATE TABLE IF NOT EXISTS public.gram_unit_members (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    gram_unit_id UUID REFERENCES public.gram_units(id) ON DELETE CASCADE,
-    organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
-    name VARCHAR(255) NOT NULL,
-    category VARCHAR(50) NOT NULL DEFAULT 'member' CHECK (category IN ('office_bearer', 'member', 'representative')),
-    designation VARCHAR(255) NOT NULL DEFAULT 'सदस्य',
-    representative_level VARCHAR(50) DEFAULT 'none' CHECK (representative_level IN ('gram', 'tehsil', 'district', 'state', 'none')),
-    organization_name VARCHAR(255) DEFAULT 'अखिल भारतीय सिर्वी महासभा मध्यप्रदेश',
-    gram_unit_name VARCHAR(255) DEFAULT 'कोणदा ग्राम इकाई',
-    tehsil VARCHAR(100) DEFAULT 'कुक्षी',
-    district VARCHAR(100) DEFAULT 'धार',
-    state VARCHAR(100) DEFAULT 'मध्यप्रदेश',
-    phone VARCHAR(50) DEFAULT '',
-    photo TEXT DEFAULT '',
-    order_num INTEGER DEFAULT 0,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 11. FORMATION EVENTS TABLE
-CREATE TABLE IF NOT EXISTS public.formation_events (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    gram_unit_id UUID REFERENCES public.gram_units(id) ON DELETE CASCADE,
-    organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
-    title VARCHAR(255) NOT NULL DEFAULT 'कोणदा ग्राम इकाई गठन',
-    event_type VARCHAR(255) DEFAULT 'ग्राम इकाई गठन / नवीन मनोनयन',
-    location VARCHAR(255) DEFAULT 'ग्राम कोणदा, तहसील कुक्षी, मध्यप्रदेश',
-    supervisor VARCHAR(255) DEFAULT 'हिरालालजी हम्मड कापसी',
-    selection_method VARCHAR(255) DEFAULT 'सर्वसम्मति से',
-    participants JSONB DEFAULT '["सिर्वी समाज सकल पंच", "समाज के नवयुवक", "समाज के वरिष्ठजन"]'::jsonb,
-    description TEXT,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 12. EVENTS TABLE
+-- ============================================================================
+-- 9. EVENTS TABLE (कार्यक्रम एवं महोत्सव)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     event_type VARCHAR(50) DEFAULT 'upcoming' CHECK (event_type IN ('upcoming', 'ongoing', 'past')),
     start_date TIMESTAMPTZ NOT NULL,
     end_date TIMESTAMPTZ,
-    location VARCHAR(255) NOT NULL,
+    location VARCHAR(255) NOT NULL DEFAULT 'Shri Aaiji Bader Parisar, Konda',
     images JSONB DEFAULT '[]'::jsonb,
-    registration_required BOOLEAN DEFAULT FALSE,
-    registered_users JSONB DEFAULT '[]'::jsonb,
     status VARCHAR(50) DEFAULT 'published' CHECK (status IN ('draft', 'published', 'cancelled')),
-    village_ref UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
     created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 13. NEWS TABLE
-CREATE TABLE IF NOT EXISTS public.news (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    title VARCHAR(255) NOT NULL,
-    content TEXT NOT NULL,
-    excerpt TEXT,
-    image TEXT,
-    category VARCHAR(50) DEFAULT 'news' CHECK (category IN ('news', 'announcement', 'notice', 'obituary')),
-    is_featured BOOLEAN DEFAULT FALSE,
-    published_at TIMESTAMPTZ DEFAULT NOW(),
-    status VARCHAR(50) DEFAULT 'published' CHECK (status IN ('draft', 'published', 'archived')),
-    village_ref UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
-    created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+CREATE INDEX idx_events_date ON public.events(event_type, start_date);
 
--- 14. ALBUMS & GALLERY TABLE
+-- ============================================================================
+-- 10. GALLERY & ALBUMS TABLE (फोटो गैलरी)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.albums (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    cover_image TEXT,
-    event_ref UUID REFERENCES public.events(id) ON DELETE SET NULL,
+    cover_image_url TEXT,
+    event_id UUID REFERENCES public.events(id) ON DELETE SET NULL,
+    photo_count INTEGER DEFAULT 0,
     status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'archived')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS public.gallery (
+CREATE TABLE IF NOT EXISTS public.gallery_photos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
+    album_id UUID REFERENCES public.albums(id) ON DELETE CASCADE,
     title VARCHAR(255),
-    description TEXT,
-    url TEXT NOT NULL,
-    thumbnail TEXT,
-    album_id UUID REFERENCES public.albums(id) ON DELETE SET NULL,
-    event_ref UUID REFERENCES public.events(id) ON DELETE SET NULL,
-    status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'archived')),
-    village_ref UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
-    uploaded_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    photo_url TEXT NOT NULL,
+    caption TEXT,
+    order_index INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 15. DOCUMENTS TABLE
+-- ============================================================================
+-- 11. DOCUMENTS TABLE (परिपत्र, नियम एवं फॉर्म्स)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.documents (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     file_url TEXT NOT NULL,
-    file_type VARCHAR(50),
-    file_size INTEGER,
-    category VARCHAR(50) DEFAULT 'other' CHECK (category IN ('form', 'rules', 'history', 'report', 'other')),
+    file_type VARCHAR(50) DEFAULT 'pdf',
+    category VARCHAR(50) DEFAULT 'circular' CHECK (category IN ('circular', 'census_form', 'rules', 'history', 'report', 'other')),
     status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'archived')),
     downloads_count INTEGER DEFAULT 0,
-    village_ref UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
     uploaded_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 16. DONATIONS TABLE
-CREATE TABLE IF NOT EXISTS public.donations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    donor_name VARCHAR(255) NOT NULL,
-    amount NUMERIC(12, 2) NOT NULL,
-    currency VARCHAR(10) DEFAULT 'INR',
-    purpose VARCHAR(255),
-    payment_method VARCHAR(50) DEFAULT 'cash' CHECK (payment_method IN ('cash', 'upi', 'bank_transfer', 'cheque', 'online')),
-    transaction_id VARCHAR(255),
-    receipt_number VARCHAR(100),
-    is_anonymous BOOLEAN DEFAULT FALSE,
-    member_id UUID REFERENCES public.family_members(id) ON DELETE SET NULL,
-    notes TEXT,
-    status VARCHAR(50) DEFAULT 'confirmed' CHECK (status IN ('pending', 'confirmed', 'cancelled')),
-    village_ref UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
-    recorded_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 17. LEKHA JOKHA TABLE (आय-व्यय लेखा-जोखा)
+-- ============================================================================
+-- 12. LEKHA JOKHA TABLE (आय-व्यय लेखा-जोखा)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.lekha_jokha (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
     title VARCHAR(255) NOT NULL,
     amount NUMERIC(12, 2) NOT NULL,
-    type VARCHAR(50) NOT NULL CHECK (type IN ('income', 'expense')),
-    category VARCHAR(100) NOT NULL CHECK (category IN ('aaiji_kosh', 'annapurna_bhavan', 'mandir_nirman', 'dharmik_karya', 'pratibha_samman')),
-    date DATE DEFAULT CURRENT_DATE,
+    entry_type VARCHAR(50) NOT NULL CHECK (entry_type IN ('income', 'expense')),
+    category VARCHAR(100) NOT NULL CHECK (category IN ('aaiji_kosh', 'annapurna_bhavan', 'mandir_nirman', 'dharmik_karya', 'pratibha_samman', 'general')),
+    entry_date DATE DEFAULT CURRENT_DATE,
     person_name VARCHAR(255),
     payment_method VARCHAR(50) DEFAULT 'cash' CHECK (payment_method IN ('cash', 'upi', 'bank_transfer', 'cheque', 'other')),
-    receipt_number VARCHAR(100),
+    receipt_or_bill_no VARCHAR(100),
     notes TEXT,
     recorded_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 18. PANCH SETTLEMENTS TABLE (पंच निर्णय एवं समाधान)
+CREATE INDEX idx_lekha_jokha ON public.lekha_jokha(entry_type, category, entry_date DESC);
+
+-- ============================================================================
+-- 13. PANCH SETTLEMENTS TABLE (पंच निर्णय एवं समाधान)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.panch_settlements (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
     title VARCHAR(255) NOT NULL,
     parties TEXT NOT NULL,
     settlement_date DATE DEFAULT CURRENT_DATE,
@@ -392,202 +390,102 @@ CREATE TABLE IF NOT EXISTS public.panch_settlements (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 19. SOCIAL INFO TABLE (सामाजिक नियम, सुधार व परंपराएं)
-CREATE TABLE IF NOT EXISTS public.social_info (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    title VARCHAR(255) NOT NULL,
-    content TEXT NOT NULL,
-    category VARCHAR(50) DEFAULT 'general' CHECK (category IN ('rules', 'history', 'customs', 'reforms', 'general')),
-    attachments JSONB DEFAULT '[]'::jsonb,
-    order_num INTEGER DEFAULT 0,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 20. STUDENTS TABLE
-CREATE TABLE IF NOT EXISTS public.students (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    name VARCHAR(255) NOT NULL,
-    member_id UUID REFERENCES public.family_members(id) ON DELETE CASCADE,
-    school VARCHAR(255),
-    college VARCHAR(255),
-    course VARCHAR(255),
-    year VARCHAR(50),
-    cgpa VARCHAR(50),
-    achievements JSONB DEFAULT '[]'::jsonb,
-    village_ref UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
-    created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 21. BUSINESSES TABLE
-CREATE TABLE IF NOT EXISTS public.businesses (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    business_name VARCHAR(255) NOT NULL,
-    owner VARCHAR(255) NOT NULL,
-    owner_member_id UUID REFERENCES public.family_members(id) ON DELETE SET NULL,
-    category VARCHAR(100) NOT NULL,
-    address TEXT,
-    phone VARCHAR(50),
-    whatsapp VARCHAR(50),
-    email VARCHAR(255),
-    website VARCHAR(255),
-    description TEXT,
-    logo TEXT,
-    images JSONB DEFAULT '[]'::jsonb,
-    village_ref UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
-    created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 22. BLOOD DONORS TABLE
+-- ============================================================================
+-- 14. BLOOD DONORS DIRECTORY TABLE (रक्तदान निर्देशिका)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.blood_donors (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
+    member_id UUID REFERENCES public.family_members(id) ON DELETE SET NULL,
     name VARCHAR(255) NOT NULL,
-    member_id UUID REFERENCES public.family_members(id) ON DELETE CASCADE,
-    blood_group VARCHAR(20) NOT NULL,
-    phone VARCHAR(50) NOT NULL,
+    blood_group VARCHAR(10) NOT NULL CHECK (blood_group IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')),
+    phone VARCHAR(20) NOT NULL,
     village VARCHAR(100) DEFAULT 'Konda',
-    availability VARCHAR(50) DEFAULT 'available' CHECK (availability IN ('available', 'unavailable', 'on_request')),
-    last_donation_date DATE,
-    village_ref UUID REFERENCES public.village_information(id) ON DELETE SET NULL,
-    created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    last_donated_date DATE,
+    is_available BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 23. MARRIAGE PROFILES TABLE
+CREATE INDEX idx_blood_donors_bg ON public.blood_donors(blood_group, is_available);
+
+-- ============================================================================
+-- 15. MARRIAGE PROFILES TABLE (वैवाहिक बायोडाटा निर्देशिका)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.marriage_profiles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
+    member_id UUID REFERENCES public.family_members(id) ON DELETE SET NULL,
     candidate_name VARCHAR(255) NOT NULL,
     gender VARCHAR(20) NOT NULL CHECK (gender IN ('male', 'female')),
-    date_of_birth DATE NOT NULL,
-    age INTEGER,
+    dob DATE NOT NULL,
     height VARCHAR(50),
-    complexion VARCHAR(50),
-    blood_group VARCHAR(20),
-    education VARCHAR(255),
-    occupation VARCHAR(255),
-    income VARCHAR(100),
-    work_location VARCHAR(255),
-    father_name VARCHAR(255),
-    mother_name VARCHAR(255),
-    surname VARCHAR(100),
-    gotra VARCHAR(100),
+    education VARCHAR(255) NOT NULL,
+    occupation VARCHAR(255) NOT NULL,
+    income_details VARCHAR(100),
+    gotra VARCHAR(100) NOT NULL,
+    nanihal_gotra VARCHAR(100),
+    father_name VARCHAR(255) NOT NULL,
+    contact_phone VARCHAR(20) NOT NULL,
     address TEXT,
-    village VARCHAR(100) DEFAULT 'Konda',
-    contact_number VARCHAR(50),
-    photos JSONB DEFAULT '[]'::jsonb,
-    biodata_file TEXT,
-    expectations TEXT,
-    approval_status VARCHAR(50) DEFAULT 'pending' CHECK (approval_status IN ('pending', 'approved', 'rejected')),
-    created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    photo_urls JSONB DEFAULT '[]'::jsonb,
+    biodata_pdf_url TEXT,
+    status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'married', 'inactive')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 24. CONTACTS TABLE
-CREATE TABLE IF NOT EXISTS public.contacts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    phone VARCHAR(50),
-    subject VARCHAR(255),
-    message TEXT NOT NULL,
-    status VARCHAR(50) DEFAULT 'unread' CHECK (status IN ('unread', 'read', 'replied')),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 25. ACTIVITY LOGS TABLE
+-- ============================================================================
+-- 16. AUDIT & ACTIVITY LOGS TABLE (सुरक्षा एवं ऑडिट लॉग्स)
+-- ============================================================================
 CREATE TABLE IF NOT EXISTS public.activity_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    mongo_id VARCHAR(64) UNIQUE,
     user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
-    action VARCHAR(255) NOT NULL,
-    entity_type VARCHAR(100),
-    entity_id VARCHAR(100),
+    user_name VARCHAR(255),
+    user_role VARCHAR(50),
+    action VARCHAR(100) NOT NULL,                             -- 'DONATION_CREATE', 'FAMILY_UPDATE', 'ROLE_CHANGE'
+    module VARCHAR(50) NOT NULL,                              -- 'donations', 'families', 'users'
+    target_id VARCHAR(100),
     details JSONB DEFAULT '{}'::jsonb,
     ip_address VARCHAR(100),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ============================================================================
--- INDEXES FOR MAXIMUM QUERY PERFORMANCE
--- ============================================================================
-
-CREATE INDEX IF NOT EXISTS idx_families_family_id ON public.families(family_id);
-CREATE INDEX IF NOT EXISTS idx_families_surname ON public.families(surname);
-CREATE INDEX IF NOT EXISTS idx_families_status ON public.families(status);
-
-CREATE INDEX IF NOT EXISTS idx_family_members_family ON public.family_members(family_id);
-CREATE INDEX IF NOT EXISTS idx_family_members_names ON public.family_members(first_name, last_name);
-CREATE INDEX IF NOT EXISTS idx_family_members_blood_group ON public.family_members(blood_group);
-CREATE INDEX IF NOT EXISTS idx_family_members_status ON public.family_members(status);
-
-CREATE INDEX IF NOT EXISTS idx_gram_unit_members_category ON public.gram_unit_members(gram_unit_id, category, representative_level);
-CREATE INDEX IF NOT EXISTS idx_committees_type ON public.committees(type, is_active);
-CREATE INDEX IF NOT EXISTS idx_events_status_date ON public.events(event_type, start_date);
-CREATE INDEX IF NOT EXISTS idx_news_status_published ON public.news(status, published_at DESC);
-CREATE INDEX IF NOT EXISTS idx_lekha_jokha_type_cat ON public.lekha_jokha(type, category, date DESC);
-CREATE INDEX IF NOT EXISTS idx_donations_status ON public.donations(status, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_blood_donors_group ON public.blood_donors(blood_group, availability);
+CREATE INDEX idx_activity_logs_date ON public.activity_logs(created_at DESC);
 
 -- ============================================================================
--- ROW LEVEL SECURITY (RLS) POLICIES
+-- 17. ROW LEVEL SECURITY (RLS) POLICIES
 -- ============================================================================
 
+ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.village_information ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.families ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.family_members ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.committees ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.gram_units ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.gram_unit_members ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.formation_events ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.news ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.albums ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.gallery ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.donations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.committees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.news ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.albums ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gallery_photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lekha_jokha ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.panch_settlements ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.social_info ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.businesses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.blood_donors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.marriage_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
 
--- Allow public read access to active public portal content
+-- PUBLIC READ ACCESS (Curated active public records)
 CREATE POLICY "Public Read Village Info" ON public.village_information FOR SELECT USING (true);
-CREATE POLICY "Public Read Settings" ON public.settings FOR SELECT USING (true);
-CREATE POLICY "Public Read Organizations" ON public.organizations FOR SELECT USING (true);
-CREATE POLICY "Public Read Gram Units" ON public.gram_units FOR SELECT USING (true);
-CREATE POLICY "Public Read Gram Unit Members" ON public.gram_unit_members FOR SELECT USING (is_active = true);
-CREATE POLICY "Public Read Formation Events" ON public.formation_events FOR SELECT USING (is_active = true);
-CREATE POLICY "Public Read Committees" ON public.committees FOR SELECT USING (is_active = true);
-CREATE POLICY "Public Read Events" ON public.events FOR SELECT USING (status = 'published');
-CREATE POLICY "Public Read News" ON public.news FOR SELECT USING (status = 'published');
-CREATE POLICY "Public Read Gallery" ON public.gallery FOR SELECT USING (status = 'active');
-CREATE POLICY "Public Read Albums" ON public.albums FOR SELECT USING (status = 'active');
-CREATE POLICY "Public Read Documents" ON public.documents FOR SELECT USING (status = 'active');
-CREATE POLICY "Public Read Social Info" ON public.social_info FOR SELECT USING (is_active = true);
-CREATE POLICY "Public Read Lekha Jokha" ON public.lekha_jokha FOR SELECT USING (true);
-CREATE POLICY "Public Read Panch Settlements" ON public.panch_settlements FOR SELECT USING (true);
-CREATE POLICY "Public Read Businesses" ON public.businesses FOR SELECT USING (true);
-CREATE POLICY "Public Read Blood Donors" ON public.blood_donors FOR SELECT USING (availability = 'available' OR availability = 'on_request');
 CREATE POLICY "Public Read Active Families" ON public.families FOR SELECT USING (status = 'active');
-CREATE POLICY "Public Read Active Members" ON public.family_members FOR SELECT USING (status = 'active');
+CREATE POLICY "Public Read Active Family Members" ON public.family_members FOR SELECT USING (life_status = 'active');
+CREATE POLICY "Public Read Active Committees" ON public.committees FOR SELECT USING (is_active = true);
+CREATE POLICY "Public Read Published News" ON public.news FOR SELECT USING (status = 'published');
+CREATE POLICY "Public Read Published Events" ON public.events FOR SELECT USING (status = 'published');
+CREATE POLICY "Public Read Active Albums" ON public.albums FOR SELECT USING (status = 'active');
+CREATE POLICY "Public Read Gallery Photos" ON public.gallery_photos FOR SELECT USING (true);
+CREATE POLICY "Public Read Active Documents" ON public.documents FOR SELECT USING (status = 'active');
+CREATE POLICY "Public Read Available Blood Donors" ON public.blood_donors FOR SELECT USING (is_available = true);
+CREATE POLICY "Public Read Active Marriage Profiles" ON public.marriage_profiles FOR SELECT USING (status = 'active');
+CREATE POLICY "Public Read Lekha Jokha" ON public.lekha_jokha FOR SELECT USING (true);
+CREATE POLICY "Public Read Panch Settlements" ON public.panch_settlements FOR SELECT USING (status = 'resolved');
 
--- Service Role has full bypass for administrative management
+-- SERVICE ROLE (Full bypass for backend Express API with service key)
