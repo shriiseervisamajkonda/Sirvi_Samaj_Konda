@@ -24,10 +24,22 @@ export default defineConfig({
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
               return 'vendor-react';
             }
-            if (id.includes('framer-motion') || id.includes('react-icons')) {
-              return 'vendor-ui';
+            if (id.includes('recharts') || id.includes('d3-')) {
+              return 'vendor-charts';
             }
-            return 'vendor';
+            if (id.includes('swiper')) {
+              return 'vendor-swiper';
+            }
+            if (id.includes('yet-another-react-lightbox')) {
+              return 'vendor-lightbox';
+            }
+            if (id.includes('framer-motion')) {
+              return 'vendor-motion';
+            }
+            if (id.includes('react-icons')) {
+              return 'vendor-icons';
+            }
+            return 'vendor-core';
           }
         },
       },
