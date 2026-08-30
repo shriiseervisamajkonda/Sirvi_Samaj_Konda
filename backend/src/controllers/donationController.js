@@ -94,9 +94,25 @@ export const getDonationStats = asyncHandler(async (_req, res) => {
 export const getDonationById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase.from('donations').select('*').eq('id', id).single();
-  ''
+
   if (error || !data) {
     return res.status(404).json({ success: false, message: 'Donation record not found' });
+  }
+
+  res.json({ success: true, data });
+});
+
+// GET /api/donations/receipt/:receiptNumber
+export const getReceiptByNumber = asyncHandler(async (req, res) => {
+  const { receiptNumber } = req.params;
+  const { data, error } = await supabase
+    .from('donations')
+    .select('*, families(head_name, gotra, village, faliya_or_ward, head_mobile)')
+    .eq('receipt_number', receiptNumber)
+    .maybeSingle();
+
+  if (error || !data) {
+    return res.status(404).json({ success: false, message: 'Receipt not found' });
   }
 
   res.json({ success: true, data });
@@ -217,8 +233,7 @@ export const deleteDonation = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 
-  clearCacheByPattern('donations');
-  clearCacheByPattern('dashboard');
-
   res.json({ success: true, message: 'Donation record deleted successfully' });
 });
+
+export const recordDonation = createDonation;
