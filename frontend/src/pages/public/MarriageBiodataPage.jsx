@@ -105,9 +105,11 @@ const MarriageBiodataPage = () => {
                   </div>
                   <div className="p-5">
                     <div className="text-center mb-4">
-                      <h3 className="font-bold text-[#2B211B] ">{profile.member?.firstName} {profile.member?.lastName}</h3>
-                      <Badge variant={profile.gender === 'Male' ? 'info' : 'purple'} size="xs">
-                        {profile.gender === 'Male' ? '👨 Groom' : '👩 Bride'}
+                      <h3 className="font-bold text-[#2B211B] ">
+                        {profile.candidate_name || profile.name || profile.fullName || (profile.member?.firstName ? `${profile.member.firstName} ${profile.member.lastName || ''}`.trim() : 'प्रत्याशी')}
+                      </h3>
+                      <Badge variant={profile.gender === 'Male' || profile.gender === 'male' ? 'info' : 'purple'} size="xs">
+                        {profile.gender === 'Male' || profile.gender === 'male' ? 'वर (Groom)' : 'वधू (Bride)'}
                       </Badge>
                     </div>
                     <div className="space-y-2 text-sm text-[#766A60] ">

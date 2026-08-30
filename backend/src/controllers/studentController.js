@@ -10,8 +10,7 @@ export const getStudents = asyncHandler(async (req, res) => {
   let query = supabase
     .from('family_members')
     .select('*, families(panchayat_family_id, head_name, gotra, village)', { count: 'exact' })
-    .not('education', 'is', null)
-    .neq('education', '')
+    .or('occupation.ilike.%student%,occupation.ilike.%विद्यार्थी%,occupation.ilike.%study%,occupation.ilike.%अध्ययन%')
     .order('created_at', { ascending: false });
 
   if (req.query.search) {

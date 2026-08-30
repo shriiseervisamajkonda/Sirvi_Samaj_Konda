@@ -1,6 +1,31 @@
 import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
 
+const formatOccupation = (occ) => {
+  const o = (occ || '').toLowerCase().trim();
+  const map = {
+    agriculture: 'कृषि (Agriculture)',
+    shopkeeper: 'दुकान / व्यापार (Shopkeeper)',
+    business: 'व्यवसाय / उद्योग (Business)',
+    tailoring: 'सिलाई / टेलरिंग (Tailoring)',
+    private_job: 'निजी सेवा (Private Job)',
+    government_job: 'सरकारी सेवा (Government Job)',
+    teacher: 'शिक्षक (Teacher)',
+    private_teacher: 'निजी शिक्षक (Private Teacher)',
+    contractor: 'ठेकेदार / निर्माण (Contractor)',
+    doctor: 'चिकित्सक (Doctor)',
+    advocate: 'अधिवक्ता / वकील (Advocate)',
+    lic_agent: 'बीमा सलाहकार (LIC / Insurance)',
+    bank_job: 'बैंक सेवा (Banking)',
+    artisan: 'कारीगर / शिल्पकार (Artisan)',
+    painter: 'पेंटर (Painter)',
+    parlour: 'ब्यूटी पार्लर (Beauty Parlour)',
+    labour: 'श्रम / सेवा (Labour / Service)',
+    site_work: 'साइट वर्क (Site Work)',
+  };
+  return map[o] || occ;
+};
+
 // GET /api/businesses
 export const getBusinesses = asyncHandler(async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
@@ -12,6 +37,7 @@ export const getBusinesses = asyncHandler(async (req, res) => {
     .select('*, families(panchayat_family_id, head_name, gotra, village, faliya_or_ward, house_number, tehsil, district)', { count: 'exact' })
     .not('occupation', 'is', null)
     .neq('occupation', '')
+    .not('occupation', 'in', '(homemaker,student,गृहणी,घरकाम,विद्यार्थी,none,None)')
     .order('created_at', { ascending: false });
 
   if (req.query.search) {
@@ -43,13 +69,13 @@ export const getBusinesses = asyncHandler(async (req, res) => {
       phone: m.mobile_number,
       photo: m.photo_url,
     },
-    businessName: `${m.full_name || m.first_name} — ${m.occupation}`,
+    businessName: `${m.full_name || m.first_name} — ${formatOccupation(m.occupation)}`,
     ownerName: m.full_name || `${m.first_name} ${m.last_name || ''}`.trim(),
-    category: m.occupation,
+    category: formatOccupation(m.occupation),
     phone: m.mobile_number,
-    address: m.families?.address || `${m.families?.village || 'Konda'}, MP`,
+    address: `${m.families?.village || 'Konda'}, MP`,
     city: m.families?.village || 'Konda',
-    description: `${m.full_name} (${m.occupation}), Sirvi Samaj Konda`,
+    description: `${m.full_name} (${formatOccupation(m.occupation)}), Sirvi Samaj Konda`,
     isVerified: true,
     createdAt: m.created_at,
   }));

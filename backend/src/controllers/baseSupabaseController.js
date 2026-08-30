@@ -20,8 +20,12 @@ export const createSupabaseCRUDController = (tableName, options = {}) => {
 
     // Apply explicit query filters
     for (const [queryParam, dbColumn] of Object.entries(filterMap)) {
-      if (req.query[queryParam] !== undefined && req.query[queryParam] !== '') {
-        query = query.eq(dbColumn, req.query[queryParam]);
+      const val = req.query[queryParam];
+      if (val !== undefined && val !== '') {
+        let cleanVal = val;
+        if (cleanVal === 'true') cleanVal = true;
+        if (cleanVal === 'false') cleanVal = false;
+        query = query.eq(dbColumn, cleanVal);
       }
     }
 

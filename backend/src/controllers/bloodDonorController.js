@@ -4,7 +4,9 @@ const base = createSupabaseCRUDController('blood_donors', {
   searchFields: ['name', 'phone', 'village'],
   filterMap: {
     blood_group: 'blood_group',
+    bloodGroup: 'blood_group',
     is_available: 'is_available',
+    isAvailable: 'is_available',
   },
   defaultSort: { column: 'created_at', ascending: false },
 });

@@ -43,7 +43,7 @@ export const getDashboardStats = asyncHandler(async (_req, res) => {
     supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active'),
     supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active').in('gender', ['male', 'Male', 'पुरुष']),
     supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active').in('gender', ['female', 'Female', 'महिला']),
-    supabase.from('family_members').select('*', { count: 'exact', head: true }).not('education', 'is', null).neq('education', ''),
+    supabase.from('family_members').select('*', { count: 'exact', head: true }).or('occupation.ilike.%student%,occupation.ilike.%विद्यार्थी%'),
     supabase.from('blood_donors').select('*', { count: 'exact', head: true }).eq('is_available', true),
     supabase.from('events').select('*', { count: 'exact', head: true }),
     supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published'),
