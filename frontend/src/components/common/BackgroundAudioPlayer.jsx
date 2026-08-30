@@ -72,10 +72,12 @@ const BackgroundAudioPlayer = () => {
     };
   }, [audioSrcIndex]);
 
-  // Handle fallback to next audio source if current file fails to load
+  // Handle audio error gracefully if file is not found
   const handleAudioError = () => {
     if (audioSrcIndex < AUDIO_SOURCES.length - 1) {
       setAudioSrcIndex((prev) => prev + 1);
+    } else {
+      setIsPlaying(false);
     }
   };
 
