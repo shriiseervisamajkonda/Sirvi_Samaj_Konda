@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiUser, FiShield, FiKey, FiSave } from 'react-icons/fi';
+import { FiUser, FiShield, FiKey, FiSave, FiEye, FiEyeOff } from 'react-icons/fi';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../services/api';
@@ -10,6 +10,9 @@ const ProfilePage = () => {
   const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
   const { register: regPwd, handleSubmit: handlePwd, reset: resetPwd, watch, formState: { errors: pwdErrors } } = useForm();
@@ -109,24 +112,75 @@ const ProfilePage = () => {
             <FiKey className="w-5 h-5 text-orange-500" /> Change Password
           </h2>
           <form onSubmit={handlePwd(onPasswordSubmit)} className="space-y-4">
+            {/* Current Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-              <input {...regPwd('currentPassword', { required: true })} type="password" placeholder="••••••••" className="input-field" />
-              {pwdErrors.currentPassword && <p className="text-red-500 text-xs mt-1">Required</p>}
+              <label className="block text-sm font-medium text-gray-700 mb-1">वर्तमान पासवर्ड (Current Password)</label>
+              <div className="relative">
+                <input
+                  {...regPwd('currentPassword', { required: 'वर्तमान पासवर्ड आवश्यक है' })}
+                  type={showCurrentPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className="input-field pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                  title={showCurrentPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
+                >
+                  {showCurrentPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                </button>
+              </div>
+              {pwdErrors.currentPassword && <p className="text-red-500 text-xs mt-1">{pwdErrors.currentPassword.message}</p>}
             </div>
+
+            {/* New Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-              <input {...regPwd('newPassword', { required: true, minLength: { value: 6, message: 'Min 6 chars' } })} type="password" placeholder="••••••••" className="input-field" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">नया पासवर्ड (New Password)</label>
+              <div className="relative">
+                <input
+                  {...regPwd('newPassword', { required: 'नया पासवर्ड आवश्यक है', minLength: { value: 6, message: 'न्यूनतम 6 अक्षर आवश्यक हैं' } })}
+                  type={showNewPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className="input-field pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                  title={showNewPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
+                >
+                  {showNewPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                </button>
+              </div>
               {pwdErrors.newPassword && <p className="text-red-500 text-xs mt-1">{pwdErrors.newPassword.message}</p>}
             </div>
+
+            {/* Confirm New Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-              <input {...regPwd('confirmPassword', { required: true, validate: (v) => v === newPassword || 'Passwords do not match' })} type="password" placeholder="••••••••" className="input-field" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">पासवर्ड की पुष्टि (Confirm New Password)</label>
+              <div className="relative">
+                <input
+                  {...regPwd('confirmPassword', { required: 'पासवर्ड पुष्टि आवश्यक है', validate: (v) => v === newPassword || 'पासवर्ड मेल नहीं खा रहे हैं' })}
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className="input-field pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                  title={showConfirmPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
+                >
+                  {showConfirmPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                </button>
+              </div>
               {pwdErrors.confirmPassword && <p className="text-red-500 text-xs mt-1">{pwdErrors.confirmPassword.message}</p>}
             </div>
-            <button type="submit" disabled={passwordLoading} className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+
+            <button type="submit" disabled={passwordLoading} className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-blue-600/20">
               {passwordLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FiShield className="w-4 h-4" />}
-              Update Password
+              पासवर्ड बदलें (Update Password)
             </button>
           </form>
         </motion.div>

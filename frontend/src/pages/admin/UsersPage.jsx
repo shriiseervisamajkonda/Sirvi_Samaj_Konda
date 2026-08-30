@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FiUser, FiEdit2, FiTrash2, FiPlus, FiPhone, FiMail, FiLock, FiShield, FiHome } from 'react-icons/fi';
+import { FiUser, FiEdit2, FiTrash2, FiPlus, FiPhone, FiMail, FiLock, FiShield, FiHome, FiEye, FiEyeOff } from 'react-icons/fi';
 import { userAPI } from '../../services/api';
 import { useForm } from 'react-hook-form';
 import DataTable from '../../components/common/DataTable';
@@ -28,6 +28,7 @@ const UsersPage = () => {
   const [deleteItem, setDeleteItem] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
   const fetchData = useCallback(async () => {
@@ -268,15 +269,25 @@ const UsersPage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
                 <FiLock className="w-4 h-4 text-[#C85A17]" /> पासवर्ड (Password) {editItem ? '(बदलने के लिए दर्ज करें)' : '*'}
               </label>
-              <input
-                {...register('password', {
-                  required: editItem ? false : 'Password is required for new users',
-                  minLength: { value: 6, message: 'Minimum 6 characters' },
-                })}
-                type="password"
-                placeholder={editItem ? 'खाली छोड़ें यदि पासवर्ड नहीं बदलना है' : 'न्यूनतम 6 अक्षर'}
-                className="input-field"
-              />
+              <div className="relative">
+                <input
+                  {...register('password', {
+                    required: editItem ? false : 'Password is required for new users',
+                    minLength: { value: 6, message: 'Minimum 6 characters' },
+                  })}
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder={editItem ? 'खाली छोड़ें यदि पासवर्ड नहीं बदलना है' : 'न्यूनतम 6 अक्षर'}
+                  className="input-field pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+                  title={showPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
+                >
+                  {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                </button>
+              </div>
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
             </div>
 

@@ -22,17 +22,18 @@ const LoginPage = () => {
 
   const onSubmit = async (data) => {
     setLoading(true);
+    const identifier = (data.identifier || data.email || '').trim();
     try {
-      const result = await login(data);
+      const result = await login({ identifier, password: data.password });
       toast.success(`स्वागत है, ${result.user?.name || 'उपयोगकर्ता'}!`);
       const role = result.user?.role;
-      if (['super_admin', 'admin', 'editor'].includes(role)) {
+      if (['developer', 'super_admin', 'admin', 'editor', 'treasurer'].includes(role)) {
         navigate('/admin');
       } else {
         navigate(from);
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'लॉगिन विफल रहा। कृपया सही ईमेल और पासवर्ड दर्ज करें।');
+      toast.error(err.response?.data?.message || 'लॉगिन विफल रहा। कृपया सही फ़ोन नंबर/ईमेल और पासवर्ड दर्ज करें।');
     } finally {
       setLoading(false);
     }
@@ -137,27 +138,25 @@ const LoginPage = () => {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              {/* Email Field */}
+              {/* Phone / Email Field */}
               <div>
-                <label htmlFor="login-email" className="block text-xs font-bold uppercase tracking-wider text-[#7A2525] mb-2">
-                  ईमेल पता (Email Address)
+                <label htmlFor="login-identifier" className="block text-xs font-bold uppercase tracking-wider text-[#7A2525] mb-2">
+                  फ़ोन नंबर या ईमेल (Phone Number / Email)
                 </label>
                 <div className="relative">
                   <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#C85A17]" />
                   <input
-                    id="login-email"
-                    {...register('email', {
-                      required: 'ईमेल पता आवश्यक है',
-                      pattern: { value: /^\S+@\S+$/, message: 'अमान्य ईमेल पता' },
+                    id="login-identifier"
+                    {...register('identifier', {
+                      required: 'फ़ोन नंबर या ईमेल आवश्यक है',
                     })}
-                    type="email"
-                    autoComplete="email"
-                    inputMode="email"
-                    placeholder="your@email.com"
+                    type="text"
+                    autoComplete="username"
+                    placeholder="उदा. 9876543210 या shriseervisamajkonda@gmail.com"
                     className="w-full pl-12 pr-4 py-3.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-2xl text-[#2B211B] placeholder-[#766A60]/60 focus:outline-none focus:border-[#C85A17] focus:ring-2 focus:ring-[#C85A17]/20 transition-all text-sm font-medium"
                   />
                 </div>
-                {errors.email && <p className="text-red-600 text-xs mt-1.5 font-semibold">{errors.email.message}</p>}
+                {errors.identifier && <p className="text-red-600 text-xs mt-1.5 font-semibold">{errors.identifier.message}</p>}
               </div>
 
               {/* Password Field */}
