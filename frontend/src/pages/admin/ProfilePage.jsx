@@ -342,14 +342,14 @@ const ProfilePage = () => {
         <h2 className="font-semibold text-gray-900 mb-4">Account Details</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: 'User ID', value: user?._id?.slice(-8)?.toUpperCase() },
+            { label: 'User ID', value: (user?.id || user?._id)?.slice(-8)?.toUpperCase() },
             { label: 'Role', value: user?.role },
-            { label: 'Status', value: user?.isVerified ? 'Verified ✓' : 'Pending' },
-            { label: 'Member Since', value: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : 'N/A' },
+            { label: 'Status', value: user?.is_active !== false ? 'Active ✓' : 'Inactive' },
+            { label: 'Member Since', value: (user?.created_at || user?.createdAt) ? new Date(user.created_at || user.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : 'N/A' },
           ].map(({ label, value }) => (
             <div key={label} className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{label}</p>
-              <p className="font-semibold text-gray-900 text-sm">{value || '—'}</p>
+              <p className={`font-semibold text-sm ${label === 'Status' ? 'text-green-700' : 'text-gray-900'}`}>{value || '—'}</p>
             </div>
           ))}
         </div>
