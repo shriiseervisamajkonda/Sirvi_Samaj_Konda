@@ -10,6 +10,7 @@ import { protect, authorize, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
+router.get('/public', optionalAuth, getPanchSettlements);
 router.get('/', optionalAuth, getPanchSettlements);
 router.get('/:id', optionalAuth, getPanchSettlementById);
 

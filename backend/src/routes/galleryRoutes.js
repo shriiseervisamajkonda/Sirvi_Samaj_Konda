@@ -14,6 +14,7 @@ import { protect, authorize, optionalAuth } from '../middleware/auth.js';
 const router = express.Router();
 
 // Albums
+router.get('/', optionalAuth, getAlbums);
 router.get('/albums', optionalAuth, getAlbums);
 router.get('/albums/:id', optionalAuth, getAlbumById);
 router.get('/photos', optionalAuth, getPhotos);

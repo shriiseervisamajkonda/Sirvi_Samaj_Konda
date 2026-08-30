@@ -1,5 +1,6 @@
 import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
+import { clearCacheByPattern } from '../middleware/cache.js';
 
 export const createSupabaseCRUDController = (tableName, options = {}) => {
   const {
@@ -94,6 +95,9 @@ export const createSupabaseCRUDController = (tableName, options = {}) => {
       return res.status(400).json({ success: false, message: error.message });
     }
 
+    clearCacheByPattern(tableName);
+    clearCacheByPattern('dashboard');
+
     res.status(201).json({ success: true, data });
   });
 
@@ -116,6 +120,9 @@ export const createSupabaseCRUDController = (tableName, options = {}) => {
       return res.status(404).json({ success: false, message: 'Record not found' });
     }
 
+    clearCacheByPattern(tableName);
+    clearCacheByPattern('dashboard');
+
     res.json({ success: true, data });
   });
 
@@ -127,6 +134,9 @@ export const createSupabaseCRUDController = (tableName, options = {}) => {
     if (error) {
       return res.status(400).json({ success: false, message: error.message });
     }
+
+    clearCacheByPattern(tableName);
+    clearCacheByPattern('dashboard');
 
     res.json({ success: true, message: 'Record deleted successfully' });
   });

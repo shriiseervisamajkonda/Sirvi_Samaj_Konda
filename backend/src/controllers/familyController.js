@@ -1,5 +1,6 @@
 import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
+import { clearCacheByPattern } from '../middleware/cache.js';
 
 // GET /api/families (Public & Admin with pagination, search, gotra filter)
 export const getFamilies = asyncHandler(async (req, res) => {
@@ -59,34 +60,45 @@ export const getFamilies = asyncHandler(async (req, res) => {
 export const getFamilyById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  // Query family
-  let query = supabase.from('families').select('*, family_members(*)');
-  if (id.includes('-') && id.length > 30) {
-    query = query.eq('id', id);
-  } else {
-    query = query.eq('panchayat_family_id', id);
+  const [
+    { data: family, error: fError },
+    { data: members, error: mError },
+    { data: donations, error: dError },
+  ] = await Promise.all([
+    supabase.from('families').select('*').eq('id', id).maybeSingle(),
+    supabase.from('family_members').select('*').eq('family_id', id).order('member_number', { ascending: true }),
+    supabase.from('donations').select('*').eq('family_id', id).order('financial_year', { ascending: false }),
+  ]);
+
+  if (fError || !family) {
+    return res.status(404).json({ success: false, message: 'Family not found' });
   }
-
-  const { data: family, error } = await query.maybeSingle();
-
-  if (error || !family) {
-    return res.status(404).json({ success: false, message: 'Family record not found' });
-  }
-
-  // Query donations for this family
-  const { data: donations } = await supabase
-    .from('donations')
-    .select('*')
-    .eq('family_id', family.id)
-    .order('financial_year', { ascending: false });
 
   res.json({
     success: true,
     data: {
       ...family,
+      family_members: members || [],
       donations: donations || [],
     },
   });
+});
+
+// GET /api/families/family-id/:familyId (Lookup by Panchayat Family Number)
+export const getFamilyByFamilyId = asyncHandler(async (req, res) => {
+  const { familyId } = req.params;
+
+  const { data: family, error } = await supabase
+    .from('families')
+    .select('*, family_members(*)')
+    .eq('panchayat_family_id', String(familyId))
+    .maybeSingle();
+
+  if (error || !family) {
+    return res.status(404).json({ success: false, message: 'Family number not found' });
+  }
+
+  res.json({ success: true, data: family });
 });
 
 // POST /api/families (Create Family Header + Optional Members in one step)
@@ -168,6 +180,9 @@ export const createFamily = asyncHandler(async (req, res) => {
     if (!mError) insertedMembers = memData;
   }
 
+  clearCacheByPattern('families');
+  clearCacheByPattern('dashboard');
+
   res.status(201).json({
     success: true,
     message: 'Family census record created successfully',
@@ -192,6 +207,9 @@ export const updateFamily = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 
+  clearCacheByPattern('families');
+  clearCacheByPattern('dashboard');
+
   res.json({ success: true, message: 'Family updated successfully', data });
 });
 
@@ -203,6 +221,9 @@ export const deleteFamily = asyncHandler(async (req, res) => {
   if (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
+
+  clearCacheByPattern('families');
+  clearCacheByPattern('dashboard');
 
   res.json({ success: true, message: 'Family record deleted successfully' });
 });

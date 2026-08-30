@@ -12,6 +12,7 @@ import { protect, authorize, optionalAuth } from '../middleware/auth.js';
 const router = express.Router();
 
 router.get('/stats', optionalAuth, getLekhaJokhaStats);
+router.get('/public', optionalAuth, getLekhaJokha);
 router.get('/', optionalAuth, getLekhaJokha);
 router.get('/:id', optionalAuth, getLekhaJokhaById);
 

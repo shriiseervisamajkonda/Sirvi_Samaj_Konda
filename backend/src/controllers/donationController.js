@@ -1,5 +1,6 @@
 import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
+import { clearCacheByPattern } from '../middleware/cache.js';
 
 // GET /api/donations (With rich filtering: year, purpose, family, payment_mode)
 export const getDonations = asyncHandler(async (req, res) => {
@@ -59,75 +60,78 @@ export const getDonationStats = asyncHandler(async (_req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 
-  const totalCollected = (allDonations || []).reduce((acc, d) => acc + Number(d.amount || 0), 0);
-  const currentYearCollected = (allDonations || [])
-    .filter((d) => d.financial_year === currentYear)
-    .reduce((acc, d) => acc + Number(d.amount || 0), 0);
+  const yearlyMap = {};
+  const purposeMap = {};
+  let lifetimeTotal = 0;
+  let currentYearTotal = 0;
 
-  const byPurpose = (allDonations || []).reduce((acc, d) => {
-    acc[d.purpose] = (acc[d.purpose] || 0) + Number(d.amount || 0);
-    return acc;
-  }, {});
+  (allDonations || []).forEach((item) => {
+    const amt = Number(item.amount) || 0;
+    lifetimeTotal += amt;
+
+    const yr = item.financial_year || currentYear;
+    yearlyMap[yr] = (yearlyMap[yr] || 0) + amt;
+    if (yr === currentYear) currentYearTotal += amt;
+
+    const p = item.purpose || 'general';
+    purposeMap[p] = (purposeMap[p] || 0) + amt;
+  });
 
   res.json({
     success: true,
     data: {
-      totalCollected,
-      currentYearCollected,
-      totalRecords: allDonations?.length || 0,
-      byPurpose,
+      lifetimeTotal,
+      currentYearTotal,
+      currentYear,
+      byYear: yearlyMap,
+      byPurpose: purposeMap,
+      totalCount: allDonations?.length || 0,
     },
   });
 });
 
-// GET /api/donations/receipt/:receiptNumber (Dynamic Receipt Lookup)
-export const getReceiptByNumber = asyncHandler(async (req, res) => {
-  const { receiptNumber } = req.params;
-
-  const { data: donation, error } = await supabase
-    .from('donations')
-    .select('*, families(head_name, gotra, village, faliya_or_ward, head_mobile)')
-    .eq('receipt_number', receiptNumber)
-    .maybeSingle();
-
-  if (error || !donation) {
-    return res.status(404).json({ success: false, message: 'Receipt not found' });
+// GET /api/donations/:id
+export const getDonationById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { data, error } = await supabase.from('donations').select('*').eq('id', id).single();
+  ''
+  if (error || !data) {
+    return res.status(404).json({ success: false, message: 'Donation record not found' });
   }
 
-  res.json({ success: true, data: donation });
+  res.json({ success: true, data });
 });
 
-// POST /api/donations (Record Cash / Offline / UPI Payment)
-export const recordDonation = asyncHandler(async (req, res) => {
+// POST /api/donations (Record Donation / Cashier Entry)
+export const createDonation = asyncHandler(async (req, res) => {
   const {
     family_id,
-    donor_name,
     panchayat_family_id,
+    donor_name,
     gotra,
     mobile_number,
     financial_year = new Date().getFullYear(),
     amount,
     purpose = 'annual_chanda',
     payment_mode = 'cash',
-    receipt_number,
-    receipt_book_number,
-    collected_by_name,
-    notes,
+    remarks,
+    collected_by_name = req.user?.name || 'Treasurer',
   } = req.body;
 
-  if (!amount || Number(amount) <= 0 || !donor_name) {
-    return res.status(400).json({ success: false, message: 'Valid amount and donor name are required' });
+  if (!donor_name || !amount || Number(amount) <= 0) {
+    return res.status(400).json({ success: false, message: 'Donor name and a valid amount are required' });
   }
 
-  // Auto-generate receipt number if not provided
-  const generatedReceiptNo = receipt_number || `KONDA-${financial_year}-${Date.now().toString().slice(-4)}`;
+  // Generate clean sequential receipt number
+  const timestamp = Date.now().toString().slice(-4);
+  const receipt_number = `KONDA-${financial_year}-${timestamp}`;
 
   const { data: donation, error } = await supabase
     .from('donations')
     .insert({
       family_id: family_id || null,
-      donor_name,
       panchayat_family_id: panchayat_family_id ? String(panchayat_family_id) : null,
+      donor_name,
       gotra: gotra || null,
       mobile_number: mobile_number || null,
       financial_year: Number(financial_year),
@@ -135,11 +139,10 @@ export const recordDonation = asyncHandler(async (req, res) => {
       purpose,
       payment_mode,
       payment_status: 'confirmed',
-      receipt_number: generatedReceiptNo,
-      receipt_book_number: receipt_book_number || null,
-      collected_by_name: collected_by_name || req.user?.name || 'Treasurer',
-      collected_by_user_id: req.user?.id || null,
-      notes: notes || null,
+      receipt_number,
+      collected_by_name,
+      collected_by_id: req.user?.id || null,
+      remarks: remarks || null,
     })
     .select()
     .single();
@@ -147,6 +150,9 @@ export const recordDonation = asyncHandler(async (req, res) => {
   if (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
+
+  clearCacheByPattern('donations');
+  clearCacheByPattern('dashboard');
 
   res.status(201).json({
     success: true,
@@ -192,6 +198,9 @@ export const updateDonation = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 
+  clearCacheByPattern('donations');
+  clearCacheByPattern('dashboard');
+
   res.json({
     success: true,
     message: 'Payment details updated successfully',
@@ -207,6 +216,9 @@ export const deleteDonation = asyncHandler(async (req, res) => {
   if (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
+
+  clearCacheByPattern('donations');
+  clearCacheByPattern('dashboard');
 
   res.json({ success: true, message: 'Donation record deleted successfully' });
 });
