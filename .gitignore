@@ -44,8 +44,7 @@ out/
 Thumbs.db
 desktop.ini
 
-# Local Agent & Reference Documentation (Kept on local system, ignored by Git)
-AGENTS.md
+# Local Reference Documentation (Kept on local system, ignored by Git)
 14-08-2026.md
 data.md
 docs/

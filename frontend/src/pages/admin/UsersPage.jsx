@@ -216,11 +216,13 @@ const UsersPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* First Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+              <label htmlFor="user-first-name" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
                 <FiUser className="w-4 h-4 text-[#C85A17]" /> प्रथम नाम (First Name) *
               </label>
               <input
+                id="user-first-name"
                 {...register('firstName', { required: 'First name is required' })}
+                autoComplete="given-name"
                 placeholder="उदा. रमेश"
                 className="input-field"
               />
@@ -229,11 +231,13 @@ const UsersPage = () => {
 
             {/* Last Name / Gotra */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+              <label htmlFor="user-last-name" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
                 <FiUser className="w-4 h-4 text-[#C85A17]" /> उपनाम / गोत्र (Last Name / Gotra) *
               </label>
               <input
+                id="user-last-name"
                 {...register('lastName', { required: 'Last name / Gotra is required' })}
+                autoComplete="family-name"
                 placeholder="उदा. सीरवी / भायल / पंवार"
                 className="input-field"
               />
@@ -242,14 +246,19 @@ const UsersPage = () => {
 
             {/* Mobile Number */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+              <label htmlFor="user-phone" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
                 <FiPhone className="w-4 h-4 text-[#C85A17]" /> मोबाइल नंबर (Mobile / Login ID) *
               </label>
               <input
+                id="user-phone"
                 {...register('phone', {
                   required: 'Mobile number is required for login',
                   pattern: { value: /^[0-9]{10}$/, message: '10 digit Indian mobile number' },
                 })}
+                type="tel"
+                autoComplete="tel"
+                inputMode="tel"
+                maxLength={10}
                 placeholder="10 अंकों का मोबाइल नंबर (उदा. 9826012345)"
                 className="input-field font-mono"
               />
@@ -258,12 +267,15 @@ const UsersPage = () => {
 
             {/* Email / Gmail ID */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+              <label htmlFor="user-email" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
                 <FiMail className="w-4 h-4 text-[#C85A17]" /> Google / Gmail ID (वैकल्पिक / Optional)
               </label>
               <input
+                id="user-email"
                 {...register('email')}
                 type="email"
+                autoComplete="email"
+                inputMode="email"
                 placeholder="name@gmail.com"
                 className="input-field"
               />
@@ -272,22 +284,25 @@ const UsersPage = () => {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+              <label htmlFor="user-password" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
                 <FiLock className="w-4 h-4 text-[#C85A17]" /> पासवर्ड (Password) {editItem ? '(बदलने के लिए दर्ज करें)' : '*'}
               </label>
               <div className="relative">
                 <input
+                  id="user-password"
                   {...register('password', {
                     required: editItem ? false : 'Password is required for new users',
                     minLength: { value: 6, message: 'Minimum 6 characters' },
                   })}
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   placeholder={editItem ? 'खाली छोड़ें यदि पासवर्ड नहीं बदलना है' : 'न्यूनतम 6 अक्षर'}
                   className="input-field pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
                   title={showPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
                 >

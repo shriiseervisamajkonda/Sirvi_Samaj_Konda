@@ -99,6 +99,7 @@ const authLimiter = rateLimit({
   message: { success: false, message: 'Too many authentication attempts, please try again later.' },
 });
 app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/google-login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
 

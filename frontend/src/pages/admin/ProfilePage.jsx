@@ -72,19 +72,31 @@ const ProfilePage = () => {
           <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
-                <input {...register('firstName', { required: true })} className="input-field" placeholder="प्रथम नाम" />
+                <label htmlFor="profile-first-name" className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                <input
+                  id="profile-first-name"
+                  {...register('firstName', { required: true })}
+                  autoComplete="given-name"
+                  className="input-field"
+                  placeholder="प्रथम नाम"
+                />
                 {errors.firstName && <p className="text-red-500 text-xs mt-1">Required</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
-                <input {...register('lastName', { required: true })} className="input-field" placeholder="उपनाम / गोत्र" />
+                <label htmlFor="profile-last-name" className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                <input
+                  id="profile-last-name"
+                  {...register('lastName', { required: true })}
+                  autoComplete="family-name"
+                  className="input-field"
+                  placeholder="उपनाम / गोत्र"
+                />
                 {errors.lastName && <p className="text-red-500 text-xs mt-1">Required</p>}
               </div>
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-gray-700">
+                <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700">
                   Google / Gmail ID (1-Click Google Sign-In)
                 </label>
                 {user?.email && (
@@ -94,8 +106,11 @@ const ProfilePage = () => {
                 )}
               </div>
               <input
+                id="profile-email"
                 {...register('email')}
                 type="email"
+                autoComplete="email"
+                inputMode="email"
                 className="input-field"
                 placeholder="your.name@gmail.com"
               />
@@ -104,8 +119,17 @@ const ProfilePage = () => {
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number (Phone)</label>
-              <input {...register('phone')} placeholder="+91..." className="input-field" />
+              <label htmlFor="profile-phone" className="block text-sm font-medium text-gray-700 mb-1">Mobile Number (Phone)</label>
+              <input
+                id="profile-phone"
+                {...register('phone')}
+                type="tel"
+                autoComplete="tel"
+                inputMode="tel"
+                maxLength={10}
+                placeholder="+91..."
+                className="input-field"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Role</label>
@@ -127,17 +151,20 @@ const ProfilePage = () => {
           <form onKeyDown={preventEnterSubmit} onSubmit={handlePwd(onPasswordSubmit)} className="space-y-4">
             {/* Current Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">वर्तमान पासवर्ड (Current Password)</label>
+              <label htmlFor="profile-current-password" className="block text-sm font-medium text-gray-700 mb-1">वर्तमान पासवर्ड (Current Password)</label>
               <div className="relative">
                 <input
+                  id="profile-current-password"
                   {...regPwd('currentPassword', { required: 'वर्तमान पासवर्ड आवश्यक है' })}
                   type={showCurrentPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   className="input-field pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  aria-label={showCurrentPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
                   title={showCurrentPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
                 >
@@ -149,17 +176,20 @@ const ProfilePage = () => {
 
             {/* New Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">नया पासवर्ड (New Password)</label>
+              <label htmlFor="profile-new-password" className="block text-sm font-medium text-gray-700 mb-1">नया पासवर्ड (New Password)</label>
               <div className="relative">
                 <input
+                  id="profile-new-password"
                   {...regPwd('newPassword', { required: 'नया पासवर्ड आवश्यक है', minLength: { value: 6, message: 'न्यूनतम 6 अक्षर आवश्यक हैं' } })}
                   type={showNewPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   placeholder="••••••••"
                   className="input-field pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
+                  aria-label={showNewPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
                   title={showNewPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
                 >
@@ -171,17 +201,20 @@ const ProfilePage = () => {
 
             {/* Confirm New Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">पासवर्ड की पुष्टि (Confirm New Password)</label>
+              <label htmlFor="profile-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">पासवर्ड की पुष्टि (Confirm New Password)</label>
               <div className="relative">
                 <input
+                  id="profile-confirm-password"
                   {...regPwd('confirmPassword', { required: 'पासवर्ड पुष्टि आवश्यक है', validate: (v) => v === newPassword || 'पासवर्ड मेल नहीं खा रहे हैं' })}
                   type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   placeholder="••••••••"
                   className="input-field pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
                   title={showConfirmPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
                 >
