@@ -109,14 +109,20 @@ const NewsPage = () => {
     },
   ];
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 ">News Management</h1>
-          <p className="text-gray-500 text-sm mt-1">Create and manage news articles</p>
+          <h1 className="text-2xl font-bold text-gray-900 ">News & Announcements</h1>
+          <p className="text-gray-500 text-sm mt-1">Publish community updates and articles</p>
         </div>
-        <button onClick={() => { setEditItem(null); reset({ status: 'published', category: 'news' }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
+        <button onClick={() => { setEditItem(null); reset({ status: 'published', category: 'general' }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
           <FiPlus className="w-4 h-4" /> Add News
         </button>
       </div>
@@ -124,7 +130,7 @@ const NewsPage = () => {
         onPageChange={setPage} onSearchChange={(v) => { setSearch(v); setPage(1); }} serverSide emptyIcon={FiFileText} emptyText="No news articles found" />
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Article' : 'New Article'} size="xl">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
             <input {...register('title', { required: true })} placeholder="Article title" className="input-field" />

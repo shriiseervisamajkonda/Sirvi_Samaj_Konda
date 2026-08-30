@@ -2,6 +2,7 @@ import api from '../api/axios';
 
 export const authAPI = {
   login: (data) => api.post('/auth/login', data),
+  googleLogin: (data) => api.post('/auth/google-login', data),
   register: (data) => api.post('/auth/register', data),
   logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),
@@ -12,6 +13,7 @@ export const authAPI = {
   sendOTP: (email) => api.post('/auth/send-otp', { email }),
   verifyOTP: (data) => api.post('/auth/verify-otp', data),
   updatePassword: (data) => api.put('/auth/update-password', data),
+  changePassword: (data) => api.put('/auth/update-password', data),
 };
 
 export const dashboardAPI = {

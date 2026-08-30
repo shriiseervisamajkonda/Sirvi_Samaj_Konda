@@ -50,10 +50,36 @@ export const AuthProvider = ({ children }) => {
     if (accessToken) localStorage.setItem('accessToken', accessToken);
     if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
     if (userObj) {
+      if (data.must_change_password !== undefined) {
+        userObj.must_change_password = data.must_change_password;
+      }
       localStorage.setItem('user', JSON.stringify(userObj));
       setUser(userObj);
     }
     return data;
+  };
+
+  const googleLogin = async (googlePayload) => {
+    const res = await authAPI.googleLogin(googlePayload);
+    const data = res.data;
+    const accessToken = data.accessToken || data.data?.accessToken;
+    const refreshToken = data.refreshToken || data.data?.refreshToken;
+    const userObj = data.user || data.data?.user || data.data;
+
+    if (accessToken) localStorage.setItem('accessToken', accessToken);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+    if (userObj) {
+      localStorage.setItem('user', JSON.stringify(userObj));
+      setUser(userObj);
+    }
+    return data;
+  };
+
+  const updateUser = (updatedUser) => {
+    if (!updatedUser) return;
+    const merged = { ...user, ...updatedUser };
+    localStorage.setItem('user', JSON.stringify(merged));
+    setUser(merged);
   };
 
   const register = async (userData) => {
@@ -87,7 +113,7 @@ export const AuthProvider = ({ children }) => {
   const isSuperAdmin = Boolean(user && ['developer', 'super_admin'].includes(user.role));
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isAdmin, isSuperAdmin, checkAuth }}>
+    <AuthContext.Provider value={{ user, loading, login, googleLogin, updateUser, register, logout, isAdmin, isSuperAdmin, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

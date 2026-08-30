@@ -86,7 +86,7 @@ export const login = asyncHandler(async (req, res) => {
   // Query user by phone or email
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, name, phone, email, password_hash, role, photo_url, is_active, panchayat_family_id')
+    .select('id, name, phone, email, password_hash, role, photo_url, is_active, must_change_password, panchayat_family_id')
     .or(`phone.eq.${loginId},email.eq.${loginId}`)
     .maybeSingle();
 
@@ -117,6 +117,63 @@ export const login = asyncHandler(async (req, res) => {
     message: 'Logged in successfully',
     data: {
       user: userProfile,
+      must_change_password: Boolean(user.must_change_password),
+      accessToken,
+      refreshToken,
+    },
+  });
+});
+
+// POST /api/auth/google-login
+export const googleLogin = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const cleanEmail = (email || '').trim().toLowerCase();
+
+  if (!cleanEmail) {
+    return res.status(400).json({ success: false, message: 'Google email is required' });
+  }
+
+  // Check if this Google email is linked to a registered Samaj account
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('id, name, phone, email, role, photo_url, is_active, must_change_password, panchayat_family_id')
+    .eq('email', cleanEmail)
+    .maybeSingle();
+
+  if (error || !user) {
+    return res.status(403).json({
+      success: false,
+      code: 'GOOGLE_NOT_LINKED',
+      message: 'यह Google खाता किसी पंजीकृत सदस्य से लिंक नहीं है। कृपया पहले अपने पंजीकृत मोबाइल नंबर व डिफ़ॉल्ट पासवर्ड से लॉगिन करें और प्रोफ़ाइल में जाकर Google खाता लिंक करें।',
+    });
+  }
+
+  if (!user.is_active) {
+    return res.status(403).json({ success: false, message: 'Your account is currently deactivated' });
+  }
+
+  // Check if user still needs to complete mandatory first-time password change
+  if (user.must_change_password) {
+    return res.status(403).json({
+      success: false,
+      code: 'PASSWORD_CHANGE_REQUIRED',
+      message: 'कृपया पहले अपने पंजीकृत मोबाइल नंबर व डिफ़ॉल्ट पासवर्ड से लॉगिन कर अपना नया पासवर्ड सेट करें।',
+    });
+  }
+
+  // Update last login
+  await supabase
+    .from('users')
+    .update({ last_login: new Date().toISOString() })
+    .eq('id', user.id);
+
+  const { accessToken, refreshToken } = generateTokens(user);
+
+  res.json({
+    success: true,
+    message: 'Google login successful',
+    data: {
+      user,
       accessToken,
       refreshToken,
     },

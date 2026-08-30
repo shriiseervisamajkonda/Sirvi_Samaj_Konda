@@ -49,6 +49,12 @@ const ProfilePage = () => {
     } catch { toast.error('Password change failed. Check current password.'); } finally { setPasswordLoading(false); }
   };
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="max-w-4xl space-y-6">
       <div>
@@ -63,7 +69,7 @@ const ProfilePage = () => {
           <h2 className="font-semibold text-gray-900 mb-5 flex items-center gap-2">
             <FiUser className="w-5 h-5 text-orange-500" /> Profile Information
           </h2>
-          <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
+          <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
@@ -77,9 +83,16 @@ const ProfilePage = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Gmail / Email ID (Google Account)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Google / Gmail ID (1-Click Google Sign-In)
+                </label>
+                {user?.email && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
+                    ✓ Linked
+                  </span>
+                )}
+              </div>
               <input
                 {...register('email')}
                 type="email"
@@ -87,7 +100,7 @@ const ProfilePage = () => {
                 placeholder="your.name@gmail.com"
               />
               <p className="text-xs text-gray-500 mt-1">
-                अपना Google / Gmail ID जोड़ें ताकि आप मोबाइल या ईमेल किसी से भी लॉगिन कर सकें।
+                अपना Google / Gmail ID लिंक करने के बाद आप 'Sign in with Google' से सीधे 1-क्लिक में लॉगिन कर सकेंगे।
               </p>
             </div>
             <div>
@@ -111,7 +124,7 @@ const ProfilePage = () => {
           <h2 className="font-semibold text-gray-900 mb-5 flex items-center gap-2">
             <FiKey className="w-5 h-5 text-orange-500" /> Change Password
           </h2>
-          <form onSubmit={handlePwd(onPasswordSubmit)} className="space-y-4">
+          <form onKeyDown={preventEnterSubmit} onSubmit={handlePwd(onPasswordSubmit)} className="space-y-4">
             {/* Current Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">वर्तमान पासवर्ड (Current Password)</label>

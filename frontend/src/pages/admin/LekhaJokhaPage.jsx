@@ -129,14 +129,26 @@ const LekhaJokhaPage = () => {
     },
   ];
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
+  const openCreate = () => {
+    setEditItem(null);
+    reset({ type: 'income', category: 'aaiji_kosh', paymentMethod: 'cash', date: new Date().toISOString().split('T')[0] });
+    setModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 ">लेखा-जोखा प्रबंधन (Ledger Management)</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage financial records and fund transactions for Sirvi Samaj Konda</p>
+          <h1 className="text-2xl font-bold text-gray-900 ">लेखा-जोखा (Income & Expenses)</h1>
+          <p className="text-gray-500 text-sm mt-1">समाज कोष, मंदिर, धर्मशाला और सामान्य निधि का सम्पूर्ण आय-व्यय विवरण</p>
         </div>
-        <button onClick={() => { setEditItem(null); reset({ type: 'income', category: 'aaiji_kosh', paymentMethod: 'cash', date: new Date().toISOString().split('T')[0] }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 shadow-md shadow-green-600/30">
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/20 transition cursor-pointer">
           <FiPlus className="w-4 h-4" /> Add Transaction Record
         </button>
       </div>
@@ -145,7 +157,7 @@ const LekhaJokhaPage = () => {
         onPageChange={setPage} onSearchChange={(v) => { setSearch(v); setPage(1); }} serverSide emptyIcon={FiDollarSign} emptyText="No transaction records found" />
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Transaction Record' : 'Add Transaction Record'} size="lg">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">विवरण / शीर्षक (Description/Title) *</label>

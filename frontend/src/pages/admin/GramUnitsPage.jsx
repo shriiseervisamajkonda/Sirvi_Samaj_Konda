@@ -263,6 +263,12 @@ const GramUnitsPage = () => {
     },
   ];
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -342,7 +348,7 @@ const GramUnitsPage = () => {
             ग्राम इकाई एवं संगठन विवरण संपादित करें
           </h2>
 
-          <form onSubmit={handleUnitSubmit(onSaveUnit)} className="space-y-4">
+          <form onKeyDown={preventEnterSubmit} onSubmit={handleUnitSubmit(onSaveUnit)} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 [#FDE68A] mb-1">
@@ -486,7 +492,7 @@ const GramUnitsPage = () => {
         }
         size="lg"
       >
-        <form onSubmit={handleMemberSubmit(onSaveMember)} className="p-6 sm:p-8 space-y-6">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleMemberSubmit(onSaveMember)} className="p-6 sm:p-8 space-y-6">
           <FormSection title="1. नाम व पद विवरण (Member & Designation)" icon={FiUsers}>
             <FormField label="पूरा नाम व पिता/पति का नाम (Full Name with Father/Family)" required>
               <input

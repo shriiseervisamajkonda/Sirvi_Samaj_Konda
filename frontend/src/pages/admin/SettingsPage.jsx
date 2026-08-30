@@ -32,6 +32,12 @@ const SettingsPage = () => {
     }
   };
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="max-w-4xl space-y-6">
       <div>
@@ -43,7 +49,7 @@ const SettingsPage = () => {
         <h2 className="font-semibold text-gray-900 mb-5 flex items-center gap-2">
           <FiSettings className="w-5 h-5 text-orange-500" /> General Configuration
         </h2>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Application Name</label>
