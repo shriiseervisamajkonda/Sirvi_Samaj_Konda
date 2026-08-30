@@ -155,7 +155,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
   // Check if this Google email is linked to a registered Samaj account
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, name, phone, email, role, photo_url, is_active, must_change_password, panchayat_family_id')
+    .select('id, name, phone, email, role, photo_url, is_active, must_change_password, panchayat_family_id, created_at, last_login')
     .eq('email', verifiedEmail)
     .maybeSingle();
 
@@ -248,7 +248,7 @@ export const linkGoogleOAuth = asyncHandler(async (req, res) => {
     .from('users')
     .update({ email: verifiedEmail, updated_at: new Date().toISOString() })
     .eq('id', req.user.id)
-    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id')
+    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id, created_at, last_login')
     .single();
 
   if (updateError) {
@@ -366,7 +366,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
     .from('users')
     .update(updates)
     .eq('id', req.user.id)
-    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id')
+    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id, created_at, last_login')
     .single();
 
   if (error) {
