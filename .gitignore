@@ -43,3 +43,11 @@ out/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Local Agent & Reference Documentation (Kept on local system, ignored by Git)
+AGENTS.md
+14-08-2026.md
+data.md
+docs/
+data/sample_census_data.json
+
