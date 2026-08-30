@@ -184,6 +184,12 @@ const FamiliesPage = () => {
     },
   ];
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="space-y-6 text-[#2B211B]">
       {/* Page Header */}
@@ -224,7 +230,7 @@ const FamiliesPage = () => {
         title={editItem ? 'परिवार विवरण संपादित करें (Edit Family)' : 'नया परिवार पंजीकृत करें (Add Family)'}
         size="lg"
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-8 space-y-6">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-8 space-y-6">
           <FormSection title="1. मुख्य परिवार जानकारी (Basic Family Information)" icon={FiInfo}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="परिवार कोड / ID" required error={errors.familyId}>

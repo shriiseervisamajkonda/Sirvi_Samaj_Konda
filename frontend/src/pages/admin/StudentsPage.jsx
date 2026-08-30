@@ -122,18 +122,27 @@ const StudentsPage = () => {
     },
   ];
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-gray-900 ">Student Management</h1><p className="text-gray-500 text-sm mt-1">Manage student records</p></div>
-        <button onClick={() => { setEditItem(null); reset({}); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 ">Student Directory</h1>
+          <p className="text-gray-500 text-sm mt-1">Manage student records and higher education achievements</p>
+        </div>
+        <button onClick={() => { setEditItem(null); reset(); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/20 transition cursor-pointer">
           <FiPlus className="w-4 h-4" /> Add Student
         </button>
       </div>
       <DataTable columns={columns} data={items} loading={loading} totalPages={totalPages} currentPage={page}
         onPageChange={setPage} onSearchChange={(v) => { setSearch(v); setPage(1); }} serverSide emptyIcon={FiBook} emptyText="No students found" />
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Student' : 'Add Student'} size="lg">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">समाज सदस्य चुनें (Member) *</label>
               <select {...register('member', { required: true })} className="input-field">

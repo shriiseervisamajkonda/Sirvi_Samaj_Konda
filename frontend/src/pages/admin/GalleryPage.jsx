@@ -145,6 +145,12 @@ const GalleryPage = () => {
     },
   ];
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -166,7 +172,7 @@ const GalleryPage = () => {
 
       {/* Add Photo Modal */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Photo' : 'Add Photo'} size="lg">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <ImageUpload
             value={watch('url')}
             onChange={(url) => setValue('url', url, { shouldDirty: true })}
@@ -209,7 +215,7 @@ const GalleryPage = () => {
 
       {/* Create Album Modal */}
       <Modal isOpen={albumModalOpen} onClose={() => setAlbumModalOpen(false)} title="Create Album" size="sm">
-        <form onSubmit={handleAlbumSubmit(onAlbumSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleAlbumSubmit(onAlbumSubmit)} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Album Name *</label>
             <input {...regAlbum('title', { required: true })} placeholder="e.g. Navratri 2024" className="input-field" />

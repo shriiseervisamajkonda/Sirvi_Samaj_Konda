@@ -116,9 +116,9 @@ export const createUser = asyncHandler(async (req, res) => {
       role: role || 'member',
       is_active: isActive,
       panchayat_family_id: panchayat_family_id || null,
-      must_change_password: false,
+      must_change_password: true,
     })
-    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id, created_at')
+    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id, must_change_password, created_at')
     .single();
 
   if (error) {

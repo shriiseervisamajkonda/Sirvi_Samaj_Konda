@@ -234,6 +234,12 @@ const MembersPage = () => {
     },
   ];
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="space-y-6 text-[#2B211B]">
       {/* Header */}
@@ -273,7 +279,7 @@ const MembersPage = () => {
         title={editItem ? 'सदस्य विवरण संपादित करें (Edit Member)' : 'नया सदस्य जोड़ें (Add Member)'}
         size="xl"
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-8 space-y-6">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-8 space-y-6">
           <FormSection title="1. व्यक्तिगत जानकारी (Personal Information)" icon={FiUser}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="प्रथम नाम (First Name)" required error={errors.firstName}>

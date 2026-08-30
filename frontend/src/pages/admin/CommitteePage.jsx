@@ -278,6 +278,12 @@ const CommitteePage = () => {
     },
   ];
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="space-y-6 text-[#2B211B]">
       {/* Top Header */}
@@ -351,7 +357,7 @@ const CommitteePage = () => {
         title={editItem ? 'समिति सदस्य / पदाधिकारी संपादित करें' : 'नया समिति सदस्य / पंच जोड़ें'}
         size="lg"
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-8 space-y-5">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-8 space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Full Name */}
             <div>

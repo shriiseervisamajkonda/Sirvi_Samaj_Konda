@@ -15,6 +15,7 @@ import AdminLayout from './layouts/AdminLayout';
 // Common
 import ProtectedRoute from './components/common/ProtectedRoute';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import ForcePasswordChangeModal from './components/auth/ForcePasswordChangeModal';
 
 // Loading fallback component
 const PageFallback = () => (
@@ -100,6 +101,7 @@ createRoot(document.getElementById('root')).render(
                 },
               }}
             />
+            <ForcePasswordChangeModal />
             <ErrorBoundary>
               <Suspense fallback={<PageFallback />}>
                 <Routes>

@@ -88,9 +88,10 @@ const WomenCommitteeAdminPage = () => {
   const [data, setData] = useState(getDefaultData);
   const [editor, setEditor] = useState({ open: false, section: null, mode: 'create', itemId: null, draft: {} });
 
-  useEffect(() => {
+  const handleSaveAll = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }, [data]);
+    toast.success('सभी परिवर्तन सफलतापूर्वक सेव कर दिए गए हैं।');
+  };
 
   const handleOverviewChange = (field, value) => {
     setData((prev) => ({ ...prev, [field]: value }));
@@ -143,7 +144,7 @@ const WomenCommitteeAdminPage = () => {
       return { ...prev, [section]: next };
     });
 
-    toast.success('सफलतापूर्वक सहेजा गया।');
+    toast.success('आइटम जोड़ा/संपादित किया गया। परिवर्तन स्थायी करने के लिए "Save Changes" दबाएं।');
     closeEditor();
   };
 
@@ -152,7 +153,7 @@ const WomenCommitteeAdminPage = () => {
       ...prev,
       [section]: (prev[section] || []).filter((item) => item.id !== itemId),
     }));
-    toast.success('आइटम हटाया गया।');
+    toast.success('आइटम हटाया गया। परिवर्तन स्थायी करने के लिए "Save Changes" दबाएं।');
   };
 
   return (
@@ -163,8 +164,8 @@ const WomenCommitteeAdminPage = () => {
           <h1 className="text-3xl font-bold text-slate-900 ">श्री आई जी महिला समिती</h1>
         </div>
         <button
-          onClick={() => toast.success('सभी परिवर्तन सुरक्षित रूप से सेव हो रहे हैं।')}
-          className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-primary to-orange-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition hover:-translate-y-0.5"
+          onClick={handleSaveAll}
+          className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-primary to-orange-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 cursor-pointer"
         >
           <FiSave className="mr-2 h-4 w-4" />
           Save Changes

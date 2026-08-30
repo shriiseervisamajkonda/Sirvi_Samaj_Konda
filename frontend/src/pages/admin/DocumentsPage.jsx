@@ -110,12 +110,18 @@ const DocumentsPage = () => {
     },
   ];
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 ">Document Management</h1>
-          <p className="text-gray-500 text-sm mt-1">Upload and manage community forms, certificates, and guides</p>
+          <h1 className="text-2xl font-bold text-gray-900 ">Documents & Files</h1>
+          <p className="text-gray-500 text-sm mt-1">Manage downloadable forms and documents</p>
         </div>
         <button onClick={() => { setEditItem(null); reset({ status: 'active', category: 'General' }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
           <FiPlus className="w-4 h-4" /> Add Document
@@ -125,7 +131,7 @@ const DocumentsPage = () => {
         onPageChange={setPage} onSearchChange={(v) => { setSearch(v); setPage(1); }} serverSide emptyIcon={FiFileText} emptyText="No documents found" />
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Document' : 'Upload Document'} size="lg">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Document Title *</label>
