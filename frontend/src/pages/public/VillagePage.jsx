@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { FiMapPin, FiHome } from 'react-icons/fi';
 import { villageAPI } from '../../services/api';
 import { SkeletonPage } from '../../components/common/Skeleton';
+// TODO: This is mock/fallback data. Remove when actual data is filled in the database.
+import defaultVillageInfo from '../../data/mock/villageDefaultInfo.json';
 
 const VillagePage = () => {
   const [villages, setVillages] = useState([]);
@@ -15,18 +17,7 @@ const VillagePage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const defaultInfo = {
-    name: 'Konda',
-    tehsil: 'Kukshi',
-    district: 'Dhar',
-    state: 'Madhya Pradesh',
-    pinCode: '454335',
-    communityCenter: 'Sirvi Samaj Dharmshala, Konda',
-    purpose: 'Community meetings, weddings, social gatherings, religious programs, and cultural events.',
-    description: 'Konda is a peaceful village in Kukshi tehsil of Dhar district, Madhya Pradesh. Home to the Seervi Samaj community, the village is known for its unity, cultural traditions, and devotion to Shri Aai Mataji.',
-  };
-
-  const info = villages[0] || defaultInfo;
+  const info = villages[0] || defaultVillageInfo;
 
   return (
     <div className="bg-[#160D08] min-h-screen text-[#FFF3DD]">
