@@ -69,47 +69,58 @@ const LekhaJokhaPage = () => {
   // Find active category stats
   const activeCatStats = activeCategory === 'all'
     ? {
-        totalIncome: stats.categories?.reduce((sum, c) => sum + (c.totalIncome || 0), 0) || 0,
-        totalExpense: stats.categories?.reduce((sum, c) => sum + (c.totalExpense || 0), 0) || 0,
-        count: stats.categories?.reduce((sum, c) => sum + (c.count || 0), 0) || 0,
+        totalIncome: stats.totalIncome || stats.categories?.reduce((sum, c) => sum + (c.totalIncome || 0), 0) || 0,
+        totalExpense: stats.totalExpense || stats.categories?.reduce((sum, c) => sum + (c.totalExpense || 0), 0) || 0,
+        count: stats.totalEntries || stats.categories?.reduce((sum, c) => sum + (c.count || 0), 0) || 0,
       }
-    : stats.categories?.find(c => c._id === activeCategory) || {
-        totalIncome: 0,
-        totalExpense: 0,
-        count: 0
+    : {
+        totalIncome: stats.byCategory?.[activeCategory]?.income || stats.categories?.find(c => (c.id || c._id || c.category) === activeCategory)?.totalIncome || 0,
+        totalExpense: stats.byCategory?.[activeCategory]?.expense || stats.categories?.find(c => (c.id || c._id || c.category) === activeCategory)?.totalExpense || 0,
+        count: (stats.byCategory?.[activeCategory] ? 1 : 0),
       };
 
   const netBalance = activeCatStats.totalIncome - activeCatStats.totalExpense;
 
   const columns = [
-    { key: 'date', label: 'दिनांक (Date)', sortable: true, render: (v) => new Date(v).toLocaleDateString('hi-IN') },
-    { key: 'title', label: 'विवरण (Description)', render: (v) => <span className="font-bold text-[#FFF3DD]">{v}</span> },
-    { key: 'personName', label: 'सम्बन्धित व्यक्ति (Person)', render: (v) => <span className="text-[#CDBBA4] font-semibold">{v || '-'}</span> },
     {
-      key: 'type',
+      key: 'entry_date',
+      label: 'दिनांक (Date)',
+      sortable: true,
+      render: (v, r) => new Date(v || r.date || r.created_at || Date.now()).toLocaleDateString('hi-IN'),
+    },
+    { key: 'title', label: 'विवरण (Description)', render: (v) => <span className="font-bold text-[#FFF3DD]">{v}</span> },
+    { key: 'person_name', label: 'सम्बन्धित व्यक्ति (Person)', render: (v, r) => <span className="text-[#CDBBA4] font-semibold">{v || r.personName || '-'}</span> },
+    {
+      key: 'entry_type',
       label: 'प्रकार (Type)',
-      render: (v) => (
-        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
-          v === 'income'
-            ? 'bg-[#3F7655]/20 text-[#3F7655]'
-            : 'bg-[#7A2525]/30 text-[#C85A17]'
-        }`}>
-          {v === 'income' ? <FiArrowDownLeft className="w-3.5 h-3.5" /> : <FiArrowUpRight className="w-3.5 h-3.5" />}
-          {v === 'income' ? 'आवक (Income)' : 'जावक (Expense)'}
-        </span>
-      )
+      render: (v, r) => {
+        const type = v || r.type;
+        return (
+          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+            type === 'income'
+              ? 'bg-[#3F7655]/20 text-[#3F7655]'
+              : 'bg-[#7A2525]/30 text-[#C85A17]'
+          }`}>
+            {type === 'income' ? <FiArrowDownLeft className="w-3.5 h-3.5" /> : <FiArrowUpRight className="w-3.5 h-3.5" />}
+            {type === 'income' ? 'आवक (Income)' : 'जावक (Expense)'}
+          </span>
+        );
+      },
     },
     {
       key: 'amount',
       label: 'राशि (Amount)',
-      render: (v, r) => (
-        <span className={`font-bold ${r.type === 'income' ? 'text-[#3F7655]' : 'text-[#C85A17]'}`}>
-          ₹{v?.toLocaleString('en-IN')}
-        </span>
-      )
+      render: (v, r) => {
+        const type = r.entry_type || r.type;
+        return (
+          <span className={`font-bold ${type === 'income' ? 'text-[#3F7655]' : 'text-[#C85A17]'}`}>
+            ₹{v?.toLocaleString('en-IN')}
+          </span>
+        );
+      },
     },
-    { key: 'paymentMethod', label: 'माध्यम (Method)', render: (v) => <span className="uppercase text-xs font-bold text-[#CDBBA4]">{v}</span> },
-    { key: 'receiptNumber', label: 'रसीद क्र. (Receipt No.)', render: (v) => <span className="text-xs font-bold text-[#CDBBA4]">{v || '-'}</span> },
+    { key: 'payment_method', label: 'माध्यम (Method)', render: (v, r) => <span className="uppercase text-xs font-bold text-[#CDBBA4]">{v || r.paymentMethod || '-'}</span> },
+    { key: 'receipt_or_bill_no', label: 'रसीद क्र. (Receipt No.)', render: (v, r) => <span className="text-xs font-bold text-[#CDBBA4]">{v || r.receiptNumber || '-'}</span> },
   ];
 
   return (

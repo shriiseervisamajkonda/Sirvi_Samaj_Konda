@@ -99,24 +99,27 @@ const LekhaJokhaPage = () => {
 
   const columns = [
     {
-      key: 'date',
+      key: 'entry_date',
       label: 'Date',
       sortable: true,
       render: (v, r) => {
-        const d = v || r.created_at;
+        const d = v || r.entry_date || r.date || r.created_at;
         return d ? new Date(d).toLocaleDateString('en-IN') : '—';
       },
     },
     { key: 'title', label: 'Title / Description', sortable: true, render: (v) => <span className="font-semibold">{v || '—'}</span> },
     { key: 'category', label: 'Fund Category', sortable: true, render: (v) => <Badge variant="primary">{categories.find((c) => c.id === v)?.label || v || 'General'}</Badge> },
     {
-      key: 'type',
+      key: 'entry_type',
       label: 'Type',
       sortable: true,
-      render: (v) => <Badge variant={v === 'income' ? 'success' : 'danger'}>{v === 'income' ? 'Income (+)' : 'Expense (-)'}</Badge>,
+      render: (v, r) => {
+        const type = v || r.entry_type || r.type;
+        return <Badge variant={type === 'income' ? 'success' : 'danger'}>{type === 'income' ? 'Income (+)' : 'Expense (-)'}</Badge>;
+      },
     },
     { key: 'amount', label: 'Amount', sortable: true, render: (v) => <span className="font-bold">₹{Number(v || 0).toLocaleString('en-IN')}</span> },
-    { key: 'personName', label: 'Person', sortable: true, render: (_, r) => r.person_name || r.personName || '—' },
+    { key: 'person_name', label: 'Person', sortable: true, render: (v, r) => v || r.person_name || r.personName || '—' },
     {
       key: '_actions',
       label: 'Actions',
@@ -137,7 +140,15 @@ const LekhaJokhaPage = () => {
 
   const openCreate = () => {
     setEditItem(null);
-    reset({ type: 'income', category: 'aaiji_kosh', paymentMethod: 'cash', date: new Date().toISOString().split('T')[0] });
+    reset({
+      type: 'income',
+      entry_type: 'income',
+      category: 'aaiji_kosh',
+      paymentMethod: 'cash',
+      payment_method: 'cash',
+      date: new Date().toISOString().split('T')[0],
+      entry_date: new Date().toISOString().split('T')[0],
+    });
     setModalOpen(true);
   };
 

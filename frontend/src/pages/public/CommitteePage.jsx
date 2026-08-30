@@ -111,7 +111,7 @@ const CommitteePage = () => {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                   {main.map((m, i) => (
                     <motion.div
-                      key={m._id}
+                      key={m.id || m._id || i}
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
@@ -119,8 +119,8 @@ const CommitteePage = () => {
                       className="bg-white rounded-3xl p-6 text-center border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 shadow-md"
                     >
                       <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-1 mx-auto mb-4 overflow-hidden shadow-md">
-                        {m.photo ? (
-                          <img src={m.photo} alt={m.name} className="w-full h-full object-cover rounded-xl" />
+                        {(m.photo || m.photo_url) ? (
+                          <img src={m.photo || m.photo_url} alt={m.name} className="w-full h-full object-cover rounded-xl" />
                         ) : (
                           <div className="w-full h-full bg-[#FFF8EC] rounded-xl flex items-center justify-center text-[#7A2525] text-2xl font-black">
                             {m.name?.charAt(0)}
@@ -152,7 +152,7 @@ const CommitteePage = () => {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {others.map((m, i) => (
                     <motion.div
-                      key={m._id}
+                      key={m.id || m._id || i}
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
@@ -160,8 +160,8 @@ const CommitteePage = () => {
                       className="flex items-center gap-4 p-4 bg-white rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-lg transition-all duration-300 shadow-md"
                     >
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] p-0.5 shrink-0 overflow-hidden shadow-sm">
-                        {m.photo ? (
-                          <img src={m.photo} alt={m.name} className="w-full h-full object-cover rounded-xl" />
+                        {(m.photo || m.photo_url) ? (
+                          <img src={m.photo || m.photo_url} alt={m.name} className="w-full h-full object-cover rounded-xl" />
                         ) : (
                           <div className="w-full h-full bg-[#FFF8EC] rounded-xl flex items-center justify-center text-[#7A2525] font-bold">
                             {m.name?.charAt(0)}
