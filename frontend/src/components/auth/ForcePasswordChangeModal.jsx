@@ -82,19 +82,22 @@ const ForcePasswordChangeModal = () => {
 
             {/* Current / Default Password */}
             <div>
-              <label className="block text-xs font-bold text-[#7A2525] mb-1 uppercase tracking-wider">
+              <label htmlFor="force-current-password" className="block text-xs font-bold text-[#7A2525] mb-1 uppercase tracking-wider">
                 वर्तमान डिफ़ॉल्ट पासवर्ड (Current Password) *
               </label>
               <div className="relative">
                 <input
+                  id="force-current-password"
                   {...register('currentPassword', { required: 'वर्तमान पासवर्ड आवश्यक है' })}
                   type={showCurrentPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
                   placeholder="डिफ़ॉल्ट पासवर्ड (उदा. 8027@1)"
                   className="w-full pl-3.5 pr-10 py-2.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-xl text-sm text-[#2B211B] focus:outline-none focus:border-[#C85A17] font-medium"
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  aria-label={showCurrentPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
                 >
                   {showCurrentPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
@@ -107,22 +110,25 @@ const ForcePasswordChangeModal = () => {
 
             {/* New Password */}
             <div>
-              <label className="block text-xs font-bold text-[#7A2525] mb-1 uppercase tracking-wider">
+              <label htmlFor="force-new-password" className="block text-xs font-bold text-[#7A2525] mb-1 uppercase tracking-wider">
                 नया पासवर्ड (New Password) *
               </label>
               <div className="relative">
                 <input
+                  id="force-new-password"
                   {...register('newPassword', {
                     required: 'नया पासवर्ड आवश्यक है',
                     minLength: { value: 6, message: 'न्यूनतम 6 अक्षर आवश्यक हैं' },
                   })}
                   type={showNewPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   placeholder="अपना नया गुप्त पासवर्ड दर्ज करें"
                   className="w-full pl-3.5 pr-10 py-2.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-xl text-sm text-[#2B211B] focus:outline-none focus:border-[#C85A17] font-medium"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
+                  aria-label={showNewPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
                 >
                   {showNewPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
@@ -135,22 +141,25 @@ const ForcePasswordChangeModal = () => {
 
             {/* Confirm New Password */}
             <div>
-              <label className="block text-xs font-bold text-[#7A2525] mb-1 uppercase tracking-wider">
+              <label htmlFor="force-confirm-password" className="block text-xs font-bold text-[#7A2525] mb-1 uppercase tracking-wider">
                 पासवर्ड की पुष्टि (Confirm New Password) *
               </label>
               <div className="relative">
                 <input
+                  id="force-confirm-password"
                   {...register('confirmPassword', {
                     required: 'पासवर्ड पुष्टि आवश्यक है',
                     validate: (v) => v === newPassword || 'पासवर्ड मेल नहीं खा रहे हैं',
                   })}
                   type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   placeholder="नया पासवर्ड पुनः दर्ज करें"
                   className="w-full pl-3.5 pr-10 py-2.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-xl text-sm text-[#2B211B] focus:outline-none focus:border-[#C85A17] font-medium"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? 'पासवर्ड छुपाएं' : 'पासवर्ड देखें'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
                 >
                   {showConfirmPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
