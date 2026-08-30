@@ -30,6 +30,7 @@ const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
 const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'));
+const AuthCallbackPage = lazy(() => import('./pages/auth/AuthCallbackPage'));
 
 // Public Pages (Lazy)
 const HomePage = lazy(() => import('./pages/public/HomePage'));
@@ -108,6 +109,7 @@ createRoot(document.getElementById('root')).render(
                   {/* Auth Routes */}
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/auth/callback" element={<AuthCallbackPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
                   <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
@@ -138,6 +140,16 @@ createRoot(document.getElementById('root')).render(
                     <Route path="/gram-unit" element={<KondaGramUnitPage />} />
                     <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                     <Route path="/terms" element={<TermsPage />} />
+                    <Route
+                      path="/profile"
+                      element={
+                        <ProtectedRoute>
+                          <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6">
+                            <AdminProfilePage />
+                          </div>
+                        </ProtectedRoute>
+                      }
+                    />
                   </Route>
 
                   {/* Admin Routes */}

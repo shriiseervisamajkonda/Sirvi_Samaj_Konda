@@ -4,6 +4,7 @@ import { FiUser, FiShield, FiKey, FiSave, FiEye, FiEyeOff } from 'react-icons/fi
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../services/api';
+import { supabase } from '../../config/supabase';
 import toast from 'react-hot-toast';
 
 const ProfilePage = () => {
@@ -30,21 +31,18 @@ const ProfilePage = () => {
   const [googleActionLoading, setGoogleActionLoading] = useState(false);
 
   const handleLinkGoogle = async () => {
-    const inputEmail = window.prompt('अपना Google / Gmail ID दर्ज करें (Enter your Gmail to connect for 1-Click Login):', user?.email || '');
-    if (!inputEmail || !inputEmail.trim()) return;
-
     setGoogleActionLoading(true);
     try {
-      const res = await authAPI.updateProfile({
-        ...user,
-        email: inputEmail.trim(),
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?action=link`,
+        },
       });
-      if (updateUser) updateUser(res.data.data);
-      setValue('email', inputEmail.trim());
-      toast.success('Google खाता सफलतापूर्वक लिंक हो गया! (Google account connected!)');
+      if (error) throw error;
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Google खाता लिंक करने में विफल।');
-    } finally {
+      console.error('Google Link Error:', err);
+      toast.error(err.message || 'Google खाता प्रमाणीकरण शुरू करने में त्रुटि हुई।');
       setGoogleActionLoading(false);
     }
   };
@@ -208,16 +206,9 @@ const ProfilePage = () => {
               </div>
             </div>
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700">
-                  Google / Gmail ID (1-Click Google Sign-In)
-                </label>
-                {user?.email && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
-                    ✓ Linked
-                  </span>
-                )}
-              </div>
+              <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700 mb-1">
+                संपर्क ईमेल (Contact Email - For receipts & notices)
+              </label>
               <input
                 id="profile-email"
                 {...register('email')}
@@ -225,10 +216,10 @@ const ProfilePage = () => {
                 autoComplete="email"
                 inputMode="email"
                 className="input-field"
-                placeholder="your.name@gmail.com"
+                placeholder="your.name@example.com"
               />
               <p className="text-xs text-gray-500 mt-1">
-                अपना Google / Gmail ID लिंक करने के बाद आप 'Sign in with Google' से सीधे 1-क्लिक में लॉगिन कर सकेंगे।
+                रसीदें एवं सूचनाएं प्राप्त करने के लिए अपना संपर्क ईमेल दर्ज करें।
               </p>
             </div>
             <div>

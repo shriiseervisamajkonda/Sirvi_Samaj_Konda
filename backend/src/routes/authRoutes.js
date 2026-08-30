@@ -3,6 +3,7 @@ import {
   register,
   login,
   googleLogin,
+  linkGoogleOAuth,
   getMe,
   forgotPassword,
   updatePassword,
@@ -15,6 +16,7 @@ const router = express.Router();
 router.post('/register', register);
 router.post('/login', login);
 router.post('/google-login', googleLogin);
+router.post('/link-google-oauth', protect, linkGoogleOAuth);
 router.post('/forgot-password', forgotPassword);
 router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfile);
