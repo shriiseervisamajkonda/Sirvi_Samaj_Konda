@@ -188,7 +188,7 @@ const GalleryPage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Album</label>
               <select {...register('album')} className="input-field">
                 <option value="">No Album</option>
-                {albums.map(a => <option key={a._id} value={a._id}>{a.title}</option>)}
+                {albums.map(a => <option key={a.id || a._id} value={a.id || a._id}>{a.title}</option>)}
               </select>
             </div>
             <div>

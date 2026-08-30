@@ -89,3 +89,22 @@
   - Strict MVC architecture (`models/`, `controllers/`, `routes/`, `middleware/`, `services/`, `utils/`).
   - Centralized error handling via `asyncHandler` and `errorHandler.js`.
   - Always use parameterized queries or Supabase client helpers to eliminate SQL/NoSQL injection risks.
+
+---
+
+## 6. Mock Data & Fallback Standards
+
+- **No Inlined Mock Data in Component Files**:
+  - **NEVER** write inline mock arrays or large hardcoded dummy data objects directly inside component files (`.jsx`/`.js`).
+  - All mock or fallback data **MUST** be stored in clean, structured `.json` files inside the centralized directory:
+    ```
+    frontend/src/data/mock/
+    ```
+- **Mandatory TODO Note on Mock Data Usage**:
+  - Whenever mock data is imported or used as a fallback in any frontend file, **MUST** include an explicit comment:
+    ```javascript
+    // TODO: This is mock/fallback data. Remove when actual data is filled in the database.
+    ```
+- **Live Database Precedence**:
+  - Always prioritize querying live Supabase/backend APIs first.
+  - Fallback to mock JSON files only when the backend database table is empty during development/demonstrations.

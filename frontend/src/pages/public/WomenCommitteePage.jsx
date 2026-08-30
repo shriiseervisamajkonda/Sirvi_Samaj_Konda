@@ -124,11 +124,12 @@ const WomenCommitteePage = () => {
         if (committeeData.length > 0) {
           setCommitteeMembers(
             committeeData.slice(0, 6).map((member, index) => ({
-              _id: member._id || `committee-${index}`,
+              _id: member.id || member._id || `committee-${index}`,
+              id: member.id || member._id || `committee-${index}`,
               name: member.name || 'नाम यहाँ दर्ज किया जाएगा',
               designation: member.designation || member.role || 'सदस्य',
               about: member.about || member.bio || 'सदस्य का संक्षिप्त परिचय यहाँ दर्ज किया जाएगा।',
-              photo: member.photo || '',
+              photo: member.photo || member.photo_url || '',
             }))
           );
         }
@@ -136,21 +137,23 @@ const WomenCommitteePage = () => {
         if (eventData.length > 0) {
           setFeaturedActivities(
             eventData.slice(0, 3).map((eventItem, index) => ({
-              _id: eventItem._id || `activity-${index}`,
+              _id: eventItem.id || eventItem._id || `activity-${index}`,
+              id: eventItem.id || eventItem._id || `activity-${index}`,
               title: eventItem.title || 'कार्यक्रम का नाम',
-              date: eventItem.date || eventItem.startDate || 'तारीख दर्ज की जाएगी',
+              date: eventItem.date || eventItem.startDate || eventItem.start_date || 'तारीख दर्ज की जाएगी',
               location: eventItem.location || eventItem.venue || 'स्थान दर्ज किया जाएगा',
               description: eventItem.description || 'कार्यक्रम का विवरण यहाँ दर्ज किया जाएगा।',
-              image: eventItem.image || eventItem.photo || '/hero_background.webp',
-              extraInfo: eventItem.extraInfo || 'संबंधित जानकारी यहाँ उपलब्ध होगी।',
+              image: eventItem.image || eventItem.photo || eventItem.image_url || '/hero_background.webp',
+              extraInfo: eventItem.extraInfo || eventItem.extra_info || 'संबंधित जानकारी यहाँ उपलब्ध होगी।',
             }))
           );
 
           setUpcomingEvents(
             eventData.map((eventItem, index) => ({
-              _id: eventItem._id || `upcoming-${index}`,
+              _id: eventItem.id || eventItem._id || `upcoming-${index}`,
+              id: eventItem.id || eventItem._id || `upcoming-${index}`,
               title: eventItem.title || 'आगामी कार्यक्रम',
-              date: eventItem.date || eventItem.startDate || 'तारीख दर्ज की जाएगी',
+              date: eventItem.date || eventItem.startDate || eventItem.start_date || 'तारीख दर्ज की जाएगी',
               time: eventItem.time || 'समय दर्ज किया जाएगा',
               location: eventItem.location || eventItem.venue || 'स्थान दर्ज किया जाएगा',
               description: eventItem.description || 'विवरण यहाँ दर्ज किया जाएगा।',
@@ -161,10 +164,11 @@ const WomenCommitteePage = () => {
         if (galleryData.length > 0) {
           setGalleryItems(
             galleryData.slice(0, 6).map((item, index) => ({
-              _id: item._id || `gallery-${index}`,
+              _id: item.id || item._id || `gallery-${index}`,
+              id: item.id || item._id || `gallery-${index}`,
               title: item.title || 'कार्यक्रम',
               caption: item.caption || item.description || 'कार्यक्रम एवं गतिविधि गैलरी',
-              image: item.image || item.url || '/hero_background.webp',
+              image: item.image || item.url || item.image_url || '/hero_background.webp',
             }))
           );
         }
