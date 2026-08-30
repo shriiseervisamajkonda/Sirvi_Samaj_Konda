@@ -81,10 +81,11 @@ const DocumentsPage = () => {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((doc, i) => {
-              const ext = getFileExt(doc.fileUrl);
+              const fileUrl = doc.file_url || doc.fileUrl || doc.url || '';
+              const ext = getFileExt(fileUrl);
               return (
                 <motion.div
-                  key={doc._id}
+                  key={doc.id || doc._id || i}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -99,9 +100,9 @@ const DocumentsPage = () => {
                     {doc.description && <p className="text-[#CDBBA4] text-xs mb-2 line-clamp-2 leading-relaxed">{doc.description}</p>}
                     <div className="flex items-center gap-2">
                       {doc.category && <Badge variant="success" size="xs">{doc.category}</Badge>}
-                      {doc.fileUrl && (
+                      {fileUrl && (
                         <a
-                          href={doc.fileUrl}
+                          href={fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           download
