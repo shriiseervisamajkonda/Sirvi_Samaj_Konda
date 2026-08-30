@@ -157,8 +157,8 @@ export const createDonation = asyncHandler(async (req, res) => {
       payment_status: 'confirmed',
       receipt_number,
       collected_by_name,
-      collected_by_id: req.user?.id || null,
-      remarks: remarks || null,
+      collected_by_user_id: req.user?.id || null,
+      notes: remarks || null,
     })
     .select()
     .single();
