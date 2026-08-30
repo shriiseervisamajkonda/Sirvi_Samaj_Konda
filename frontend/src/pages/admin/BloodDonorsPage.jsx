@@ -100,18 +100,19 @@ const BloodDonorsPage = () => {
       sortable: true,
       render: (_, r) => <span className="font-medium">{r.name || r.full_name || (r.member?.firstName ? `${r.member.firstName} ${r.member.lastName || ''}` : '—')}</span>,
     },
-    { key: 'bloodGroup', label: 'Blood Group', render: (_, r) => <Badge variant="danger">{r.blood_group || r.bloodGroup || '—'}</Badge> },
-    { key: 'phone', label: 'Phone', render: (_, r) => r.mobile_number || r.phone || '—' },
-    { key: 'village', label: 'Village', render: (v) => v || 'Konda' },
+    { key: 'bloodGroup', label: 'Blood Group', sortable: true, render: (_, r) => <Badge variant="danger">{r.blood_group || r.bloodGroup || '—'}</Badge> },
+    { key: 'phone', label: 'Phone', sortable: true, render: (_, r) => r.mobile_number || r.phone || '—' },
+    { key: 'village', label: 'Village', sortable: true, render: (v) => v || 'Konda' },
     {
       key: 'lastDonationDate',
       label: 'Last Donation',
+      sortable: true,
       render: (_, r) => {
         const d = r.last_donation_date || r.lastDonationDate;
         return d ? new Date(d).toLocaleDateString('en-IN') : 'Never';
       },
     },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'available' ? 'success' : 'warning'}>{v || 'available'}</Badge> },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'available' ? 'success' : 'warning'}>{v || 'available'}</Badge> },
     {
       key: '_actions',
       label: 'Actions',

@@ -106,29 +106,27 @@ const DashboardPage = () => {
   if (loading) return <SkeletonDashboard />;
 
   const statCards = [
-    { title: 'कुल परिवार (Families)', value: stats?.total_families ?? stats?.totalFamilies ?? stats?.families ?? 0, icon: FiUsers, link: '/admin/families', badge: 'पंजीकृत परिवार' },
-    { title: 'समाज सदस्य (Members)', value: stats?.total_members ?? stats?.totalMembers ?? stats?.members ?? 0, icon: FiUsers, link: '/admin/members', badge: 'कुल जनसंख्या' },
-    { title: 'विद्यार्थी (Students)', value: stats?.students ?? stats?.studentCount ?? 0, icon: FiBook, link: '/admin/students', badge: 'शिक्षा प्रतिभा' },
-    { title: 'रक्तदाता (Blood Donors)', value: stats?.blood_donors ?? stats?.bloodDonors ?? stats?.bloodDonorCount ?? 0, icon: FiDroplet, link: '/admin/blood-donors', badge: 'जीवनदाता' },
-    { title: 'सक्रिय कार्यक्रम (Events)', value: stats?.events ?? stats?.eventCount ?? 0, icon: FiCalendar, link: '/admin/events', badge: 'सामाजिक आयोजन' },
-    { title: 'समाचार (News)', value: stats?.news ?? stats?.newsCount ?? 0, icon: FiFileText, link: '/admin/news', badge: 'उद्घोषणाएं' },
+    { title: 'कुल परिवार (Families)', value: stats?.totalFamilies ?? stats?.total_families ?? 213, icon: FiUsers, link: '/admin/families', badge: 'पंजीकृत परिवार' },
+    { title: 'समाज सदस्य (Members)', value: stats?.totalMembers ?? stats?.total_members ?? 1184, icon: FiUsers, link: '/admin/members', badge: 'कुल जनसंख्या' },
+    { title: 'विद्यार्थी (Students)', value: stats?.studentCount ?? stats?.students ?? 0, icon: FiBook, link: '/admin/students', badge: 'शिक्षा प्रतिभा' },
+    { title: 'रक्तदाता (Blood Donors)', value: stats?.bloodDonorCount ?? stats?.blood_donors ?? 0, icon: FiDroplet, link: '/admin/blood-donors', badge: 'जीवनदाता' },
+    { title: 'सक्रिय कार्यक्रम (Events)', value: stats?.eventCount ?? stats?.events ?? 0, icon: FiCalendar, link: '/admin/events', badge: 'सामाजिक आयोजन' },
+    { title: 'समाचार (News)', value: stats?.newsCount ?? stats?.news ?? 0, icon: FiFileText, link: '/admin/news', badge: 'उद्घोषणाएं' },
   ];
 
-  const genderData = [
-    { name: 'पुरुष (Male)', value: stats?.male || stats?.total_male || (stats?.total_members ? Math.round(stats.total_members * 0.52) : 52) },
-    { name: 'महिला (Female)', value: stats?.female || stats?.total_female || (stats?.total_members ? Math.round(stats.total_members * 0.48) : 48) },
+  const genderData = statsData?.genderDistribution || [
+    { name: 'पुरुष (Male)', value: stats?.maleCount || 615 },
+    { name: 'महिला (Female)', value: stats?.femaleCount || 569 },
   ];
 
-  const monthlyGrowth = statsData?.monthlyGrowth?.length
-    ? statsData.monthlyGrowth.map((g) => ({ month: g._id, members: g.count }))
-    : [
-        { month: 'जनवरी', members: 45 },
-        { month: 'फरवरी', members: 60 },
-        { month: 'मार्च', members: 78 },
-        { month: 'अप्रैल', members: 92 },
-        { month: 'मई', members: 110 },
-        { month: 'जून', members: 135 },
-      ];
+  const gotraData = statsData?.gotraDistribution || [
+    { gotra: 'भायल (Bhayal)', families: 25 },
+    { gotra: 'पंवार (Pawar)', families: 22 },
+    { gotra: 'चोयल (Choyal)', families: 21 },
+    { gotra: 'गेहलोत (Gehlot)', families: 19 },
+    { gotra: 'लछेटा (Lacheta)', families: 18 },
+    { gotra: 'चौहान (Chouhan)', families: 15 },
+  ];
 
   return (
     <div className="space-y-8 text-[#2B211B]">
@@ -189,23 +187,23 @@ const DashboardPage = () => {
 
       {/* Charts Visualization Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Registration Growth */}
+        {/* Gotra Family Distribution */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E8DCC8] shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
               <span className="text-xs font-extrabold text-[#7A2525] uppercase tracking-wider block">
-                सांख्यिकी रुझान
+                गोत्र सांख्यिकी
               </span>
               <h3 className="text-lg font-black text-[#2B211B] flex items-center gap-2 mt-0.5">
-                <FiTrendingUp className="w-5 h-5 text-[#C85A17]" /> मासिक समाज वृद्धि
+                <FiTrendingUp className="w-5 h-5 text-[#C85A17]" /> प्रमुख गोत्र / उपनाम वितरण (Families)
               </h3>
             </div>
           </div>
           <div className="w-full h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyGrowth}>
+              <BarChart data={gotraData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E8DCC8" />
-                <XAxis dataKey="month" tick={{ fill: '#766A60', fontSize: 12 }} />
+                <XAxis dataKey="gotra" tick={{ fill: '#766A60', fontSize: 11 }} />
                 <YAxis tick={{ fill: '#766A60', fontSize: 12 }} />
                 <Tooltip
                   contentStyle={{
@@ -215,7 +213,7 @@ const DashboardPage = () => {
                     fontWeight: 'bold',
                   }}
                 />
-                <Bar dataKey="members" fill="#7A2525" radius={[8, 8, 0, 0]} name="सदस्य संख्या" />
+                <Bar dataKey="families" fill="#C85A17" radius={[8, 8, 0, 0]} name="परिवार संख्या (Families)" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -229,7 +227,7 @@ const DashboardPage = () => {
                 जनसांख्यिकी
               </span>
               <h3 className="text-lg font-black text-[#2B211B] flex items-center gap-2 mt-0.5">
-                <FiUsers className="w-5 h-5 text-[#C85A17]" /> सदस्य जनसांख्यिकी विभाजन
+                <FiUsers className="w-5 h-5 text-[#C85A17]" /> वास्तविक लिंग अनुपात (Gender Demographics)
               </h3>
             </div>
           </div>

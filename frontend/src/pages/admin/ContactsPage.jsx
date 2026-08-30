@@ -84,8 +84,8 @@ const ContactsPage = () => {
   const columns = [
     { key: 'name', label: 'Name', sortable: true, render: (v) => <span className="font-medium text-[#2B211B]">{v || '—'}</span> },
     { key: 'email', label: 'Email', sortable: true, render: (v) => v || '—' },
-    { key: 'subject', label: 'Subject', render: (v) => <span className="line-clamp-1">{v || '—'}</span> },
-    { key: 'status', label: 'Status', render: (v) => getStatusBadge(v) },
+    { key: 'subject', label: 'Subject', sortable: true, render: (v) => <span className="line-clamp-1">{v || '—'}</span> },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => getStatusBadge(v) },
     {
       key: 'createdAt',
       label: 'Date',

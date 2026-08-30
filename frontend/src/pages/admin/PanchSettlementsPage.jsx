@@ -98,15 +98,16 @@ const PanchSettlementsPage = () => {
     {
       key: 'settlementDate',
       label: 'Date',
+      sortable: true,
       render: (v, r) => {
         const d = v || r.settlement_date || r.created_at;
         return d ? new Date(d).toLocaleDateString('en-IN') : '—';
       },
     },
-    { key: 'title', label: 'Case Subject', render: (v) => <span className="font-semibold">{v || '—'}</span> },
-    { key: 'parties', label: 'Parties Involved', render: (v) => v || '—' },
+    { key: 'title', label: 'Case Subject', sortable: true, render: (v) => <span className="font-semibold">{v || '—'}</span> },
+    { key: 'parties', label: 'Parties Involved', sortable: true, render: (v) => v || '—' },
     { key: 'panchs', label: 'Panch Arbitrators', render: (v) => v || '-' },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'resolved' ? 'success' : v === 'ongoing' ? 'warning' : 'danger'}>{v || 'resolved'}</Badge> },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'resolved' ? 'success' : v === 'ongoing' ? 'warning' : 'danger'}>{v || 'resolved'}</Badge> },
     {
       key: '_actions',
       label: 'Actions',

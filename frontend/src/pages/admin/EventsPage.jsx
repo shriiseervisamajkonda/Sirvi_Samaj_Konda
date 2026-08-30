@@ -92,9 +92,9 @@ const EventsPage = () => {
         return d ? new Date(d).toLocaleDateString('en-IN') : '—';
       },
     },
-    { key: 'location', label: 'Location', render: (v) => v || '—' },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'published' ? 'success' : 'warning'}>{v || 'published'}</Badge> },
-    { key: 'registrationRequired', label: 'Registration', render: (v) => <Badge variant={v ? 'info' : 'default'}>{v ? 'Required' : 'Open'}</Badge> },
+    { key: 'location', label: 'Location', sortable: true, render: (v) => v || '—' },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'published' ? 'success' : 'warning'}>{v || 'published'}</Badge> },
+    { key: 'registrationRequired', label: 'Registration', sortable: true, render: (v) => <Badge variant={v ? 'info' : 'default'}>{v ? 'Required' : 'Open'}</Badge> },
     {
       key: '_actions',
       label: 'Actions',

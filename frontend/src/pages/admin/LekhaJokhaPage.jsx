@@ -98,20 +98,22 @@ const LekhaJokhaPage = () => {
     {
       key: 'date',
       label: 'Date',
+      sortable: true,
       render: (v, r) => {
         const d = v || r.created_at;
         return d ? new Date(d).toLocaleDateString('en-IN') : '—';
       },
     },
-    { key: 'title', label: 'Title / Description', render: (v) => <span className="font-semibold">{v || '—'}</span> },
-    { key: 'category', label: 'Fund Category', render: (v) => <Badge variant="primary">{categories.find((c) => c.id === v)?.label || v || 'General'}</Badge> },
+    { key: 'title', label: 'Title / Description', sortable: true, render: (v) => <span className="font-semibold">{v || '—'}</span> },
+    { key: 'category', label: 'Fund Category', sortable: true, render: (v) => <Badge variant="primary">{categories.find((c) => c.id === v)?.label || v || 'General'}</Badge> },
     {
       key: 'type',
       label: 'Type',
+      sortable: true,
       render: (v) => <Badge variant={v === 'income' ? 'success' : 'danger'}>{v === 'income' ? 'Income (+)' : 'Expense (-)'}</Badge>,
     },
-    { key: 'amount', label: 'Amount', render: (v) => <span className="font-bold">₹{Number(v || 0).toLocaleString('en-IN')}</span> },
-    { key: 'personName', label: 'Person', render: (_, r) => r.person_name || r.personName || '—' },
+    { key: 'amount', label: 'Amount', sortable: true, render: (v) => <span className="font-bold">₹{Number(v || 0).toLocaleString('en-IN')}</span> },
+    { key: 'personName', label: 'Person', sortable: true, render: (_, r) => r.person_name || r.personName || '—' },
     {
       key: '_actions',
       label: 'Actions',

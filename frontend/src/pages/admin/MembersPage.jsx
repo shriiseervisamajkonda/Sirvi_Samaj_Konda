@@ -178,10 +178,11 @@ const MembersPage = () => {
         );
       },
     },
-    { key: 'gender', label: 'लिंग', render: (v) => <Badge variant={v === 'female' ? 'warning' : 'info'}>{v === 'female' ? 'महिला' : v === 'male' ? 'पुरुष' : v || '—'}</Badge> },
+    { key: 'gender', label: 'लिंग', sortable: true, render: (v) => <Badge variant={v === 'female' ? 'warning' : 'info'}>{v === 'female' ? 'महिला' : v === 'male' ? 'पुरुष' : v || '—'}</Badge> },
     {
       key: 'bloodGroup',
       label: 'रक्त समूह',
+      sortable: true,
       render: (_, r) => {
         const bg = r.blood_group || r.bloodGroup;
         return bg && bg !== 'Unknown' ? (
@@ -189,10 +190,11 @@ const MembersPage = () => {
         ) : '—';
       },
     },
-    { key: 'occupation', label: 'व्यवसाय', render: (v) => v || '—' },
+    { key: 'occupation', label: 'व्यवसाय', sortable: true, render: (v) => v || '—' },
     {
       key: 'family',
       label: 'परिवार',
+      sortable: true,
       render: (_, r) => {
         if (r.families?.head_name) return `${r.families.head_name} (${r.families.panchayat_family_id || ''})`;
         if (r.family?.headOfFamily) return `${r.family.headOfFamily} (${r.family.familyId || ''})`;
@@ -203,12 +205,13 @@ const MembersPage = () => {
     {
       key: 'phone',
       label: 'फ़ोन',
+      sortable: true,
       render: (_, r) => {
         const num = r.mobile_number || r.phone;
         return num ? <span className="font-mono text-xs">{num}</span> : '—';
       },
     },
-    { key: 'status', label: 'स्थिति', render: (v) => <Badge variant={v === 'inactive' ? 'danger' : 'success'}>{v === 'inactive' ? 'निष्क्रिय' : 'सक्रिय'}</Badge> },
+    { key: 'status', label: 'स्थिति', sortable: true, render: (v) => <Badge variant={v === 'inactive' ? 'danger' : 'success'}>{v === 'inactive' ? 'निष्क्रिय' : 'सक्रिय'}</Badge> },
     {
       key: '_actions',
       label: 'कार्यवाही',

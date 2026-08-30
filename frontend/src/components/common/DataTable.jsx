@@ -43,14 +43,39 @@ const DataTable = ({
     if (onSearchChange) onSearchChange(value);
   };
 
+  const getCellValue = (row, key) => {
+    if (!row || !key) return '';
+    // Direct property
+    if (row[key] !== undefined && row[key] !== null) return row[key];
+    
+    // Snake_case equivalent
+    const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    if (row[snakeKey] !== undefined && row[snakeKey] !== null) return row[snakeKey];
+
+    // Specific domain mappings
+    if (key === 'headOfFamily') return row.head_name || row.headOfFamily || '';
+    if (key === 'surname') return row.gotra || row.surname || '';
+    if (key === 'mobileNumber' || key === 'phone') return row.head_mobile || row.mobile_number || row.phone || '';
+    if (key === 'numberOfMembers') return Number(row.total_members ?? row.numberOfMembers ?? 0);
+    if (key === 'agriculturalLandArea') return Number(row.land_area_acres ?? row.agriculturalLandArea ?? row.land_holding ?? 0);
+    if (key === 'familyId') return row.panchayat_family_id || row.familyId || '';
+    if (key === 'role') return row.role?.name || row.role || '';
+    if (key === 'status') return row.is_active === false || row.status === 'inactive' ? 'inactive' : 'active';
+    if (key === 'createdAt') return row.created_at || row.createdAt || '';
+    if (key === 'date' || key === 'settlementDate' || key === 'entryDate') return row.entry_date || row.settlement_date || row.date || row.created_at || '';
+    if (key === 'amount') return Number(row.amount ?? 0);
+
+    return '';
+  };
+
   const filtered = useMemo(() => {
     if (serverSide || !localSearch) return data || [];
     const q = localSearch.toLowerCase();
     return (data || []).filter((row) =>
       columns.some((col) => {
         if (!col.key) return false;
-        const val = row[col.key];
-        return val && String(val).toLowerCase().includes(q);
+        const val = getCellValue(row, col.key);
+        return val !== undefined && val !== null && String(val).toLowerCase().includes(q);
       })
     );
   }, [data, localSearch, columns, serverSide]);
@@ -58,15 +83,18 @@ const DataTable = ({
   const sorted = useMemo(() => {
     if (!sortField) return filtered;
     return [...filtered].sort((a, b) => {
-      const aVal = a[sortField];
-      const bVal = b[sortField];
-      if (aVal === null || aVal === undefined) return 1;
-      if (bVal === null || bVal === undefined) return -1;
+      const aVal = getCellValue(a, sortField);
+      const bVal = getCellValue(b, sortField);
+
+      if (aVal === null || aVal === undefined || aVal === '') return 1;
+      if (bVal === null || bVal === undefined || bVal === '') return -1;
+
       const aNum = Number(aVal);
       const bNum = Number(bVal);
-      if (!isNaN(aNum) && !isNaN(bNum) && typeof aVal !== 'boolean') {
+      if (!isNaN(aNum) && !isNaN(bNum) && typeof aVal !== 'boolean' && typeof bVal !== 'boolean' && String(aVal).trim() !== '' && String(bVal).trim() !== '') {
         return sortDir === 'asc' ? aNum - bNum : bNum - aNum;
       }
+
       return sortDir === 'asc'
         ? String(aVal).localeCompare(String(bVal), undefined, { numeric: true, sensitivity: 'base' })
         : String(bVal).localeCompare(String(aVal), undefined, { numeric: true, sensitivity: 'base' });
@@ -157,8 +185,16 @@ const DataTable = ({
                   >
                     <div className="flex items-center gap-1.5">
                       {col.label}
-                      {col.sortable && sortField === col.key && (
-                        sortDir === 'asc' ? <FiChevronUp className="w-3.5 h-3.5 text-[#C85A17]" /> : <FiChevronDown className="w-3.5 h-3.5 text-[#C85A17]" />
+                      {col.sortable && (
+                        sortField === col.key ? (
+                          sortDir === 'asc' ? (
+                            <FiChevronUp className="w-3.5 h-3.5 text-[#C85A17]" />
+                          ) : (
+                            <FiChevronDown className="w-3.5 h-3.5 text-[#C85A17]" />
+                          )
+                        ) : (
+                          <span className="text-[#CDBBA4] text-xs opacity-50">⇅</span>
+                        )
                       )}
                     </div>
                   </th>
