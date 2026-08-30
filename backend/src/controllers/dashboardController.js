@@ -11,15 +11,21 @@ const formatGotraName = (rawGotra) => {
     gehlot: 'गेहलोत (Gehlot)',
     lacheta: 'लछेटा (Lacheta)',
     chouhan: 'चौहान (Chouhan)',
-    mulewa: 'मुलेवा (Mulewa)',
-    solanki: 'सोलंकी (Solanki)',
+    shinada: 'शिणादा (Shinada)',
     rathore: 'राठौड़ (Rathore)',
-    barfa: 'बर्फा (Barfa)',
+    sencha: 'सेंचा (Sencha)',
+    solanki: 'सोलंकी (Solanki)',
     kag: 'काग (Kag)',
+    barfa: 'बर्फा (Barfa)',
+    padiyar: 'पड़ियार (Padiyar)',
+    agalcha: 'आगलचा (Agalcha)',
+    parihar: 'परिहार (Parihar)',
+    septa: 'सेपटा (Septa)',
+    septan: 'सेपटा (Septa)',
+    mulewa: 'मुलेवा (Mulewa)',
     aagla: 'आगला (Aagla)',
     mogrecha: 'मोगरेचा (Mogrecha)',
     hambad: 'हाम्बड़ (Hambad)',
-    septan: 'सेपटां (Septan)',
   };
   return map[g] || (rawGotra ? `${rawGotra.charAt(0).toUpperCase() + rawGotra.slice(1)}` : 'अन्य (Other)');
 };
@@ -65,7 +71,6 @@ export const getDashboardStats = asyncHandler(async (_req, res) => {
 
   const gotraDistribution = Object.entries(gotraCounts)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 6)
     .map(([gotra, count]) => ({
       gotra: formatGotraName(gotra),
       families: count,

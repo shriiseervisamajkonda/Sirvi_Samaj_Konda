@@ -188,34 +188,42 @@ const DashboardPage = () => {
       {/* Charts Visualization Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Gotra Family Distribution */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E8DCC8] shadow-sm">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E8DCC8] shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <span className="text-xs font-extrabold text-[#7A2525] uppercase tracking-wider block">
-                गोत्र सांख्यिकी
+                गोत्र सांख्यिकी (16 कुल गोत्र)
               </span>
               <h3 className="text-lg font-black text-[#2B211B] flex items-center gap-2 mt-0.5">
-                <FiTrendingUp className="w-5 h-5 text-[#C85A17]" /> प्रमुख गोत्र / उपनाम वितरण (Families)
+                <FiTrendingUp className="w-5 h-5 text-[#C85A17]" /> समाज गोत्र / उपनाम वितरण (213 परिवार)
               </h3>
             </div>
           </div>
-          <div className="w-full h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={gotraData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E8DCC8" />
-                <XAxis dataKey="gotra" tick={{ fill: '#766A60', fontSize: 11 }} />
-                <YAxis tick={{ fill: '#766A60', fontSize: 12 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#FFF8EC',
-                    borderColor: '#E8DCC8',
-                    borderRadius: '1rem',
-                    fontWeight: 'bold',
-                  }}
-                />
-                <Bar dataKey="families" fill="#C85A17" radius={[8, 8, 0, 0]} name="परिवार संख्या (Families)" />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="w-full overflow-x-auto pb-2">
+            <div className="min-w-[620px] h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={gotraData} margin={{ top: 10, right: 10, left: -20, bottom: 45 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E8DCC8" />
+                  <XAxis
+                    dataKey="gotra"
+                    interval={0}
+                    angle={-45}
+                    textAnchor="end"
+                    tick={{ fill: '#766A60', fontSize: 10, fontWeight: 'bold' }}
+                  />
+                  <YAxis tick={{ fill: '#766A60', fontSize: 11 }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#FFF8EC',
+                      borderColor: '#E8DCC8',
+                      borderRadius: '1rem',
+                      fontWeight: 'bold',
+                    }}
+                  />
+                  <Bar dataKey="families" fill="#C85A17" radius={[6, 6, 0, 0]} name="परिवार संख्या (Families)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 

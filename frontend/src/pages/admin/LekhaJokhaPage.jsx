@@ -51,6 +51,9 @@ const LekhaJokhaPage = () => {
     const targetId = editItem ? (editItem.id || editItem._id) : null;
     const payload = {
       ...data,
+      entry_type: data.type || data.entry_type,
+      entry_date: data.date || data.entry_date,
+      receipt_or_bill_no: data.receiptNumber || data.receipt_or_bill_no,
       person_name: data.personName || data.person_name,
       payment_method: data.paymentMethod || data.payment_method,
       amount: Number(data.amount) || 0,

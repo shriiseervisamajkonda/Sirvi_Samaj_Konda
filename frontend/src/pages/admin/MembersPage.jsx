@@ -70,8 +70,8 @@ const MembersPage = () => {
     setEditItem(member);
     reset({
       ...member,
-      firstName: member.firstName || member.full_name || '',
-      lastName: member.lastName || '',
+      firstName: member.first_name || member.firstName || (member.full_name ? member.full_name.split(' ')[0] : ''),
+      lastName: member.last_name || member.lastName || (member.full_name ? member.full_name.split(' ').slice(1).join(' ') : ''),
       guardianName: member.relative_name || member.guardianName || '',
       phone: member.mobile_number || member.phone || '',
       bloodGroup: member.blood_group || member.bloodGroup || 'Unknown',
@@ -79,9 +79,10 @@ const MembersPage = () => {
       gender: member.gender || 'male',
       occupation: member.occupation || '',
       education: member.education || '',
-      relation: member.relation_with_head || member.relation || '',
+      relation: member.relation_to_head || member.relation || '',
+      family: member.family_id || member.family?._id || member.family?.id || '',
       village: member.village || 'Konda',
-      status: member.status || 'active',
+      status: member.life_status === 'deceased' || member.status === 'inactive' ? 'inactive' : 'active',
     });
     setModalOpen(true);
   };
@@ -91,24 +92,29 @@ const MembersPage = () => {
     const targetId = editItem ? (editItem.id || editItem._id) : null;
     
     // Clean and map payload for both schemas
-    const fullName = data.firstName && data.lastName
-      ? `${data.firstName} ${data.lastName}`.trim()
-      : (data.firstName || data.full_name || '');
+    const fName = (data.firstName || data.first_name || '').trim();
+    const lName = (data.lastName || data.last_name || '').trim();
+    const guardian = (data.guardianName || data.relative_name || '').trim();
+    const fullName = fName && lName
+      ? `${fName} ${lName}`.trim()
+      : (data.full_name || fName || '');
 
     const payload = {
-      ...data,
+      first_name: fName,
+      last_name: lName,
       full_name: fullName,
-      mobile_number: data.phone || data.mobile_number,
-      relative_name: data.guardianName || data.relative_name,
+      family_id: data.family || data.family_id || undefined,
+      mobile_number: data.phone || data.mobile_number || null,
+      relative_name: guardian || null,
       blood_group: data.bloodGroup || data.blood_group || 'Unknown',
-      relation_with_head: data.relation || data.relation_with_head,
+      relation_to_head: data.relation || data.relation_to_head || 'other',
       marital_status: data.maritalStatus || data.marital_status || 'single',
-      dob: data.dateOfBirth || data.dob,
+      gender: data.gender || 'male',
+      education: data.education || null,
+      occupation: data.occupation || null,
+      dob: data.dateOfBirth || data.dob || null,
+      life_status: data.status === 'inactive' ? 'inactive' : 'active',
     };
-
-    if (!payload.bloodGroup) payload.bloodGroup = 'Unknown';
-    if (!payload.maritalStatus) payload.maritalStatus = 'single';
-    if (!payload.family) delete payload.family;
 
     try {
       if (editItem && targetId) {
@@ -329,7 +335,10 @@ const MembersPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="संबंधित परिवार (Family)">
                 <SearchableSelect
-                  options={families.map(f => ({ value: f._id, label: `${f.headOfFamily} (${f.familyId})` }))}
+                  options={families.map(f => ({
+                    value: f.id || f._id,
+                    label: `${f.head_name || f.headOfFamily || 'परिवार'} (${f.panchayat_family_id || f.familyId || ''}) - ${f.gotra || ''}`
+                  }))}
                   value={watch('family')}
                   onChange={(val) => setValue('family', val, { shouldDirty: true })}
                   placeholder="परिवार चुनें (Select Family)"

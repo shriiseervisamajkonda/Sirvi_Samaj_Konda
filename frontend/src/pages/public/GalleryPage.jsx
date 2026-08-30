@@ -35,7 +35,7 @@ const GalleryPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = selectedAlbum === 'All' ? images : images.filter(img => img.album?.title === selectedAlbum || img.album?._id === selectedAlbum);
+  const filtered = selectedAlbum === 'All' ? images : images.filter(img => img.album?.title === selectedAlbum || img.album?._id === selectedAlbum || img.album?.id === selectedAlbum || img.album_id === selectedAlbum);
 
   const openLightbox = (idx) => setLightbox(idx);
   const closeLightbox = () => setLightbox(null);
@@ -87,19 +87,22 @@ const GalleryPage = () => {
           >
             सभी चित्र ({images.length})
           </button>
-          {albums.map(album => (
+          {albums.map((album, aIdx) => {
+            const albumId = album.id || album._id || `album-${aIdx}`;
+            return (
             <button
-              key={album._id}
-              onClick={() => setSelectedAlbum(album._id)}
+              key={albumId}
+              onClick={() => setSelectedAlbum(albumId)}
               className={`px-6 py-2.5 rounded-2xl text-xs sm:text-sm font-bold border transition-all cursor-pointer ${
-                selectedAlbum === album._id
+                selectedAlbum === albumId
                   ? 'bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white border-transparent shadow-md font-black'
                   : 'bg-white border-[#E8DCC8] text-[#2B211B] hover:bg-[#FFF8EC]'
               }`}
             >
-              {album.title}
+              {album.title || album.name}
             </button>
-          ))}
+            );
+          })}
         </div>
 
         {loading ? (
@@ -110,7 +113,7 @@ const GalleryPage = () => {
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
             {filtered.map((img, i) => (
               <motion.div
-                key={img._id || i}
+                key={img.id || img._id || i}
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}

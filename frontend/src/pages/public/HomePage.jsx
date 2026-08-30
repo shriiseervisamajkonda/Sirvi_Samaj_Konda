@@ -983,7 +983,7 @@ const HomePage = () => {
               <div className="space-y-4">
                 {news.length > 0 ? news.map((item, i) => (
                   <motion.div
-                    key={item._id}
+                    key={item.id || item._id || i}
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
@@ -1001,7 +1001,7 @@ const HomePage = () => {
                         {item.content?.replace(/<[^>]*>/g, '') || item.excerpt}
                       </p>
                       <p className="text-[#C85A17] text-xs mt-2 font-bold">
-                        {new Date(item.createdAt).toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {new Date(item.created_at || item.createdAt || Date.now()).toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
                   </motion.div>
@@ -1031,7 +1031,7 @@ const HomePage = () => {
               <div className="space-y-4">
                 {events.length > 0 ? events.map((event, i) => (
                   <motion.div
-                    key={event._id}
+                    key={event.id || event._id || i}
                     initial={{ opacity: 0, x: 20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
@@ -1041,7 +1041,7 @@ const HomePage = () => {
                     <div className="w-14 h-14 bg-gradient-to-br from-[#7A2525] to-[#C85A17] rounded-2xl flex items-center justify-center shrink-0 shadow-md">
                       <div className="text-center text-white">
                         <p className="text-lg font-black leading-none">
-                          {new Date(event.date || event.startDate).getDate()}
+                          {new Date(event.start_date || event.startDate || event.date || Date.now()).getDate()}
                         </p>
                         <p className="text-[10px] text-orange-200 font-bold uppercase mt-0.5">
                           {new Date(event.date || event.startDate).toLocaleString('hi-IN', { month: 'short' })}

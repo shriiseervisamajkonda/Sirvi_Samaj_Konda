@@ -24,10 +24,14 @@ const generateTokens = (user) => {
 
 // POST /api/auth/register
 export const register = asyncHandler(async (req, res) => {
-  const { name, phone, email, password, role = 'member', panchayat_family_id } = req.body;
+  const { name, firstName, lastName, first_name, last_name, phone, email, password, role = 'member', panchayat_family_id } = req.body;
 
-  if (!phone || !password || !name) {
-    return res.status(400).json({ success: false, message: 'Name, Phone and Password are required' });
+  const fName = (firstName || first_name || '').trim();
+  const lName = (lastName || last_name || '').trim();
+  const resolvedName = (fName || lName) ? `${fName} ${lName}`.trim() : (name || '').trim();
+
+  if (!phone || !password || !resolvedName) {
+    return res.status(400).json({ success: false, message: 'First name (or full name), Phone, and Password are required' });
   }
 
   // Check if phone or email already registered
@@ -46,7 +50,7 @@ export const register = asyncHandler(async (req, res) => {
   const { data: user, error } = await supabase
     .from('users')
     .insert({
-      name,
+      name: resolvedName,
       phone,
       email: email || null,
       password_hash: passwordHash,
@@ -185,3 +189,55 @@ export const updatePassword = asyncHandler(async (req, res) => {
 
   res.json({ success: true, message: 'Password updated successfully' });
 });
+
+// PUT /api/auth/profile
+export const updateProfile = asyncHandler(async (req, res) => {
+  const { name, firstName, lastName, first_name, last_name, email, phone } = req.body;
+
+  const updates = {};
+  const fName = (firstName || first_name || '').trim();
+  const lName = (lastName || last_name || '').trim();
+  if (fName || lName) {
+    updates.name = `${fName} ${lName}`.trim();
+  } else if (name !== undefined) {
+    updates.name = name.trim();
+  }
+  if (phone !== undefined) updates.phone = phone.trim();
+  if (email !== undefined) {
+    const cleanEmail = email ? email.trim().toLowerCase() : null;
+    // Check if email already in use by another user
+    if (cleanEmail) {
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', cleanEmail)
+        .neq('id', req.user.id)
+        .maybeSingle();
+
+      if (existingUser) {
+        return res.status(400).json({ success: false, message: 'This email is already associated with another account' });
+      }
+    }
+    updates.email = cleanEmail;
+  }
+
+  updates.updated_at = new Date().toISOString();
+
+  const { data: updatedUser, error } = await supabase
+    .from('users')
+    .update(updates)
+    .eq('id', req.user.id)
+    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id')
+    .single();
+
+  if (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+
+  res.json({
+    success: true,
+    message: 'Profile updated successfully',
+    data: updatedUser,
+  });
+});
+

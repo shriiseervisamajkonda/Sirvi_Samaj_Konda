@@ -89,9 +89,12 @@ const BloodDonorPage = () => {
           <EmptyState icon={FiDroplet} title="No donors found" description={selectedBG ? `No ${selectedBG} donors available` : 'No blood donors registered.'} />
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {donors.map((donor, i) => (
+            {donors.map((donor, i) => {
+              const bg = donor.blood_group || donor.bloodGroup || 'O+';
+              const phoneNum = donor.mobile_number || donor.phone;
+              return (
               <motion.div
-                key={donor._id}
+                key={donor.id || donor._id || i}
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
@@ -99,13 +102,13 @@ const BloodDonorPage = () => {
                 className="bg-white rounded-2xl p-5 border border-[#E8DCC8] hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${bgColorMap[donor.bloodGroup] || 'from-gray-400 to-gray-600'} flex items-center justify-center text-white text-lg font-bold shadow-lg overflow-hidden`}>
-                    {donor.photo ? <img src={donor.photo} alt="Donor" className="w-full h-full object-cover" /> : donor.bloodGroup}
+                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${bgColorMap[bg] || 'from-gray-400 to-gray-600'} flex items-center justify-center text-white text-lg font-bold shadow-lg overflow-hidden`}>
+                    {donor.photo ? <img src={donor.photo} alt="Donor" className="w-full h-full object-cover" /> : bg}
                   </div>
                   <div>
                     <h3 className="font-bold text-[#2B211B] text-sm">{donor.name}</h3>
                     <Badge variant="danger" size="xs">
-                      <FiDroplet className="w-3 h-3" /> {donor.bloodGroup}
+                      <FiDroplet className="w-3 h-3" /> {bg}
                     </Badge>
                   </div>
                 </div>
@@ -115,9 +118,9 @@ const BloodDonorPage = () => {
                       <FiMapPin className="w-3.5 h-3.5 text-red-400" /> {donor.village}
                     </div>
                   )}
-                  {donor.phone && (
-                    <a href={`tel:${donor.phone}`} className="flex items-center gap-1.5 text-red-500 text-xs hover:text-red-700 transition-colors font-medium">
-                      <FiPhone className="w-3.5 h-3.5" /> {donor.phone}
+                  {phoneNum && (
+                    <a href={`tel:${phoneNum}`} className="flex items-center gap-1.5 text-red-500 text-xs hover:text-red-700 transition-colors font-medium">
+                      <FiPhone className="w-3.5 h-3.5" /> {phoneNum}
                     </a>
                   )}
                   {donor.lastDonationDate && (
@@ -127,7 +130,8 @@ const BloodDonorPage = () => {
                   )}
                 </div>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

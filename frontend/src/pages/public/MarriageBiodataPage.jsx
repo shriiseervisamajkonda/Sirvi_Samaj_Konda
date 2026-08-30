@@ -85,9 +85,11 @@ const MarriageBiodataPage = () => {
         ) : (
           <>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {profiles.map((profile, i) => (
+              {profiles.map((profile, i) => {
+                const candidateName = profile.candidate_name || profile.name || profile.fullName || (profile.member?.firstName ? `${profile.member.firstName} ${profile.member.lastName || ''}`.trim() : 'प्रत्याशी');
+                return (
                 <motion.div
-                  key={profile._id}
+                  key={profile.id || profile._id || i}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -96,10 +98,10 @@ const MarriageBiodataPage = () => {
                 >
                   <div className="bg-gradient-to-br from-pink-400 to-rose-600 h-32 flex items-center justify-center">
                     {profile.photo ? (
-                      <img src={profile.photo} alt={profile.member?.firstName} className="w-20 h-20 rounded-full object-cover border-4 border-white" />
+                      <img src={profile.photo} alt={candidateName} className="w-20 h-20 rounded-full object-cover border-4 border-white" />
                     ) : (
                       <div className="w-20 h-20 rounded-full bg-white/30 flex items-center justify-center text-white text-3xl font-bold">
-                        {profile.member?.firstName?.charAt(0) || '👤'}
+                        {candidateName.charAt(0) || '👤'}
                       </div>
                     )}
                   </div>
@@ -123,7 +125,8 @@ const MarriageBiodataPage = () => {
                     </button>
                   </div>
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
             <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
           </>

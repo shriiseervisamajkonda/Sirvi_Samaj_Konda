@@ -22,7 +22,7 @@ const BloodDonorsPage = () => {
   const [deleteItem, setDeleteItem] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, watch } = useForm();
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -142,10 +142,30 @@ const BloodDonorsPage = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Member</label>
-              <select {...register('member')} className="input-field">
-                <option value="">Select from members (or enter manually)</option>
-                {members.map(m => <option key={m._id} value={m._id}>{m.firstName} {m.lastName}</option>)}
+              <label className="block text-sm font-medium text-gray-700 mb-1">समाज सदस्य चुनें (Select Member - Optional)</label>
+              <select
+                {...register('member')}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  const selected = members.find(m => (m.id || m._id) === selectedId);
+                  if (selected) {
+                    reset({
+                      ...watch(),
+                      member: selectedId,
+                      name: selected.full_name || `${selected.firstName || ''} ${selected.lastName || ''}`.trim(),
+                      phone: selected.mobile_number || selected.phone || '',
+                      bloodGroup: selected.blood_group || 'Unknown',
+                    });
+                  }
+                }}
+                className="input-field"
+              >
+                <option value="">सदस्य सूची से चुनें (या सीधे नाम दर्ज करें)</option>
+                {members.map(m => (
+                  <option key={m.id || m._id} value={m.id || m._id}>
+                    {m.full_name || `${m.firstName || ''} ${m.lastName || ''}`.trim() || 'सदस्य'} {m.mobile_number || m.phone ? `(${m.mobile_number || m.phone})` : ''}
+                  </option>
+                ))}
               </select>
             </div>
             <div>

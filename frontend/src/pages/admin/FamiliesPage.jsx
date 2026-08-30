@@ -86,7 +86,8 @@ const FamiliesPage = () => {
       gotra: data.surname || data.gotra,
       head_mobile: data.mobileNumber || data.head_mobile,
       panchayat_family_id: data.familyId || data.panchayat_family_id,
-      land_holding: data.agriculturalLandArea || data.land_holding,
+      land_area_acres: data.agriculturalLandArea !== undefined && data.agriculturalLandArea !== '' ? Number(data.agriculturalLandArea) : (data.land_area_acres || 0),
+      total_members: data.numberOfMembers ? Number(data.numberOfMembers) : undefined,
     };
 
     try {

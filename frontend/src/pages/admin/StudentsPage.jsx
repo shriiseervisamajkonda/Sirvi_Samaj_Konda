@@ -135,10 +135,14 @@ const StudentsPage = () => {
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Student' : 'Add Student'} size="lg">
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Member *</label>
+            <div className="col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">समाज सदस्य चुनें (Member) *</label>
               <select {...register('member', { required: true })} className="input-field">
-                <option value="">Select member</option>
-                {members.map(m => <option key={m._id} value={m._id}>{m.firstName} {m.lastName}</option>)}
+                <option value="">सदस्य चुनें</option>
+                {members.map(m => (
+                  <option key={m.id || m._id} value={m.id || m._id}>
+                    {m.full_name || `${m.firstName || ''} ${m.lastName || ''}`.trim() || 'सदस्य'} {m.mobile_number || m.phone ? `(${m.mobile_number || m.phone})` : ''}
+                  </option>
+                ))}
               </select>
             </div>
             <div><label className="block text-sm font-medium text-gray-700 mb-1">School/College</label><input {...register('collegeName')} placeholder="Institution name" className="input-field" /></div>

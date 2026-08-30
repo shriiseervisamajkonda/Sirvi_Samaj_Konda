@@ -166,7 +166,7 @@ const MemberDirectoryPage = () => {
         ) : (
           <>
             <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-              {members.map(member => <MemberCard key={member._id} member={member} />)}
+              {members.map((member, index) => <MemberCard key={member.id || member._id || index} member={member} />)}
             </div>
             <div className="mt-12 flex justify-center">
               <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />

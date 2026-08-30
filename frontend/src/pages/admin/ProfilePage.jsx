@@ -16,13 +16,22 @@ const ProfilePage = () => {
   const newPassword = watch('newPassword');
 
   useEffect(() => {
-    if (user) reset({ name: user.name, email: user.email, phone: user.phone });
+    if (user) {
+      const parts = (user.name || '').trim().split(' ');
+      const fName = parts[0] || '';
+      const lName = parts.slice(1).join(' ') || '';
+      reset({ firstName: fName, lastName: lName, email: user.email, phone: user.phone });
+    }
   }, [user, reset]);
 
   const onProfileSubmit = async (data) => {
     setLoading(true);
+    const combinedName = `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.name || '';
     try {
-      const res = await authAPI.updateProfile(data);
+      const res = await authAPI.updateProfile({
+        ...data,
+        name: combinedName,
+      });
       if (updateUser) updateUser(res.data.data);
       toast.success('Profile updated!');
     } catch { toast.error('Update failed.'); } finally { setLoading(false); }
@@ -52,27 +61,43 @@ const ProfilePage = () => {
             <FiUser className="w-5 h-5 text-orange-500" /> Profile Information
           </h2>
           <form onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-              <input {...register('name', { required: true })} className="input-field" placeholder="Your name" />
-              {errors.name && <p className="text-red-500 text-xs mt-1">Required</p>}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                <input {...register('firstName', { required: true })} className="input-field" placeholder="प्रथम नाम" />
+                {errors.firstName && <p className="text-red-500 text-xs mt-1">Required</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                <input {...register('lastName', { required: true })} className="input-field" placeholder="उपनाम / गोत्र" />
+                {errors.lastName && <p className="text-red-500 text-xs mt-1">Required</p>}
+              </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input {...register('email')} type="email" className="input-field bg-gray-100 " readOnly />
-              <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Gmail / Email ID (Google Account)
+              </label>
+              <input
+                {...register('email')}
+                type="email"
+                className="input-field"
+                placeholder="your.name@gmail.com"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                अपना Google / Gmail ID जोड़ें ताकि आप मोबाइल या ईमेल किसी से भी लॉगिन कर सकें।
+              </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number (Phone)</label>
               <input {...register('phone')} placeholder="+91..." className="input-field" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-              <input value={user?.role || ''} className="input-field bg-gray-100 " readOnly />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Role</label>
+              <input value={user?.role || 'User'} className="input-field bg-gray-100 cursor-not-allowed text-gray-600 font-semibold" readOnly />
             </div>
-            <button type="submit" disabled={loading} className="w-full py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+            <button type="submit" disabled={loading} className="w-full py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-orange-500/20">
               {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FiSave className="w-4 h-4" />}
-              Save Changes
+              Save Profile Changes
             </button>
           </form>
         </motion.div>

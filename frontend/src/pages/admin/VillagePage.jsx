@@ -25,9 +25,10 @@ const VillagePage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = villageData?.id || villageData?._id;
     try {
-      if (villageData?._id) {
-        await villageAPI.update(villageData._id, data);
+      if (targetId) {
+        await villageAPI.update(targetId, data);
       } else {
         await villageAPI.create(data);
       }

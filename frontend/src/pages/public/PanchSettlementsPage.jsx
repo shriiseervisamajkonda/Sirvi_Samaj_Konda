@@ -72,17 +72,19 @@ const PanchSettlementsPage = () => {
         ) : (
           <div className="space-y-4">
             {items.map((item, i) => {
-              const isExpanded = expandedId === item._id;
+              const itemId = item.id || item._id;
+              const isExpanded = expandedId === itemId;
+              const sDate = item.settlement_date || item.settlementDate || item.created_at;
               return (
                 <motion.div
-                  key={item._id}
+                  key={itemId || i}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
                   className="bg-[#2A1010] rounded-2xl border border-[#D4AF37]/15 shadow-xl overflow-hidden"
                 >
                   <button
-                    onClick={() => toggleExpand(item._id)}
+                    onClick={() => toggleExpand(itemId)}
                     className="w-full text-left p-6 flex items-start justify-between gap-4 cursor-pointer"
                   >
                     <div className="space-y-2">
@@ -93,7 +95,7 @@ const PanchSettlementsPage = () => {
                         </span>
                         <span className="flex items-center gap-1 text-xs text-[#CDBBA4] font-semibold">
                           <FiCalendar className="w-3 h-3 text-[#C85A17]" />
-                          {new Date(item.settlementDate).toLocaleDateString('hi-IN')}
+                          {sDate ? new Date(sDate).toLocaleDateString('hi-IN') : '—'}
                         </span>
                       </div>
                       <h3 className="text-xl font-bold text-[#FFF3DD]">

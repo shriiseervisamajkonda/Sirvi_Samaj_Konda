@@ -74,17 +74,20 @@ const NewsPage = () => {
         ) : (
           <>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {news.map((item, i) => (
+              {news.map((item, i) => {
+                const img = item.image || item.image_url || item.photo_url;
+                const d = item.created_at || item.createdAt || item.publishedAt || Date.now();
+                return (
                 <motion.article
-                  key={item._id}
+                  key={item.id || item._id || i}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.05 }}
                   className="bg-[#2A1010] rounded-2xl overflow-hidden border border-[#D4AF37]/15 hover:border-[#D4AF37]/45 hover:shadow-2xl transition-all duration-300 flex flex-col shadow-lg"
                 >
-                  {item.image ? (
-                    <img src={item.image} alt={item.title} className="w-full h-48 object-cover border-b border-[#D4AF37]/10" />
+                  {img ? (
+                    <img src={img} alt={item.title} className="w-full h-48 object-cover border-b border-[#D4AF37]/10" />
                   ) : (
                     <div className="h-48 bg-gradient-to-br from-[#C85A17] to-[#7A2525] flex items-center justify-center text-5xl border-b border-[#D4AF37]/10">📰</div>
                   )}
@@ -95,7 +98,7 @@ const NewsPage = () => {
                           {item.category || 'News'}
                         </Badge>
                         <span className="text-[#CDBBA4] text-xs font-semibold ml-auto">
-                          {new Date(item.createdAt || item.publishedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
                       <h2 className="font-bold text-[#FFF3DD] text-base mb-2 line-clamp-2 leading-tight">{item.title}</h2>
@@ -112,7 +115,8 @@ const NewsPage = () => {
                     )}
                   </div>
                 </motion.article>
-              ))}
+                );
+              })}
             </div>
             <div className="mt-12 flex justify-center">
               <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />

@@ -17,12 +17,20 @@ const RegisterPage = () => {
 
   const onSubmit = async (data) => {
     setLoading(true);
+    const combinedName = `${data.firstName || ''} ${data.lastName || ''}`.trim();
     try {
-      await registerUser({ name: data.name, email: data.email, password: data.password, phone: data.phone });
-      toast.success('Account created! Please check your email to verify.');
+      await registerUser({
+        name: combinedName,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
+        phone: data.phone,
+      });
+      toast.success('खाता सफलतापूर्वक बनाया गया!');
       navigate('/login');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
+      toast.error(err.response?.data?.message || 'पंजीकरण विफल रहा। कृपया पुनः प्रयास करें।');
     } finally {
       setLoading(false);
     }
@@ -38,50 +46,64 @@ const RegisterPage = () => {
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-8 text-center text-white">
           <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center text-2xl font-bold mx-auto mb-4">SS</div>
-          <h2 className="text-2xl font-bold mb-1">Join Our Community</h2>
-          <p className="text-orange-100 text-sm">Shri Seervi Samaj Konda</p>
+          <h2 className="text-2xl font-bold mb-1">समाज से जुड़ें (Register)</h2>
+          <p className="text-orange-100 text-sm">श्री सीरवी समाज कोणदा</p>
         </div>
 
         <div className="p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full Name</label>
-              <div className="relative">
-                <FiUser className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">First Name *</label>
                 <input
-                  {...register('name', { required: 'Name is required', minLength: { value: 2, message: 'Name too short' } })}
-                  placeholder="Your full name"
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all"
+                  {...register('firstName', { required: 'Required', minLength: { value: 2, message: 'Too short' } })}
+                  placeholder="प्रथम नाम"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all"
                 />
+                {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName.message}</p>}
               </div>
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Last Name *</label>
+                <input
+                  {...register('lastName', { required: 'Required', minLength: { value: 2, message: 'Too short' } })}
+                  placeholder="उपनाम / गोत्र"
+                  className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all"
+                />
+                {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName.message}</p>}
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email Address</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Mobile Number (Phone) *</label>
+              <div className="relative">
+                <FiPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  {...register('phone', {
+                    required: 'Mobile number is required for login',
+                    pattern: { value: /^[0-9]{10}$/, message: '10-digit Indian mobile number' }
+                  })}
+                  placeholder="10-digit mobile number (e.g. 9826012345)"
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all font-mono"
+                />
+              </div>
+              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Gmail / Email ID (Optional)</label>
               <div className="relative">
                 <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
-                  {...register('email', { required: 'Email is required', pattern: { value: /^\S+@\S+$/, message: 'Invalid email' } })}
+                  {...register('email', {
+                    pattern: { value: /^\S+@\S+$/, message: 'Invalid email address' }
+                  })}
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder="your.name@gmail.com (optional)"
                   className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all"
                 />
               </div>
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Phone Number</label>
-              <div className="relative">
-                <FiPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  {...register('phone', { pattern: { value: /^[6-9]\d{9}$/, message: 'Invalid phone number' } })}
-                  placeholder="+91 98765 43210"
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all"
-                />
-              </div>
-              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
             </div>
 
             <div>

@@ -8,12 +8,14 @@ import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
 
 const EventCard = ({ event }) => {
-  const eventDate = new Date(event.startDate || event.date);
+  const eventDate = new Date(event.start_date || event.startDate || event.event_date || event.date || Date.now());
   const isPast = eventDate < new Date();
 
   const handleRegister = async () => {
+    const targetId = event.id || event._id;
+    if (!targetId) return;
     try {
-      await eventAPI.register(event._id, { name: 'Guest', phone: '' });
+      await eventAPI.register(targetId, { name: 'Guest', phone: '' });
       toast.success('Registered for event!');
     } catch {
       toast.error('Registration failed. Please try again.');
@@ -27,8 +29,8 @@ const EventCard = ({ event }) => {
       viewport={{ once: true }}
       className="bg-[#2A1010] rounded-2xl overflow-hidden border border-[#D4AF37]/15 hover:border-[#D4AF37]/45 hover:shadow-2xl transition-all duration-300 flex flex-col shadow-lg"
     >
-      {event.image ? (
-        <img src={event.image} alt={event.title} className="w-full h-48 object-cover border-b border-[#D4AF37]/10" />
+      {event.image || event.image_url || event.photo_url ? (
+        <img src={event.image || event.image_url || event.photo_url} alt={event.title} className="w-full h-48 object-cover border-b border-[#D4AF37]/10" />
       ) : (
         <div className={`w-full h-48 flex items-center justify-center text-5xl border-b border-[#D4AF37]/10 ${isPast ? 'bg-[#351313]' : 'bg-gradient-to-br from-[#C85A17] to-[#7A2525]'}`}>
           🎉
@@ -140,7 +142,7 @@ const EventsPage = () => {
           <EmptyState icon={FiCalendar} title={`No ${tab} events`} description="Check back soon for new events." />
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayed.map(event => <EventCard key={event._id} event={event} />)}
+            {displayed.map((event, index) => <EventCard key={event.id || event._id || index} event={event} />)}
           </div>
         )}
       </div>
