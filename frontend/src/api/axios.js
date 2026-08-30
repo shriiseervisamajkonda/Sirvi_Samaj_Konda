@@ -1,14 +1,9 @@
 import axios from 'axios';
 
-const defaultUrl = import.meta.env.MODE === 'production'
-  ? 'https://sirvi-samaj-konda-backend.vercel.app/api'
-  : '/api';
-
-let rawUrl = import.meta.env.VITE_API_URL || defaultUrl;
-if (rawUrl.startsWith('http') && !rawUrl.endsWith('/api')) {
-  rawUrl = rawUrl.replace(/\/+$/, '') + '/api';
-}
-const API_URL = rawUrl;
+const rawUrl = import.meta.env.VITE_API_URL || '/api';
+const API_URL = rawUrl.startsWith('http') && !rawUrl.endsWith('/api')
+  ? rawUrl.replace(/\/+$/, '') + '/api'
+  : rawUrl;
 
 const api = axios.create({
   baseURL: API_URL,

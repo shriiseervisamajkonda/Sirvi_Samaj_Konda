@@ -39,11 +39,10 @@ app.set('trust proxy', 1);
 
 const allowedOrigins = [
   process.env.CLIENT_URL,
-  'https://sirvi-samaj-konda.vercel.app',
-  'https://sirvi-samaj-konda-zhv7.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
 ].filter(Boolean);
 
 app.use(
