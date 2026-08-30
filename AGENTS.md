@@ -1,15 +1,15 @@
 # Project Agents & Coding Standards
 
 > **Repository**: [Sirvi Samaj Konda](https://github.com/shriiseervisamajkonda/Sirvi_Samaj_Konda.git)  
-> **Official Email**: `shriiseervisamajkonda@gmail.com`
+> **Official Email**: `shriseervisamajkonda@gmail.com`
 
 ---
 
 ## 1. Git & Workflow Guidelines
 
 - **Git Author & Committer Email**:
-  - Always use `shriiseervisamajkonda@gmail.com` for all git commits.
-  - Command: `git config user.email "shriiseervisamajkonda@gmail.com"`
+  - Always use `shriseervisamajkonda@gmail.com` for all git commits.
+  - Command: `git config user.email "shriseervisamajkonda@gmail.com"`
 - **Commit & PR Workflow**:
   - Follow Conventional Commits: `feat:`, `fix:`, `refactor:`, `perf:`, `docs:`, `chore:`, `style:`, `test:`.
   - Always create a descriptive feature branch (`feat/...` or `fix/...`), push to origin, create a Pull Request with `gh pr create`, and merge via `gh pr merge --squash --delete-branch` unless explicitly instructed to push directly to main.
