@@ -55,7 +55,8 @@ const getDefaultData = () => {
   if (typeof window === 'undefined') return baseData;
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : structuredClone(baseData);
+    if (!saved || saved === 'undefined' || saved === 'null') return structuredClone(baseData);
+    return JSON.parse(saved);
   } catch {
     return structuredClone(baseData);
   }
