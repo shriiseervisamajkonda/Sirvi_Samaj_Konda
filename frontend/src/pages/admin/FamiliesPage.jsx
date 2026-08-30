@@ -130,7 +130,7 @@ const FamiliesPage = () => {
     {
       key: 'familyId',
       label: 'S.No.',
-      sortable: false,
+      sortable: true,
       render: (_, row, idx) => (
         <span className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] px-2.5 py-1 rounded-lg border border-[#E8DCC8]">
           {row.panchayat_family_id || row.familyId || ((page - 1) * 10 + idx + 1)}
@@ -152,19 +152,21 @@ const FamiliesPage = () => {
     {
       key: 'mobileNumber',
       label: 'मोबाइल नंबर',
+      sortable: true,
       render: (_, row) => (row.head_mobile || row.mobileNumber) ? <span className="font-mono text-xs">{row.head_mobile || row.mobileNumber}</span> : '—',
     },
-    { key: 'village', label: 'गाँव (Village)', render: (_, row) => row.village || 'Konda' },
+    { key: 'village', label: 'गाँव (Village)', sortable: true, render: (_, row) => row.village || 'Konda' },
     {
       key: 'memberCount',
       label: 'कुल सदस्य',
+      sortable: true,
       render: (_, row) => (
         <span className="font-bold">
           {row.total_members || (Array.isArray(row.family_members) ? row.family_members.length : 0) || row.memberCount || row.numberOfMembers || 0} सदस्य
         </span>
       ),
     },
-    { key: 'status', label: 'स्थिति', render: (v) => <Badge variant={v === 'inactive' ? 'danger' : 'success'}>{v === 'inactive' ? 'निष्क्रिय' : 'सक्रिय'}</Badge> },
+    { key: 'status', label: 'स्थिति', sortable: true, render: (v) => <Badge variant={v === 'inactive' ? 'danger' : 'success'}>{v === 'inactive' ? 'निष्क्रिय' : 'सक्रिय'}</Badge> },
     {
       key: '_actions',
       label: 'कार्यवाही (Actions)',

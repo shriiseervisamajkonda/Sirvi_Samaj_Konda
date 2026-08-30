@@ -86,12 +86,13 @@ const DocumentsPage = () => {
 
   const columns = [
     { key: 'title', label: 'Title', sortable: true, render: (v) => <span className="font-medium">{v}</span> },
-    { key: 'category', label: 'Category', render: (v) => <Badge variant="info">{v || 'General'}</Badge> },
+    { key: 'category', label: 'Category', sortable: true, render: (v) => <Badge variant="info">{v || 'General'}</Badge> },
     { key: 'description', label: 'Description', render: (v) => <span className="text-xs line-clamp-1 max-w-xs">{v || '—'}</span> },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'inactive' ? 'warning' : 'success'}>{v || 'active'}</Badge> },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'inactive' ? 'warning' : 'success'}>{v || 'active'}</Badge> },
     {
       key: 'createdAt',
       label: 'Uploaded Date',
+      sortable: true,
       render: (_, r) => {
         const d = r.created_at || r.createdAt;
         return d ? new Date(d).toLocaleDateString('en-IN') : '—';

@@ -84,17 +84,18 @@ const UsersPage = () => {
 
   const columns = [
     { key: 'name', label: 'Name', sortable: true, render: (v) => <span className="font-medium">{v}</span> },
-    { key: 'phone', label: 'Phone / User ID', render: (v) => v ? <span className="font-mono text-xs">{v}</span> : '—' },
+    { key: 'phone', label: 'Phone / User ID', sortable: true, render: (v) => v ? <span className="font-mono text-xs">{v}</span> : '—' },
     { key: 'email', label: 'Email', sortable: true, render: (v) => v || '—' },
     {
       key: 'role',
       label: 'Role',
+      sortable: true,
       render: (v) => {
         const variant = v === 'developer' || v === 'super_admin' ? 'danger' : v === 'admin' ? 'warning' : v === 'treasurer' ? 'info' : 'default';
         return <Badge variant={variant}>{v}</Badge>;
       },
     },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'inactive' ? 'danger' : 'success'}>{v || 'active'}</Badge> },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'inactive' ? 'danger' : 'success'}>{v || 'active'}</Badge> },
     {
       key: '_actions',
       label: 'Actions',

@@ -7,6 +7,7 @@ import compression from 'compression';
 
 import { setCacheHeaders, memoryCacheMiddleware } from './middleware/cache.js';
 import errorHandler from './middleware/errorHandler.js';
+import sanitizeInputs from './middleware/sanitize.js';
 
 // Route Imports
 import authRoutes from './routes/authRoutes.js';
@@ -29,6 +30,18 @@ import activityLogRoutes from './routes/activityLogRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import searchRoutes from './routes/searchRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import studentRoutes from './routes/studentRoutes.js';
+import businessRoutes from './routes/businessRoutes.js';
+import socialInfoRoutes from './routes/socialInfoRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
+import gramUnitRoutes from './routes/gramUnitRoutes.js';
+import {
+  getGramUnitMembers,
+  createGramUnitMember,
+  updateGramUnitMember,
+  deleteGramUnitMember,
+} from './controllers/gramUnitController.js';
+import { protect, authorize, optionalAuth } from './middleware/auth.js';
 
 const app = express();
 
@@ -77,6 +90,7 @@ app.use('/api', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+app.use(sanitizeInputs);
 
 // Auth Limiter
 const authLimiter = rateLimit({
@@ -127,6 +141,19 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/upload', uploadRoutes);
+
+// Extended Directory & Administrative Modules
+app.use('/api/students', studentRoutes);
+app.use('/api/businesses', businessRoutes);
+app.use('/api/social-info', socialInfoRoutes);
+app.use('/api/contacts', contactRoutes);
+app.use('/api/gram-units', gramUnitRoutes);
+
+// Direct /api/gram-unit-members mounting
+app.get('/api/gram-unit-members', optionalAuth, getGramUnitMembers);
+app.post('/api/gram-unit-members', protect, authorize('developer', 'super_admin', 'admin'), createGramUnitMember);
+app.put('/api/gram-unit-members/:id', protect, authorize('developer', 'super_admin', 'admin'), updateGramUnitMember);
+app.delete('/api/gram-unit-members/:id', protect, authorize('developer', 'super_admin', 'admin'), deleteGramUnitMember);
 
 // Centralized Error Handler
 app.use(errorHandler);

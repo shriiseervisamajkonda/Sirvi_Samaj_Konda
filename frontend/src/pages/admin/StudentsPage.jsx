@@ -94,20 +94,22 @@ const StudentsPage = () => {
     {
       key: 'member',
       label: 'Name',
-      render: (_, r) => <span className="font-medium">{r.name || r.full_name || (r.member?.firstName ? `${r.member.firstName} ${r.member.lastName || ''}` : '—')}</span>,
+      sortable: true,
+      render: (_, r) => <span className="font-medium">{r.name || r.studentName || r.full_name || (r.member?.firstName ? `${r.member.firstName} ${r.member.lastName || ''}` : '—')}</span>,
     },
     { key: 'collegeName', label: 'College/School', sortable: true, render: (_, r) => r.college_name || r.collegeName || '—' },
-    { key: 'course', label: 'Course', render: (v) => v || '—' },
+    { key: 'course', label: 'Course', sortable: true, render: (v) => v || '—' },
     {
       key: 'currentYear',
       label: 'Year',
+      sortable: true,
       render: (_, r) => {
         const y = r.current_year || r.currentYear;
         return y ? <Badge variant="info">Year {y}</Badge> : '—';
       },
     },
-    { key: 'cgpa', label: 'CGPA / %', render: (v) => v || '—' },
-    { key: 'scholarship', label: 'Scholarship', render: (v) => v ? <Badge variant="success">Yes</Badge> : <Badge variant="default">No</Badge> },
+    { key: 'cgpa', label: 'CGPA / %', sortable: true, render: (v) => v || '—' },
+    { key: 'scholarship', label: 'Scholarship', sortable: true, render: (v) => v ? <Badge variant="success">Yes</Badge> : <Badge variant="default">No</Badge> },
     {
       key: '_actions',
       label: 'Actions',

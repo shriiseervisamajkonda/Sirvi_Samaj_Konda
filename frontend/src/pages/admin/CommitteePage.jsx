@@ -218,6 +218,7 @@ const CommitteePage = () => {
     {
       key: 'designation',
       label: 'पद (Designation)',
+      sortable: true,
       render: (v) => (
         <span className="inline-block px-3 py-1 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-xs font-extrabold text-[#7A2525]">
           {v}
@@ -227,6 +228,7 @@ const CommitteePage = () => {
     {
       key: 'type',
       label: 'समिति प्रकार (Committee Type)',
+      sortable: true,
       render: (v) => {
         const matchingType = committeeTypes.find((t) => t.id === v);
         return (
@@ -239,11 +241,13 @@ const CommitteePage = () => {
     {
       key: 'order',
       label: 'क्रम (Order)',
+      sortable: true,
       render: (v) => <span className="font-mono text-xs font-bold">{v || 0}</span>,
     },
     {
       key: 'isActive',
       label: 'स्थिति (Status)',
+      sortable: true,
       render: (v) => (
         <Badge variant={v !== false ? 'success' : 'warning'}>
           {v !== false ? 'सक्रिय' : 'निष्क्रिय'}

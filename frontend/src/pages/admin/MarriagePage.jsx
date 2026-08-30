@@ -99,21 +99,23 @@ const MarriagePage = () => {
     {
       key: 'member',
       label: 'Name',
+      sortable: true,
       render: (_, r) => <span className="font-medium">{r.name || r.full_name || (r.member?.firstName ? `${r.member.firstName} ${r.member.lastName || ''}` : '—')}</span>,
     },
-    { key: 'gender', label: 'Gender', render: (v) => <Badge variant={v === 'Male' || v === 'male' ? 'info' : 'purple'}>{v === 'Male' || v === 'male' ? 'पुरुष' : v === 'Female' || v === 'female' ? 'महिला' : v || '—'}</Badge> },
+    { key: 'gender', label: 'Gender', sortable: true, render: (v) => <Badge variant={v === 'Male' || v === 'male' ? 'info' : 'purple'}>{v === 'Male' || v === 'male' ? 'पुरुष' : v === 'Female' || v === 'female' ? 'महिला' : v || '—'}</Badge> },
     {
       key: 'dob',
       label: 'Age',
+      sortable: true,
       render: (v) => {
         if (!v) return '—';
         const age = new Date().getFullYear() - new Date(v).getFullYear();
         return isNaN(age) ? '—' : `${age} yrs`;
       },
     },
-    { key: 'education', label: 'Education', render: (v) => v || '—' },
-    { key: 'occupation', label: 'Occupation', render: (v) => v || '—' },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'approved' ? 'success' : v === 'pending' ? 'warning' : 'danger'}>{v || 'approved'}</Badge> },
+    { key: 'education', label: 'Education', sortable: true, render: (v) => v || '—' },
+    { key: 'occupation', label: 'Occupation', sortable: true, render: (v) => v || '—' },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'approved' ? 'success' : v === 'pending' ? 'warning' : 'danger'}>{v || 'approved'}</Badge> },
     {
       key: '_actions',
       label: 'Actions',

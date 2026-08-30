@@ -106,11 +106,12 @@ const SocialInfoPage = () => {
 
   const columns = [
     { key: 'order', label: 'Order', sortable: true, render: (v, r) => <span className="font-semibold">{v || r.display_order || 0}</span> },
-    { key: 'title', label: 'Title / Subject', render: (v) => <span className="font-medium">{v || '—'}</span> },
-    { key: 'category', label: 'Category', render: (v) => <Badge variant="primary">{categories.find((c) => c.id === v)?.label || v || 'General'}</Badge> },
+    { key: 'title', label: 'Title / Subject', sortable: true, render: (v) => <span className="font-medium">{v || '—'}</span> },
+    { key: 'category', label: 'Category', sortable: true, render: (v) => <Badge variant="primary">{categories.find((c) => c.id === v)?.label || v || 'General'}</Badge> },
     {
       key: 'isActive',
       label: 'Status',
+      sortable: true,
       render: (_, r) => {
         const active = r.is_active !== undefined ? r.is_active : r.isActive !== false;
         return <Badge variant={active ? 'success' : 'warning'}>{active ? 'Active' : 'Inactive'}</Badge>;

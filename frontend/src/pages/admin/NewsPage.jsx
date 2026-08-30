@@ -85,8 +85,8 @@ const NewsPage = () => {
 
   const columns = [
     { key: 'title', label: 'Title', sortable: true, render: (v) => <span className="font-medium line-clamp-1">{v}</span> },
-    { key: 'category', label: 'Category', render: (v) => <Badge variant="info">{v}</Badge> },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'published' ? 'success' : 'warning'}>{v}</Badge> },
+    { key: 'category', label: 'Category', sortable: true, render: (v) => <Badge variant="info">{v}</Badge> },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'published' ? 'success' : 'warning'}>{v}</Badge> },
     { key: 'views', label: 'Views', sortable: true, render: (v) => v ?? 0 },
     {
       key: 'createdAt',
