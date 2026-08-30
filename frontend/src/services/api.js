@@ -105,11 +105,11 @@ export const documentAPI = {
 };
 
 export const committeeAPI = {
-  getAll: (params) => api.get('/committee', { params }),
-  getOne: (id) => api.get(`/committee/${id}`),
-  create: (data) => api.post('/committee', data),
-  update: (id, data) => api.put(`/committee/${id}`, data),
-  delete: (id) => api.delete(`/committee/${id}`),
+  getAll: (params) => api.get('/committees', { params }),
+  getOne: (id) => api.get(`/committees/${id}`),
+  create: (data) => api.post('/committees', data),
+  update: (id, data) => api.put(`/committees/${id}`, data),
+  delete: (id) => api.delete(`/committees/${id}`),
 };
 
 export const lekhaJokhaAPI = {

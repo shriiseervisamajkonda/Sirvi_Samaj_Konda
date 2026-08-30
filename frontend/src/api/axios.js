@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const defaultUrl = import.meta.env.MODE === 'production'
-  ? 'https://sirvi-samaj-konda-zhv7.vercel.app/api'
+  ? 'https://sirvi-samaj-konda-backend.vercel.app/api'
   : '/api';
 
 let rawUrl = import.meta.env.VITE_API_URL || defaultUrl;
