@@ -120,22 +120,36 @@ const CommitteePage = () => {
     setEditItem(item);
     reset({
       ...item,
-      status: item.isActive === false ? 'inactive' : 'active',
+      name: item.name || item.full_name || '',
+      phone: item.phone || item.mobile_number || '',
+      type: item.type || item.committee_type || 'sankal_panch',
+      order: item.order || item.display_order || 0,
+      photo: item.photo || item.image_url || '',
+      status: item.is_active === false || item.isActive === false || item.status === 'inactive' ? 'inactive' : 'active',
     });
     setModalOpen(true);
   };
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
     try {
       const payload = {
         ...data,
+        name: data.name,
+        full_name: data.name,
+        phone: data.phone,
+        mobile_number: data.phone,
+        committee_type: data.type,
+        display_order: Number(data.order) || 0,
+        image_url: data.photo,
         isActive: data.status === 'active',
+        is_active: data.status === 'active',
         order: Number(data.order) || 0,
       };
 
-      if (editItem) {
-        await committeeAPI.update(editItem._id, payload);
+      if (editItem && targetId) {
+        await committeeAPI.update(targetId, payload);
         toast.success('समिति पदाधिकारी सफलतापूर्वक अद्यतन किया गया!');
       } else {
         await committeeAPI.create(payload);
@@ -152,11 +166,12 @@ const CommitteePage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await committeeAPI.delete(targetId);
-      setItems((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('समिति पदाधिकारी सफलतापूर्वक हटाया गया!');
       setDeleteItem(null);
       if (items.length === 1 && page > 1) {

@@ -98,10 +98,11 @@ const GramUnitsPage = () => {
 
   // Save Unit Info
   const onSaveUnit = async (formData) => {
-    if (!unitData?.unit?._id) return;
+    const unitId = unitData?.unit?.id || unitData?.unit?._id;
+    if (!unitId) return;
     setSavingUnit(true);
     try {
-      await gramUnitAPI.update(unitData.unit._id, formData);
+      await gramUnitAPI.update(unitId, formData);
       toast.success('Gram Unit updated successfully!');
       fetchUnitData();
     } catch (err) {
@@ -127,6 +128,9 @@ const GramUnitsPage = () => {
       defaultRepLevel = 'tehsil';
     }
 
+    const unitId = unitData?.unit?.id || unitData?.unit?._id;
+    const orgId = unitData?.organization?.id || unitData?.organization?._id;
+
     resetMember({
       name: '',
       category: defaultCat,
@@ -134,8 +138,8 @@ const GramUnitsPage = () => {
       representativeLevel: defaultRepLevel,
       phone: '',
       order: items.length + 1,
-      gramUnit: unitData?.unit?._id,
-      organization: unitData?.organization?._id,
+      gramUnit: unitId,
+      organization: orgId,
       isActive: true,
     });
     setModalOpen(true);
@@ -151,15 +155,18 @@ const GramUnitsPage = () => {
   // Save Member
   const onSaveMember = async (formData) => {
     setSaving(true);
+    const unitId = unitData?.unit?.id || unitData?.unit?._id;
+    const orgId = unitData?.organization?.id || unitData?.organization?._id;
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
     try {
       const payload = {
         ...formData,
-        gramUnit: unitData?.unit?._id,
-        organization: unitData?.organization?._id,
+        gramUnit: unitId,
+        organization: orgId,
       };
 
-      if (editItem) {
-        await gramUnitMemberAPI.update(editItem._id, payload);
+      if (editItem && targetId) {
+        await gramUnitMemberAPI.update(targetId, payload);
         toast.success('Record updated successfully!');
       } else {
         await gramUnitMemberAPI.create(payload);
@@ -178,9 +185,11 @@ const GramUnitsPage = () => {
   // Delete Member
   const handleDelete = async () => {
     if (!deleteItem) return;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
-      await gramUnitMemberAPI.delete(deleteItem._id);
+      await gramUnitMemberAPI.delete(targetId);
       toast.success('Record deleted permanently!');
       setDeleteItem(null);
       fetchMembers();

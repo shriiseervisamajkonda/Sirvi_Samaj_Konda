@@ -41,24 +41,78 @@ const MembersPage = () => {
 
   useEffect(() => {
     fetchMembers();
-    familyAPI.getAll({ limit: 200 }).then(res => setFamilies(res.data.data || [])).catch(() => {});
   }, [fetchMembers]);
 
-  const openCreate = () => { setEditItem(null); reset({ village: 'Konda', status: 'active', gender: 'male' }); setModalOpen(true); };
-  const openEdit = (member) => { setEditItem(member); reset(member); setModalOpen(true); };
+  useEffect(() => {
+    familyAPI.getAll({ limit: 200 }).then((res) => setFamilies(res.data.data || [])).catch(() => {});
+  }, []);
+
+  const openCreate = () => {
+    setEditItem(null);
+    reset({
+      village: 'Konda',
+      status: 'active',
+      gender: 'male',
+      firstName: '',
+      lastName: '',
+      guardianName: '',
+      phone: '',
+      bloodGroup: 'Unknown',
+      maritalStatus: 'single',
+      occupation: '',
+      education: '',
+      relation: '',
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (member) => {
+    setEditItem(member);
+    reset({
+      ...member,
+      firstName: member.firstName || member.full_name || '',
+      lastName: member.lastName || '',
+      guardianName: member.relative_name || member.guardianName || '',
+      phone: member.mobile_number || member.phone || '',
+      bloodGroup: member.blood_group || member.bloodGroup || 'Unknown',
+      maritalStatus: member.marital_status || member.maritalStatus || 'single',
+      gender: member.gender || 'male',
+      occupation: member.occupation || '',
+      education: member.education || '',
+      relation: member.relation_with_head || member.relation || '',
+      village: member.village || 'Konda',
+      status: member.status || 'active',
+    });
+    setModalOpen(true);
+  };
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
     
-    // Clean empty enum/reference values before submitting
-    const payload = { ...data };
+    // Clean and map payload for both schemas
+    const fullName = data.firstName && data.lastName
+      ? `${data.firstName} ${data.lastName}`.trim()
+      : (data.firstName || data.full_name || '');
+
+    const payload = {
+      ...data,
+      full_name: fullName,
+      mobile_number: data.phone || data.mobile_number,
+      relative_name: data.guardianName || data.relative_name,
+      blood_group: data.bloodGroup || data.blood_group || 'Unknown',
+      relation_with_head: data.relation || data.relation_with_head,
+      marital_status: data.maritalStatus || data.marital_status || 'single',
+      dob: data.dateOfBirth || data.dob,
+    };
+
     if (!payload.bloodGroup) payload.bloodGroup = 'Unknown';
     if (!payload.maritalStatus) payload.maritalStatus = 'single';
     if (!payload.family) delete payload.family;
 
     try {
-      if (editItem) {
-        await memberAPI.update(editItem._id, payload);
+      if (editItem && targetId) {
+        await memberAPI.update(targetId, payload);
         toast.success('सदस्य विवरण सफलतापूर्वक अपडेट हुआ!');
       } else {
         await memberAPI.create(payload);
@@ -73,11 +127,12 @@ const MembersPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await memberAPI.delete(targetId);
-      setMembers((prev) => prev.filter((item) => item._id !== targetId));
+      setMembers((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('सदस्य रिकॉर्ड हटा दिया गया!');
       setDeleteItem(null);
       if (members.length === 1 && page > 1) {
@@ -108,18 +163,52 @@ const MembersPage = () => {
         </div>
       ),
     },
-    { key: 'firstName', label: 'नाम', sortable: true, render: (_, r) => (
-      <div>
-        <div className="font-bold text-[#2B211B]">{r.firstName} {r.lastName}</div>
-        {r.guardianName && <div className="text-xs text-gray-500">S/O, W/O: {r.guardianName}</div>}
-      </div>
-    )},
-    { key: 'gender', label: 'लिंग', render: (v) => <Badge variant={v === 'male' ? 'info' : 'warning'}>{v === 'male' ? 'पुरुष' : v === 'female' ? 'महिला' : v}</Badge> },
-    { key: 'bloodGroup', label: 'रक्त समूह', render: (v) => v ? <span className="px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-md font-mono text-xs font-bold">{v}</span> : '—' },
+    {
+      key: 'firstName',
+      label: 'नाम',
+      sortable: true,
+      render: (_, r) => {
+        const name = r.full_name || `${r.firstName || ''} ${r.lastName || ''}`.trim() || '—';
+        const guardian = r.relative_name || r.guardianName;
+        return (
+          <div>
+            <div className="font-bold text-[#2B211B]">{name}</div>
+            {guardian && <div className="text-xs text-gray-500">S/O, W/O: {guardian}</div>}
+          </div>
+        );
+      },
+    },
+    { key: 'gender', label: 'लिंग', render: (v) => <Badge variant={v === 'female' ? 'warning' : 'info'}>{v === 'female' ? 'महिला' : v === 'male' ? 'पुरुष' : v || '—'}</Badge> },
+    {
+      key: 'bloodGroup',
+      label: 'रक्त समूह',
+      render: (_, r) => {
+        const bg = r.blood_group || r.bloodGroup;
+        return bg && bg !== 'Unknown' ? (
+          <span className="px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-md font-mono text-xs font-bold">{bg}</span>
+        ) : '—';
+      },
+    },
     { key: 'occupation', label: 'व्यवसाय', render: (v) => v || '—' },
-    { key: 'family', label: 'परिवार', render: (v) => v?.headOfFamily ? `${v.headOfFamily} (${v.familyId || ''})` : '—' },
-    { key: 'phone', label: 'फ़ोन', render: (v) => v ? <span className="font-mono text-xs">{v}</span> : '—' },
-    { key: 'status', label: 'स्थिति', render: (v) => <Badge variant={v === 'active' ? 'success' : 'danger'}>{v === 'active' ? 'सक्रिय' : 'निष्क्रिय'}</Badge> },
+    {
+      key: 'family',
+      label: 'परिवार',
+      render: (_, r) => {
+        if (r.families?.head_name) return `${r.families.head_name} (${r.families.panchayat_family_id || ''})`;
+        if (r.family?.headOfFamily) return `${r.family.headOfFamily} (${r.family.familyId || ''})`;
+        if (r.panchayat_family_id) return `परिवार #${r.panchayat_family_id}`;
+        return '—';
+      },
+    },
+    {
+      key: 'phone',
+      label: 'फ़ोन',
+      render: (_, r) => {
+        const num = r.mobile_number || r.phone;
+        return num ? <span className="font-mono text-xs">{num}</span> : '—';
+      },
+    },
+    { key: 'status', label: 'स्थिति', render: (v) => <Badge variant={v === 'inactive' ? 'danger' : 'success'}>{v === 'inactive' ? 'निष्क्रिय' : 'सक्रिय'}</Badge> },
     {
       key: '_actions',
       label: 'कार्यवाही',

@@ -28,13 +28,9 @@ const GalleryPage = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, albumRes] = await Promise.all([
-        galleryAPI.getAll({ page, limit: 12, search }),
-        galleryAPI.getAlbums(),
-      ]);
+      const res = await galleryAPI.getAll({ page, limit: 12, search });
       setItems(res.data.data || []);
       setTotalPages(res.data.pagination?.pages || 1);
-      setAlbums(albumRes.data.data || []);
     } catch {
       toast.error('Failed to load gallery');
     } finally {
@@ -46,14 +42,23 @@ const GalleryPage = () => {
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    galleryAPI.getAlbums().then((res) => setAlbums(res.data.data || [])).catch(() => {});
+  }, []);
+
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      ...data,
+      image_url: data.url || data.image_url,
+    };
     try {
-      if (editItem) {
-        await galleryAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await galleryAPI.update(targetId, payload);
         toast.success('Photo updated!');
       } else {
-        await galleryAPI.create(data);
+        await galleryAPI.create(payload);
         toast.success('Photo added!');
       }
       setModalOpen(false);
@@ -68,11 +73,11 @@ const GalleryPage = () => {
   const onAlbumSubmit = async (data) => {
     setSaving(true);
     try {
-      await galleryAPI.createAlbum(data);
+      await galleryAPI.create(data);
       toast.success('Album created!');
       setAlbumModalOpen(false);
       resetAlbum({});
-      fetchData();
+      galleryAPI.getAlbums().then((res) => setAlbums(res.data.data || [])).catch(() => {});
     } catch {
       toast.error('Failed to create album');
     } finally {
@@ -82,14 +87,15 @@ const GalleryPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await galleryAPI.delete(targetId);
-      setImages((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Photo deleted successfully!');
       setDeleteItem(null);
-      if (images.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -102,16 +108,38 @@ const GalleryPage = () => {
   };
 
   const columns = [
-    { key: 'url', label: 'Preview', render: (v) => v ? <img src={v} alt="Gallery" className="w-14 h-14 object-cover rounded-xl" /> : <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center"><FiImage className="w-5 h-5 text-gray-400" /></div> },
-    { key: 'title', label: 'Title' },
-    { key: 'album', label: 'Album', render: (v) => v?.title ? <Badge variant="purple">{v.title}</Badge> : '—' },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'active' ? 'success' : 'warning'}>{v}</Badge> },
-    { key: 'createdAt', label: 'Added', render: (v) => new Date(v).toLocaleDateString('en-IN') },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'url',
+      label: 'Preview',
+      render: (_, r) => {
+        const src = r.image_url || r.url;
+        return src ? (
+          <img src={src} alt="Gallery" className="w-14 h-14 object-cover rounded-xl" />
+        ) : (
+          <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center">
+            <FiImage className="w-5 h-5 text-gray-400" />
+          </div>
+        );
+      },
+    },
+    { key: 'title', label: 'Title', render: (v) => v || '—' },
+    { key: 'album', label: 'Album', render: (_, r) => (r.album?.title || r.album_title ? <Badge variant="purple">{r.album?.title || r.album_title}</Badge> : '—') },
+    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'inactive' ? 'warning' : 'success'}>{v || 'active'}</Badge> },
+    {
+      key: 'createdAt',
+      label: 'Added',
+      render: (_, r) => {
+        const d = r.created_at || r.createdAt;
+        return d ? new Date(d).toLocaleDateString('en-IN') : '—';
+      },
+    },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },

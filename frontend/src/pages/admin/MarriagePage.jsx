@@ -25,13 +25,9 @@ const MarriagePage = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, membersRes] = await Promise.all([
-        marriageAPI.getAll({ page, limit: 10, search }),
-        memberAPI.getAll({ limit: 200 }),
-      ]);
+      const res = await marriageAPI.getAll({ page, limit: 10, search });
       setItems(res.data.data || []);
       setTotalPages(res.data.pagination?.pages || 1);
-      setMembers(membersRes.data.data || []);
     } catch {
       toast.error('Failed to load marriage profiles');
     } finally {
@@ -43,11 +39,16 @@ const MarriagePage = () => {
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    memberAPI.getAll({ limit: 200 }).then((res) => setMembers(res.data.data || [])).catch(() => {});
+  }, []);
+
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
     try {
-      if (editItem) {
-        await marriageAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await marriageAPI.update(targetId, data);
         toast.success('Profile updated!');
       } else {
         await marriageAPI.create(data);
@@ -74,14 +75,15 @@ const MarriagePage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await marriageAPI.delete(targetId);
-      setProfiles((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Profile deleted successfully!');
       setDeleteItem(null);
-      if (profiles.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -94,25 +96,42 @@ const MarriagePage = () => {
   };
 
   const columns = [
-    { key: 'member', label: 'Name', render: (_, r) => <span className="font-medium">{r.member?.firstName} {r.member?.lastName}</span> },
-    { key: 'gender', label: 'Gender', render: (v) => <Badge variant={v === 'Male' ? 'info' : 'purple'}>{v}</Badge> },
-    { key: 'dob', label: 'Age', render: (v) => v ? `${new Date().getFullYear() - new Date(v).getFullYear()} yrs` : '—' },
-    { key: 'education', label: 'Education' },
-    { key: 'occupation', label: 'Occupation' },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'approved' ? 'success' : v === 'pending' ? 'warning' : 'danger'}>{v}</Badge> },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
-        <div className="flex gap-2">
-          {r.status === 'pending' && (
-            <>
-              <button onClick={() => handleStatusChange(r._id, 'approved')} title="Approve" className="p-1.5 text-green-500 hover:bg-green-50 :bg-green-500/10 rounded-lg"><FiCheck className="w-4 h-4" /></button>
-              <button onClick={() => handleStatusChange(r._id, 'rejected')} title="Reject" className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiX className="w-4 h-4" /></button>
-            </>
-          )}
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
-        </div>
-      ),
+      key: 'member',
+      label: 'Name',
+      render: (_, r) => <span className="font-medium">{r.name || r.full_name || (r.member?.firstName ? `${r.member.firstName} ${r.member.lastName || ''}` : '—')}</span>,
+    },
+    { key: 'gender', label: 'Gender', render: (v) => <Badge variant={v === 'Male' || v === 'male' ? 'info' : 'purple'}>{v === 'Male' || v === 'male' ? 'पुरुष' : v === 'Female' || v === 'female' ? 'महिला' : v || '—'}</Badge> },
+    {
+      key: 'dob',
+      label: 'Age',
+      render: (v) => {
+        if (!v) return '—';
+        const age = new Date().getFullYear() - new Date(v).getFullYear();
+        return isNaN(age) ? '—' : `${age} yrs`;
+      },
+    },
+    { key: 'education', label: 'Education', render: (v) => v || '—' },
+    { key: 'occupation', label: 'Occupation', render: (v) => v || '—' },
+    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'approved' ? 'success' : v === 'pending' ? 'warning' : 'danger'}>{v || 'approved'}</Badge> },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => {
+        const rowId = r.id || r._id;
+        return (
+          <div className="flex gap-2">
+            {r.status === 'pending' && (
+              <>
+                <button onClick={() => handleStatusChange(rowId, 'approved')} title="Approve" className="p-1.5 text-green-500 hover:bg-green-50 rounded-lg"><FiCheck className="w-4 h-4" /></button>
+                <button onClick={() => handleStatusChange(rowId, 'rejected')} title="Reject" className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiX className="w-4 h-4" /></button>
+              </>
+            )}
+            <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+            <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          </div>
+        );
+      },
     },
   ];
 

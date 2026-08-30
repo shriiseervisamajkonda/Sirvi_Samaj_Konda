@@ -25,37 +25,60 @@ const StudentsPage = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, membersRes] = await Promise.all([
-        studentAPI.getAll({ page, limit: 10, search }),
-        memberAPI.getAll({ limit: 200 }),
-      ]);
+      const res = await studentAPI.getAll({ page, limit: 10, search });
       setItems(res.data.data || []);
       setTotalPages(res.data.pagination?.pages || 1);
-      setMembers(membersRes.data.data || []);
-    } catch { toast.error('Failed to load'); } finally { setLoading(false); }
+    } catch {
+      toast.error('Failed to load students');
+    } finally {
+      setLoading(false);
+    }
   }, [page, search]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    memberAPI.getAll({ limit: 200 }).then((res) => setMembers(res.data.data || [])).catch(() => {});
+  }, []);
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      ...data,
+      college_name: data.collegeName || data.college_name,
+      current_year: data.currentYear || data.current_year,
+    };
     try {
-      editItem ? await studentAPI.update(editItem._id, data) : await studentAPI.create(data);
-      toast.success(editItem ? 'Updated!' : 'Added!');
-      setModalOpen(false); fetchData();
-    } catch (err) { toast.error(err.response?.data?.message || 'Save failed'); } finally { setSaving(false); }
+      if (editItem && targetId) {
+        await studentAPI.update(targetId, payload);
+        toast.success('Updated!');
+      } else {
+        await studentAPI.create(payload);
+        toast.success('Added!');
+      }
+      setModalOpen(false);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Save failed');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await studentAPI.delete(targetId);
-      setStudents((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Student record deleted successfully!');
       setDeleteItem(null);
-      if (students.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -68,17 +91,30 @@ const StudentsPage = () => {
   };
 
   const columns = [
-    { key: 'member', label: 'Name', render: (_, r) => <span className="font-medium">{r.member?.firstName} {r.member?.lastName}</span> },
-    { key: 'collegeName', label: 'College/School', sortable: true },
-    { key: 'course', label: 'Course' },
-    { key: 'currentYear', label: 'Year', render: (v) => v ? <Badge variant="info">Year {v}</Badge> : '—' },
-    { key: 'cgpa', label: 'CGPA' },
+    {
+      key: 'member',
+      label: 'Name',
+      render: (_, r) => <span className="font-medium">{r.name || r.full_name || (r.member?.firstName ? `${r.member.firstName} ${r.member.lastName || ''}` : '—')}</span>,
+    },
+    { key: 'collegeName', label: 'College/School', sortable: true, render: (_, r) => r.college_name || r.collegeName || '—' },
+    { key: 'course', label: 'Course', render: (v) => v || '—' },
+    {
+      key: 'currentYear',
+      label: 'Year',
+      render: (_, r) => {
+        const y = r.current_year || r.currentYear;
+        return y ? <Badge variant="info">Year {y}</Badge> : '—';
+      },
+    },
+    { key: 'cgpa', label: 'CGPA / %', render: (v) => v || '—' },
     { key: 'scholarship', label: 'Scholarship', render: (v) => v ? <Badge variant="success">Yes</Badge> : <Badge variant="default">No</Badge> },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },

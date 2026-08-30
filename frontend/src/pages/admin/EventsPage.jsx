@@ -41,9 +41,10 @@ const EventsPage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
     try {
-      if (editItem) {
-        await eventAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await eventAPI.update(targetId, data);
         toast.success('Event updated!');
       } else {
         await eventAPI.create(data);
@@ -60,14 +61,15 @@ const EventsPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await eventAPI.delete(targetId);
-      setEvents((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Event deleted successfully!');
       setDeleteItem(null);
-      if (events.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -81,15 +83,25 @@ const EventsPage = () => {
 
   const columns = [
     { key: 'title', label: 'Event Title', sortable: true, render: (v) => <span className="font-medium">{v}</span> },
-    { key: 'startDate', label: 'Date', sortable: true, render: (v, r) => new Date(v || r.date).toLocaleDateString('en-IN') },
-    { key: 'location', label: 'Location' },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'published' ? 'success' : 'warning'}>{v}</Badge> },
+    {
+      key: 'startDate',
+      label: 'Date',
+      sortable: true,
+      render: (v, r) => {
+        const d = v || r.date || r.start_date || r.created_at;
+        return d ? new Date(d).toLocaleDateString('en-IN') : '—';
+      },
+    },
+    { key: 'location', label: 'Location', render: (v) => v || '—' },
+    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'published' ? 'success' : 'warning'}>{v || 'published'}</Badge> },
     { key: 'registrationRequired', label: 'Registration', render: (v) => <Badge variant={v ? 'info' : 'default'}>{v ? 'Required' : 'Open'}</Badge> },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },

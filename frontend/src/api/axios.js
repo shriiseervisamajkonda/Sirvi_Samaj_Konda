@@ -30,11 +30,15 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem('refreshToken');
       if (refreshToken) {
         try {
-          const { data } = await axios.post(`${API_URL}/auth/refresh-token`, { refreshToken });
-          localStorage.setItem('accessToken', data.accessToken);
-          localStorage.setItem('refreshToken', data.refreshToken);
-          original.headers.Authorization = `Bearer ${data.accessToken}`;
-          return api(original);
+          const res = await axios.post(`${API_URL}/auth/refresh-token`, { refreshToken });
+          const newAccess = res.data?.accessToken || res.data?.data?.accessToken;
+          const newRefresh = res.data?.refreshToken || res.data?.data?.refreshToken;
+          if (newAccess) {
+            localStorage.setItem('accessToken', newAccess);
+            if (newRefresh) localStorage.setItem('refreshToken', newRefresh);
+            original.headers.Authorization = `Bearer ${newAccess}`;
+            return api(original);
+          }
         } catch {
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');

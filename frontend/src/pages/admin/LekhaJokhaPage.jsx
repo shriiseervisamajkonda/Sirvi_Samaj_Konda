@@ -48,12 +48,19 @@ const LekhaJokhaPage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      ...data,
+      person_name: data.personName || data.person_name,
+      payment_method: data.paymentMethod || data.payment_method,
+      amount: Number(data.amount) || 0,
+    };
     try {
-      if (editItem) {
-        await lekhaJokhaAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await lekhaJokhaAPI.update(targetId, payload);
         toast.success('Record updated successfully!');
       } else {
-        await lekhaJokhaAPI.create(data);
+        await lekhaJokhaAPI.create(payload);
         toast.success('Record saved successfully!');
       }
       setModalOpen(false);
@@ -67,11 +74,12 @@ const LekhaJokhaPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await lekhaJokhaAPI.delete(targetId);
-      setItems((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Record deleted successfully!');
       setDeleteItem(null);
       if (items.length === 1 && page > 1) {
@@ -87,21 +95,30 @@ const LekhaJokhaPage = () => {
   };
 
   const columns = [
-    { key: 'date', label: 'Date', render: (v) => new Date(v).toLocaleDateString('en-IN') },
-    { key: 'title', label: 'Title / Description', render: (v) => <span className="font-semibold">{v}</span> },
-    { key: 'category', label: 'Fund Category', render: (v) => <Badge variant="primary">{categories.find(c => c.id === v)?.label || v}</Badge> },
+    {
+      key: 'date',
+      label: 'Date',
+      render: (v, r) => {
+        const d = v || r.created_at;
+        return d ? new Date(d).toLocaleDateString('en-IN') : '—';
+      },
+    },
+    { key: 'title', label: 'Title / Description', render: (v) => <span className="font-semibold">{v || '—'}</span> },
+    { key: 'category', label: 'Fund Category', render: (v) => <Badge variant="primary">{categories.find((c) => c.id === v)?.label || v || 'General'}</Badge> },
     {
       key: 'type',
       label: 'Type',
-      render: (v) => <Badge variant={v === 'income' ? 'success' : 'danger'}>{v === 'income' ? 'Income (+)' : 'Expense (-)'}</Badge>
+      render: (v) => <Badge variant={v === 'income' ? 'success' : 'danger'}>{v === 'income' ? 'Income (+)' : 'Expense (-)'}</Badge>,
     },
-    { key: 'amount', label: 'Amount', render: (v) => <span className="font-bold">₹{v?.toLocaleString('en-IN')}</span> },
-    { key: 'personName', label: 'Person', render: (v) => v || '-' },
+    { key: 'amount', label: 'Amount', render: (v) => <span className="font-bold">₹{Number(v || 0).toLocaleString('en-IN')}</span> },
+    { key: 'personName', label: 'Person', render: (_, r) => r.person_name || r.personName || '—' },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },

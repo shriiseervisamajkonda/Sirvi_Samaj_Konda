@@ -16,8 +16,12 @@ import AdminLayout from './layouts/AdminLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import ErrorBoundary from './components/common/ErrorBoundary';
 
-// Loading fallback component (disabled)
-const PageFallback = () => null;
+// Loading fallback component
+const PageFallback = () => (
+  <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF8EC]">
+    <div className="w-12 h-12 border-4 border-[#E8DCC8] border-t-[#C85A17] rounded-full animate-spin"></div>
+  </div>
+);
 
 // Auth Pages (Lazy)
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
@@ -97,7 +101,7 @@ createRoot(document.getElementById('root')).render(
               }}
             />
             <ErrorBoundary>
-              <Suspense fallback={null}>
+              <Suspense fallback={<PageFallback />}>
                 <Routes>
                   {/* Auth Routes */}
                   <Route path="/login" element={<LoginPage />} />
@@ -138,7 +142,7 @@ createRoot(document.getElementById('root')).render(
                   <Route
                     path="/admin"
                     element={
-                      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'editor']}>
+                      <ProtectedRoute allowedRoles={['developer', 'super_admin', 'admin', 'editor', 'treasurer']}>
                         <AdminLayout />
                       </ProtectedRoute>
                     }

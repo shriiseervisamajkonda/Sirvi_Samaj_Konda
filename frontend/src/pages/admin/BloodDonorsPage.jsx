@@ -27,13 +27,9 @@ const BloodDonorsPage = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, membersRes] = await Promise.all([
-        bloodDonorAPI.getAll({ page, limit: 10, search }),
-        memberAPI.getAll({ limit: 200 }),
-      ]);
+      const res = await bloodDonorAPI.getAll({ page, limit: 10, search });
       setItems(res.data.data || []);
       setTotalPages(res.data.pagination?.pages || 1);
-      setMembers(membersRes.data.data || []);
     } catch {
       toast.error('Failed to load blood donors');
     } finally {
@@ -45,14 +41,25 @@ const BloodDonorsPage = () => {
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    memberAPI.getAll({ limit: 200 }).then((res) => setMembers(res.data.data || [])).catch(() => {});
+  }, []);
+
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      ...data,
+      blood_group: data.bloodGroup || data.blood_group,
+      mobile_number: data.phone || data.mobile_number,
+      last_donation_date: data.lastDonationDate || data.last_donation_date,
+    };
     try {
-      if (editItem) {
-        await bloodDonorAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await bloodDonorAPI.update(targetId, payload);
         toast.success('Donor updated!');
       } else {
-        await bloodDonorAPI.create(data);
+        await bloodDonorAPI.create(payload);
         toast.success('Donor registered!');
       }
       setModalOpen(false);
@@ -66,14 +73,15 @@ const BloodDonorsPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await bloodDonorAPI.delete(targetId);
-      setDonors((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Donor deleted successfully!');
       setDeleteItem(null);
-      if (donors.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -86,17 +94,31 @@ const BloodDonorsPage = () => {
   };
 
   const columns = [
-    { key: 'name', label: 'Name', sortable: true, render: (_, r) => <span className="font-medium">{r.name || `${r.member?.firstName} ${r.member?.lastName}`}</span> },
-    { key: 'bloodGroup', label: 'Blood Group', render: (v) => <Badge variant="danger">{v}</Badge> },
-    { key: 'phone', label: 'Phone' },
-    { key: 'village', label: 'Village' },
-    { key: 'lastDonationDate', label: 'Last Donation', render: (v) => v ? new Date(v).toLocaleDateString('en-IN') : 'Never' },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'available' ? 'success' : 'warning'}>{v}</Badge> },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'name',
+      label: 'Name',
+      sortable: true,
+      render: (_, r) => <span className="font-medium">{r.name || r.full_name || (r.member?.firstName ? `${r.member.firstName} ${r.member.lastName || ''}` : '—')}</span>,
+    },
+    { key: 'bloodGroup', label: 'Blood Group', render: (_, r) => <Badge variant="danger">{r.blood_group || r.bloodGroup || '—'}</Badge> },
+    { key: 'phone', label: 'Phone', render: (_, r) => r.mobile_number || r.phone || '—' },
+    { key: 'village', label: 'Village', render: (v) => v || 'Konda' },
+    {
+      key: 'lastDonationDate',
+      label: 'Last Donation',
+      render: (_, r) => {
+        const d = r.last_donation_date || r.lastDonationDate;
+        return d ? new Date(d).toLocaleDateString('en-IN') : 'Never';
+      },
+    },
+    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'available' ? 'success' : 'warning'}>{v || 'available'}</Badge> },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },

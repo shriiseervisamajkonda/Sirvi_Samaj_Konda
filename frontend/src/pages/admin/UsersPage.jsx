@@ -8,7 +8,7 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
 
-const roles = ['member', 'editor', 'admin', 'super_admin'];
+const roles = ['developer', 'super_admin', 'admin', 'editor', 'treasurer', 'member'];
 
 const UsersPage = () => {
   const [items, setItems] = useState([]);
@@ -42,9 +42,10 @@ const UsersPage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
     try {
-      if (editItem) {
-        await userAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await userAPI.update(targetId, data);
         toast.success('User updated successfully!');
       } else {
         await userAPI.create(data);
@@ -61,14 +62,15 @@ const UsersPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await userAPI.delete(targetId);
-      setUsers((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('User deleted successfully!');
       setDeleteItem(null);
-      if (users.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -82,15 +84,24 @@ const UsersPage = () => {
 
   const columns = [
     { key: 'name', label: 'Name', sortable: true, render: (v) => <span className="font-medium">{v}</span> },
-    { key: 'email', label: 'Email', sortable: true },
-    { key: 'role', label: 'Role', render: (v) => <Badge variant={v === 'super_admin' ? 'danger' : v === 'admin' ? 'warning' : v === 'editor' ? 'info' : 'default'}>{v}</Badge> },
-    { key: 'isVerified', label: 'Email Verified', render: (v) => <Badge variant={v ? 'success' : 'warning'}>{v ? 'Verified' : 'Pending'}</Badge> },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'active' ? 'success' : 'danger'}>{v || 'active'}</Badge> },
+    { key: 'phone', label: 'Phone / User ID', render: (v) => v ? <span className="font-mono text-xs">{v}</span> : '—' },
+    { key: 'email', label: 'Email', sortable: true, render: (v) => v || '—' },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'role',
+      label: 'Role',
+      render: (v) => {
+        const variant = v === 'developer' || v === 'super_admin' ? 'danger' : v === 'admin' ? 'warning' : v === 'treasurer' ? 'info' : 'default';
+        return <Badge variant={variant}>{v}</Badge>;
+      },
+    },
+    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'inactive' ? 'danger' : 'success'}>{v || 'active'}</Badge> },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },

@@ -9,56 +9,59 @@ import Badge from '../../components/common/Badge';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-const MemberCard = ({ member }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.95 }}
-    whileInView={{ opacity: 1, scale: 1 }}
-    viewport={{ once: true }}
-    className="bg-[#2A1010] rounded-2xl p-5 border border-[#D4AF37]/15 hover:border-[#D4AF37]/45 hover:shadow-2xl transition-all duration-300 shadow-lg"
-  >
-    <div className="flex flex-col items-center text-center">
-      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#D4AF37] p-0.5 flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-lg overflow-hidden">
-        {member.photo ? (
-          <img src={member.photo} alt={`${member.firstName} ${member.lastName}`} className="w-full h-full object-cover rounded-2xl" />
-        ) : (
-          <div className="w-full h-full bg-[#160D08] rounded-2xl flex items-center justify-center text-[#FFF3DD]">
-            {member.firstName?.charAt(0)}
-          </div>
+const MemberCard = ({ member }) => {
+  const name = member.full_name || `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'सदस्य';
+  const guardian = member.relative_name || member.guardianName;
+  const blood = member.blood_group || member.bloodGroup;
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      className="bg-[#2A1010] rounded-2xl p-5 border border-[#D4AF37]/15 hover:border-[#D4AF37]/45 hover:shadow-2xl transition-all duration-300 shadow-lg"
+    >
+      <div className="flex flex-col items-center text-center">
+        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#D4AF37] p-0.5 flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-lg overflow-hidden">
+          {member.photo ? (
+            <img src={member.photo} alt={name} className="w-full h-full object-cover rounded-2xl" />
+          ) : (
+            <div className="w-full h-full bg-[#160D08] rounded-2xl flex items-center justify-center text-[#FFF3DD]">
+              {name.charAt(0) || 'M'}
+            </div>
+          )}
+        </div>
+        <h3 className="font-bold text-[#FFF3DD] text-base mb-1">
+          {name}
+        </h3>
+        {blood && blood !== 'Unknown' && (
+          <Badge variant="danger" size="xs">
+            <FiDroplet className="w-3 h-3" /> {blood}
+          </Badge>
         )}
+        <div className="mt-4 space-y-1.5 text-left w-full border-t border-[#D4AF37]/10 pt-3">
+          {guardian && (
+            <div className="flex items-center gap-2 text-[#CDBBA4] text-xs font-semibold">
+              <span className="text-xs">👤</span> पिता/पति: {guardian}
+            </div>
+          )}
+          {member.occupation && (
+            <div className="flex items-center gap-2 text-[#CDBBA4] text-xs font-semibold">
+              <FiBriefcase className="w-3.5 h-3.5 text-[#C85A17]" /> {member.occupation}
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-[#CDBBA4] text-xs font-semibold">
+            <FiMapPin className="w-3.5 h-3.5 text-[#C85A17]" /> {member.village === 'Konda' || !member.village ? 'कोणदा' : member.village}
+          </div>
+          {member.education && (
+            <div className="flex items-center gap-2 text-[#CDBBA4] text-xs font-semibold">
+              <span className="text-xs">📚</span> {member.education}
+            </div>
+          )}
+        </div>
       </div>
-      <h3 className="font-bold text-[#FFF3DD] text-base mb-1">
-        {member.firstName} {member.lastName}
-      </h3>
-      {member.bloodGroup && (
-        <Badge variant="danger" size="xs">
-          <FiDroplet className="w-3 h-3" /> {member.bloodGroup}
-        </Badge>
-      )}
-      <div className="mt-4 space-y-1.5 text-left w-full border-t border-[#D4AF37]/10 pt-3">
-        {member.guardianName && (
-          <div className="flex items-center gap-2 text-[#CDBBA4] text-xs font-semibold">
-            <span className="text-xs">👤</span> पिता/पति: {member.guardianName}
-          </div>
-        )}
-        {member.occupation && (
-          <div className="flex items-center gap-2 text-[#CDBBA4] text-xs font-semibold">
-            <FiBriefcase className="w-3.5 h-3.5 text-[#C85A17]" /> {member.occupation}
-          </div>
-        )}
-        {member.village && (
-          <div className="flex items-center gap-2 text-[#CDBBA4] text-xs font-semibold">
-            <FiMapPin className="w-3.5 h-3.5 text-[#C85A17]" /> {member.village === 'Konda' ? 'कोणदा' : member.village}
-          </div>
-        )}
-        {member.education && (
-          <div className="flex items-center gap-2 text-[#CDBBA4] text-xs font-semibold">
-            <span className="text-xs">📚</span> {member.education}
-          </div>
-        )}
-      </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 const MemberDirectoryPage = () => {
   const [members, setMembers] = useState([]);
