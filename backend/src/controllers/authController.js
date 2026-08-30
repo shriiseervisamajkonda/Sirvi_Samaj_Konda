@@ -126,18 +126,37 @@ export const login = asyncHandler(async (req, res) => {
 
 // POST /api/auth/google-login
 export const googleLogin = asyncHandler(async (req, res) => {
-  const { email } = req.body;
-  const cleanEmail = (email || '').trim().toLowerCase();
+  const { token, email } = req.body;
+  let verifiedEmail = (email || '').trim().toLowerCase();
 
-  if (!cleanEmail) {
-    return res.status(400).json({ success: false, message: 'Google email is required' });
+  // If a cryptographic Supabase token is provided, verify it directly with Supabase Auth
+  if (token && isSupabaseConfigured) {
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !authData?.user?.email) {
+        return res.status(401).json({
+          success: false,
+          message: 'Google cryptographic token verification failed. Please try again.',
+        });
+      }
+      verifiedEmail = authData.user.email.trim().toLowerCase();
+    } catch (tokenErr) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid Google authentication session.',
+      });
+    }
+  }
+
+  if (!verifiedEmail) {
+    return res.status(400).json({ success: false, message: 'Google email or OAuth token is required' });
   }
 
   // Check if this Google email is linked to a registered Samaj account
   const { data: user, error } = await supabase
     .from('users')
     .select('id, name, phone, email, role, photo_url, is_active, must_change_password, panchayat_family_id')
-    .eq('email', cleanEmail)
+    .eq('email', verifiedEmail)
     .maybeSingle();
 
   if (error || !user) {
@@ -145,6 +164,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
       success: false,
       code: 'GOOGLE_NOT_LINKED',
       message: 'यह Google खाता किसी पंजीकृत सदस्य से लिंक नहीं है। कृपया पहले अपने पंजीकृत मोबाइल नंबर व डिफ़ॉल्ट पासवर्ड से लॉगिन करें और प्रोफ़ाइल में जाकर Google खाता लिंक करें।',
+      email: verifiedEmail,
     });
   }
 
@@ -177,6 +197,68 @@ export const googleLogin = asyncHandler(async (req, res) => {
       accessToken,
       refreshToken,
     },
+  });
+});
+
+// POST /api/auth/link-google-oauth (Protected)
+export const linkGoogleOAuth = asyncHandler(async (req, res) => {
+  const { token, email } = req.body;
+  let verifiedEmail = (email || '').trim().toLowerCase();
+
+  // If cryptographic token provided, verify it with Supabase Auth
+  if (token && isSupabaseConfigured) {
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser(token);
+      if (authError || !authData?.user?.email) {
+        return res.status(401).json({
+          success: false,
+          message: 'Google OAuth token verification failed. Could not verify account ownership.',
+        });
+      }
+      verifiedEmail = authData.user.email.trim().toLowerCase();
+    } catch {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid Google OAuth token',
+      });
+    }
+  }
+
+  if (!verifiedEmail) {
+    return res.status(400).json({ success: false, message: 'Verified Google email is required' });
+  }
+
+  // Check if another user already has this email linked
+  const { data: existingUser } = await supabase
+    .from('users')
+    .select('id, name')
+    .eq('email', verifiedEmail)
+    .neq('id', req.user.id)
+    .maybeSingle();
+
+  if (existingUser) {
+    return res.status(400).json({
+      success: false,
+      message: `यह Google खाता (${verifiedEmail}) पहले से किसी अन्य सदस्य खाते से जुड़ा हुआ है।`,
+    });
+  }
+
+  // Update user's email with the verified Google email
+  const { data: updatedUser, error: updateError } = await supabase
+    .from('users')
+    .update({ email: verifiedEmail, updated_at: new Date().toISOString() })
+    .eq('id', req.user.id)
+    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id')
+    .single();
+
+  if (updateError) {
+    return res.status(400).json({ success: false, message: updateError.message });
+  }
+
+  res.json({
+    success: true,
+    message: 'Google खाता सफलतापूर्वक सत्यापित व लिंक हो गया है!',
+    data: updatedUser,
   });
 });
 

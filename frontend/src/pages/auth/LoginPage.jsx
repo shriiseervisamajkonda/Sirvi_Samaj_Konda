@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight, FiShield, FiHome } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../config/supabase';
 import toast from 'react-hot-toast';
 
 const LoginPage = () => {
@@ -22,23 +23,20 @@ const LoginPage = () => {
   } = useForm();
 
   const handleGoogleSignIn = async () => {
-    const inputEmail = window.prompt('अपना Google / Gmail ID दर्ज करें (Enter your Gmail address):');
-    if (!inputEmail || !inputEmail.trim()) return;
-
     setGoogleLoading(true);
     try {
-      const result = await googleLogin({ email: inputEmail.trim() });
-      toast.success(`Google से स्वागत है, ${result.user?.name || 'उपयोगकर्ता'}!`);
-      const role = result.user?.role;
-      if (['developer', 'super_admin', 'admin', 'editor', 'treasurer'].includes(role)) {
-        navigate('/admin');
-      } else {
-        navigate(from);
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) {
+        throw error;
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Google लॉगिन विफल रहा। कृपया सुनिश्चित करें कि यह खाता पहले से लिंक है।';
-      toast.error(msg, { duration: 6000 });
-    } finally {
+      console.error('Google Sign-In Error:', err);
+      toast.error(err.message || 'Google साइन-इन शुरू करने में त्रुटि हुई।');
       setGoogleLoading(false);
     }
   };

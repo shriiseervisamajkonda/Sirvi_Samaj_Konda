@@ -3,6 +3,7 @@ import api from '../api/axios';
 export const authAPI = {
   login: (data) => api.post('/auth/login', data),
   googleLogin: (data) => api.post('/auth/google-login', data),
+  linkGoogleOAuth: (data) => api.post('/auth/link-google-oauth', data),
   register: (data) => api.post('/auth/register', data),
   logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),

@@ -11,7 +11,7 @@ const Navbar = () => {
   const [dropdown, setDropdown] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const { darkMode, toggleTheme } = useTheme();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
   const location = useLocation();
 
@@ -23,51 +23,62 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const isActive = (path) => location.pathname === path;
+
   const navLinks = [
     { label: t('nav_home'), path: '/' },
-    { label: t('nav_about'), path: '/about' },
+    {
+      label: t('nav_about'),
+      children: [
+        { label: 'समाज परिचय व इतिहास', path: '/about' },
+        { label: 'ग्राम कोणदा परिचय', path: '/village' },
+        { label: 'सकल पंच एवं केन्द्रीय समिति', path: '/committee' },
+        { label: 'श्री आई जी महिला मंडल', path: '/women-committee' },
+        { label: 'कोणदा ग्राम इकाई', path: '/konda-gram-unit' },
+        { label: 'सामाजिक सामान्य जानकारी', path: '/social-info' },
+      ],
+    },
     {
       label: t('nav_directory'),
       children: [
         { label: t('nav_families'), path: '/families' },
         { label: t('nav_members'), path: '/members' },
         { label: t('nav_students'), path: '/students' },
+        { label: t('nav_business'), path: '/businesses' },
+        { label: t('nav_blood'), path: '/blood-donors' },
+        { label: t('nav_marriage'), path: '/marriage' },
       ],
     },
-    {
-      label: t('nav_committee_panch'),
-      children: [
-        { label: 'अखिल भारतीय सिर्वी महासभा (कोणदा इकाई)', path: '/konda-gram-unit' },
-        { label: t('nav_committee_panch'), path: '/committee' },
-        { label: 'श्री आई जी महिला समिती', path: '/women-committee' },
-        { label: t('nav_panch_settlements'), path: '/panch-settlements' },
-        { label: t('nav_social_info'), path: '/social-info' },
-        { label: t('nav_lekha_jokha'), path: '/lekha-jokha' },
-      ],
-    },
+    { label: 'लेखा-जोखा', path: '/lekha-jokha' },
+    { label: 'पंच फैसले', path: '/panch-settlements' },
     { label: t('nav_events'), path: '/events' },
     { label: t('nav_news'), path: '/news' },
     { label: t('nav_gallery'), path: '/gallery' },
+    { label: t('nav_documents'), path: '/documents' },
     { label: t('nav_contact'), path: '/contact' },
   ];
 
-  const isActive = (path) => location.pathname === path;
-
   return (
-    <nav className={`sticky top-0 z-50 transition-all duration-300 ${
-      scrolled 
-        ? 'bg-[#7A2525]/95 border-b border-[#C9A44C]/30 shadow-lg backdrop-blur-md py-1.5' 
-        : 'bg-[#7A2525] border-b border-[#C9A44C]/20 py-2.5'
-    }`}>
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md bg-white border border-[#C9A44C]/40">
-              <img src="/Logo.webp" alt="Logo" className="w-full h-full object-cover" />
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-[#7A2525]/95 backdrop-blur-md shadow-lg py-2'
+          : 'bg-[#7A2525] py-3'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:border-amber-400/50 transition">
+              <img src="/Logo.webp" alt="Logo" className="w-8 h-8 rounded-full object-cover" />
             </div>
-            <div className="hidden sm:block">
-              <p className="font-bold text-white text-sm leading-tight">{t('hero_title_1')} {t('hero_title_2')}</p>
-              <p className="text-xs text-[#FDE68A] font-bold tracking-wider">{t('hero_title_3')}</p>
+            <div>
+              <p className="font-extrabold text-sm sm:text-base text-white leading-tight tracking-wide">
+                श्री सिर्वी समाज
+              </p>
+              <p className="text-[10px] text-amber-200 font-semibold tracking-wider uppercase">
+                ग्राम कोणदा (कुक्षी)
+              </p>
             </div>
           </Link>
 
@@ -76,7 +87,7 @@ const Navbar = () => {
               link.children ? (
                 <div
                   key={link.label}
-                  className="relative"
+                  className="relative group"
                   onMouseEnter={() => setDropdown(link.label)}
                   onMouseLeave={() => setDropdown(null)}
                 >
@@ -127,8 +138,8 @@ const Navbar = () => {
                 <FiUser className="w-4 h-4" /> {t('nav_admin')}
               </Link>
             ) : user ? (
-              <Link to="/admin" className="hidden sm:flex items-center gap-2 px-4 py-2.5 border border-white/40 text-white rounded-xl text-sm font-bold hover:bg-white/10 transition">
-                {t('nav_dashboard')}
+              <Link to="/profile" className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-white/15 border border-white/30 text-white rounded-xl text-sm font-bold hover:bg-white/25 transition">
+                <FiUser className="w-4 h-4 text-amber-300" /> मेरी प्रोफ़ाइल
               </Link>
             ) : (
               <Link to="/login" className="hidden sm:flex px-4 py-2.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-sm font-bold hover:shadow-lg transition shadow-md">
@@ -178,7 +189,26 @@ const Navbar = () => {
                   </Link>
                 )
               )}
-              {!user && (
+              {user ? (
+                <div className="pt-2 border-t border-white/20 space-y-2">
+                  <Link
+                    to={isAdmin ? '/admin' : '/profile'}
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-4 py-2.5 text-sm font-bold bg-white/20 text-white rounded-xl text-center"
+                  >
+                    {isAdmin ? 'एडमिन पैनल (Admin Panel)' : 'मेरी प्रोफ़ाइल (My Profile)'}
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      logout();
+                    }}
+                    className="w-full px-4 py-2.5 text-sm font-bold bg-red-600/80 text-white rounded-xl text-center"
+                  >
+                    लॉगआउट (Logout)
+                  </button>
+                </div>
+              ) : (
                 <Link
                   to="/login"
                   onClick={() => setMobileOpen(false)}
