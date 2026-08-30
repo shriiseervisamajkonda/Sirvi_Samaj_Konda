@@ -101,97 +101,13 @@ const recordCategories = [
   'विशेष आयोजन',
 ];
 
-const defaultMembers = [
-  {
-    _id: 'member-1',
-    name: 'नाम यहाँ दर्ज किया जाएगा',
-    designation: 'अध्यक्ष',
-    about: 'सदस्य का संक्षिप्त परिचय यहाँ दर्ज किया जाएगा।',
-    photo: ''
-  },
-  {
-    _id: 'member-2',
-    name: 'नाम यहाँ दर्ज किया जाएगा',
-    designation: 'उपाध्यक्ष',
-    about: 'सदस्य का संक्षिप्त परिचय यहाँ दर्ज किया जाएगा।',
-    photo: ''
-  },
-  {
-    _id: 'member-3',
-    name: 'नाम यहाँ दर्ज किया जाएगा',
-    designation: 'सचिव',
-    about: 'सदस्य का संक्षिप्त परिचय यहाँ दर्ज किया जाएगा।',
-    photo: ''
-  },
-  {
-    _id: 'member-4',
-    name: 'नाम यहाँ दर्ज किया जाएगा',
-    designation: 'सह-सचिव',
-    about: 'सदस्य का संक्षिप्त परिचय यहाँ दर्ज किया जाएगा।',
-    photo: ''
-  },
-  {
-    _id: 'member-5',
-    name: 'नाम यहाँ दर्ज किया जाएगा',
-    designation: 'कोषाध्यक्ष',
-    about: 'सदस्य का संक्षिप्त परिचय यहाँ दर्ज किया जाएगा।',
-    photo: ''
-  },
-  {
-    _id: 'member-6',
-    name: 'नाम यहाँ दर्ज किया जाएगा',
-    designation: 'सदस्य',
-    about: 'सदस्य का संक्षिप्त परिचय यहाँ दर्ज किया जाएगा।',
-    photo: ''
-  },
-];
-
-const defaultFeaturedActivities = [
-  {
-    _id: 'activity-1',
-    title: 'कार्यक्रम का नाम',
-    date: 'तारीख दर्ज की जाएगी',
-    location: 'स्थान दर्ज किया जाएगा',
-    description: 'कार्यक्रम का विवरण यहाँ दर्ज किया जाएगा।',
-    image: '/hero_background.webp',
-    extraInfo: 'संबंधित जानकारी यहाँ उपलब्ध होगी।',
-  },
-  {
-    _id: 'activity-2',
-    title: 'कार्यक्रम का नाम',
-    date: 'तारीख दर्ज की जाएगी',
-    location: 'स्थान दर्ज किया जाएगा',
-    description: 'कार्यक्रम का विवरण यहाँ दर्ज किया जाएगा।',
-    image: '/hero_background.webp',
-    extraInfo: 'संबंधित जानकारी यहाँ उपलब्ध होगी।',
-  },
-  {
-    _id: 'activity-3',
-    title: 'कार्यक्रम का नाम',
-    date: 'तारीख दर्ज की जाएगी',
-    location: 'स्थान दर्ज किया जाएगा',
-    description: 'कार्यक्रम का विवरण यहाँ दर्ज किया जाएगा।',
-    image: '/hero_background.webp',
-    extraInfo: 'संबंधित जानकारी यहाँ उपलब्ध होगी।',
-  },
-];
-
-const defaultGallery = [
-  { _id: 'gallery-1', title: 'कार्यक्रम', image: '/hero_background.webp', caption: 'कार्यक्रम एवं गतिविधि गैलरी' },
-  { _id: 'gallery-2', title: 'सामाजिक सेवा', image: '/hero_background.webp', caption: 'सामाजिक सेवा कार्य' },
-  { _id: 'gallery-3', title: 'सांस्कृतिक कार्यक्रम', image: '/hero_background.webp', caption: 'सांस्कृतिक आयोजन' },
-  { _id: 'gallery-4', title: 'धार्मिक कार्यक्रम', image: '/hero_background.webp', caption: 'धार्मिक एवं आध्यात्मिक आयोजन' },
-  { _id: 'gallery-5', title: 'महिला गतिविधियाँ', image: '/hero_background.webp', caption: 'महिला सहभागिता' },
-  { _id: 'gallery-6', title: 'विशेष आयोजन', image: '/hero_background.webp', caption: 'विशेष अवसर' },
-];
-
 const messageText = 'यहाँ श्री आई जी महिला समिती का आधिकारिक संदेश प्रदर्शित किया जाएगा। इस संदेश को सही सूचना के अनुसार एडमिन पैनल से अपडेट किया जा सकता है।';
 
 const WomenCommitteePage = () => {
-  const [committeeMembers, setCommitteeMembers] = useState(defaultMembers);
-  const [featuredActivities, setFeaturedActivities] = useState(defaultFeaturedActivities);
+  const [committeeMembers, setCommitteeMembers] = useState([]);
+  const [featuredActivities, setFeaturedActivities] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
-  const [galleryItems, setGalleryItems] = useState(defaultGallery);
+  const [galleryItems, setGalleryItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -461,35 +377,43 @@ const WomenCommitteePage = () => {
             <div className="h-px flex-1 bg-[#E8DCC8]" />
           </div>
 
-          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            {committeeMembers.map((member, index) => (
-              <motion.div
-                key={member._id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-                className="bg-white border border-[#E8DCC8] rounded-3xl p-6 shadow-md hover:border-[#C9A44C]/60 hover:shadow-lg transition-all"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] p-0.5 overflow-hidden shrink-0 shadow-md">
-                    {member.photo ? (
-                      <img src={member.photo} alt={member.name} className="w-full h-full object-cover rounded-2xl" />
-                    ) : (
-                      <div className="w-full h-full bg-[#FFF8EC] rounded-2xl flex items-center justify-center text-[#7A2525] font-black text-xl">
-                        {member.name?.charAt(0) || 'न'}
-                      </div>
-                    )}
+          {committeeMembers.length === 0 ? (
+            <EmptyState
+              icon={FiUsers}
+              title="समिति सदस्य सूची शीघ्र उपलब्ध होगी"
+              description="महिला समिति के पदाधिकारियों एवं सदस्यों का विवरण समिति द्वारा अद्यतन किया जा रहा है।"
+            />
+          ) : (
+            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {committeeMembers.map((member, index) => (
+                <motion.div
+                  key={member._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-white border border-[#E8DCC8] rounded-3xl p-6 shadow-md hover:border-[#C9A44C]/60 hover:shadow-lg transition-all"
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] p-0.5 overflow-hidden shrink-0 shadow-md">
+                      {member.photo ? (
+                        <img src={member.photo} alt={member.name} className="w-full h-full object-cover rounded-2xl" />
+                      ) : (
+                        <div className="w-full h-full bg-[#FFF8EC] rounded-2xl flex items-center justify-center text-[#7A2525] font-black text-xl">
+                          {member.name?.charAt(0) || 'न'}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-[#2B211B]">{member.name}</h3>
+                      <p className="text-[#C85A17] font-bold text-sm">{member.designation}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-[#2B211B]">{member.name}</h3>
-                    <p className="text-[#C85A17] font-bold text-sm">{member.designation}</p>
-                  </div>
-                </div>
-                <p className="text-[#766A60] leading-relaxed text-sm font-medium">{member.about}</p>
-              </motion.div>
-            ))}
-          </div>
+                  <p className="text-[#766A60] leading-relaxed text-sm font-medium">{member.about}</p>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section>
