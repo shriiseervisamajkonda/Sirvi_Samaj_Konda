@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FiUser, FiEdit2, FiTrash2, FiPlus, FiPhone, FiMail, FiLock, FiShield, FiHome, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiUser, FiEdit2, FiTrash2, FiPlus, FiPhone, FiLock, FiShield, FiHome, FiEye, FiEyeOff, FiKey } from 'react-icons/fi';
 import { userAPI } from '../../services/api';
 import { useForm } from 'react-hook-form';
 import DataTable from '../../components/common/DataTable';
@@ -26,10 +26,15 @@ const UsersPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
+  const [resetUser, setResetUser] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
+  const watchPhone = watch('phone');
+  const watchFamilyId = watch('panchayat_family_id');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -84,6 +89,35 @@ const UsersPage = () => {
     setModalOpen(true);
   };
 
+  const calculateDefaultPassword = () => {
+    const currentPhone = (watchPhone || editItem?.phone || '').replace(/\D/g, '');
+    const last4 = currentPhone.length >= 4 ? currentPhone.slice(-4) : '0000';
+    const familyId = watchFamilyId || editItem?.panchayat_family_id || '1';
+    return `${last4}@${familyId}`;
+  };
+
+  const handleFillDefaultPassword = () => {
+    const defaultPwd = calculateDefaultPassword();
+    setValue('password', defaultPwd);
+    toast.success(`डिफ़ॉल्ट पासवर्ड (${defaultPwd}) फॉर्म में भर दिया गया`);
+  };
+
+  const handleResetToDefault = async () => {
+    if (!resetUser) return;
+    setResettingPassword(true);
+    try {
+      const res = await userAPI.resetDefaultPassword(resetUser.id);
+      const defaultPwd = res.data?.defaultPassword || `${(resetUser.phone || '').replace(/\D/g, '').slice(-4)}@${resetUser.panchayat_family_id || '1'}`;
+      toast.success(`पासवर्ड रीसेट सफल! डिफ़ॉल्ट पासवर्ड: ${defaultPwd}`);
+      setResetUser(null);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'पासवर्ड रीसेट करने में त्रुटि');
+    } finally {
+      setResettingPassword(false);
+    }
+  };
+
   const onSubmit = async (data) => {
     setSaving(true);
     const targetId = editItem ? (editItem.id || editItem._id) : null;
@@ -136,7 +170,26 @@ const UsersPage = () => {
   const columns = [
     { key: 'name', label: 'Full Name', sortable: true, render: (v) => <span className="font-semibold text-gray-900">{v}</span> },
     { key: 'phone', label: 'Mobile (Login ID)', sortable: true, render: (v) => v ? <span className="font-mono text-xs font-bold text-[#C85A17]">{v}</span> : '—' },
-    { key: 'email', label: 'Gmail / Email ID', sortable: true, render: (v) => v ? <span className="text-xs text-gray-600 font-medium">{v}</span> : <span className="text-gray-400 text-xs">Not linked</span> },
+    {
+      key: 'email',
+      label: 'Google Account',
+      sortable: true,
+      render: (v) => v ? (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
+          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+          </svg>
+          <span className="truncate max-w-[150px] font-mono text-[11px]">{v}</span>
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1 text-[11px] text-gray-400 font-medium px-2 py-0.5 bg-gray-50 rounded-md border border-gray-200">
+          Not Linked
+        </span>
+      ),
+    },
     {
       key: 'role',
       label: 'Role',
@@ -150,7 +203,7 @@ const UsersPage = () => {
       key: 'panchayat_family_id',
       label: 'Family ID',
       sortable: true,
-      render: (v) => v ? <span className="text-xs font-mono bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-amber-900">{v}</span> : '—',
+      render: (v) => v ? <span className="text-xs font-mono bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-amber-900 font-bold">{v}</span> : '—',
     },
     {
       key: 'status',
@@ -164,16 +217,26 @@ const UsersPage = () => {
     {
       key: '_actions',
       label: 'Actions',
-      render: (_, r) => (
-        <div className="flex gap-2">
-          <button onClick={() => openEditModal(r)} title="Edit User" className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg cursor-pointer transition-colors">
-            <FiEdit2 className="w-4 h-4" />
-          </button>
-          <button onClick={() => setDeleteItem(r)} title="Delete User" className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer transition-colors">
-            <FiTrash2 className="w-4 h-4" />
-          </button>
-        </div>
-      ),
+      render: (_, r) => {
+        const defaultPwd = `${(r.phone || '').replace(/\D/g, '').slice(-4) || '0000'}@${r.panchayat_family_id || '1'}`;
+        return (
+          <div className="flex gap-1.5 items-center">
+            <button
+              onClick={() => setResetUser(r)}
+              title={`डिफ़ॉल्ट पासवर्ड रीसेट करें (${defaultPwd})`}
+              className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg cursor-pointer transition-colors border border-amber-200 shadow-2xs"
+            >
+              <FiKey className="w-4 h-4" />
+            </button>
+            <button onClick={() => openEditModal(r)} title="Edit User" className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg cursor-pointer transition-colors border border-blue-200 shadow-2xs">
+              <FiEdit2 className="w-4 h-4" />
+            </button>
+            <button onClick={() => setDeleteItem(r)} title="Delete User" className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer transition-colors border border-red-200 shadow-2xs">
+              <FiTrash2 className="w-4 h-4" />
+            </button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -211,6 +274,7 @@ const UsersPage = () => {
         emptyText="No users found"
       />
 
+      {/* Create / Edit User Modal */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'यूजर विवरण संपादित करें (Edit User)' : 'नया यूजर बनाएं (Create User)'} size="lg">
         <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -265,10 +329,36 @@ const UsersPage = () => {
               {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
             </div>
 
-            {/* Email / Gmail ID */}
+            {/* Panchayat Family ID Link */}
             <div>
-              <label htmlFor="user-email" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
-                <FiMail className="w-4 h-4 text-[#C85A17]" /> Google / Gmail ID (वैकल्पिक / Optional)
+              <label htmlFor="user-panchayat-family-id" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+                <FiHome className="w-4 h-4 text-[#C85A17]" /> परिवार आईडी (Panchayat Family ID)
+              </label>
+              <input
+                id="user-panchayat-family-id"
+                {...register('panchayat_family_id')}
+                placeholder="उदा. 1"
+                className="input-field font-mono uppercase"
+              />
+            </div>
+
+            {/* Google / Gmail ID Field */}
+            <div className="md:col-span-2">
+              <label htmlFor="user-email" className="block text-sm font-medium text-gray-700 mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  Google / Gmail ID (1-Click Google Sign-In)
+                </span>
+                {editItem?.email && (
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    ✓ Google Linked
+                  </span>
+                )}
               </label>
               <input
                 id="user-email"
@@ -276,28 +366,40 @@ const UsersPage = () => {
                 type="email"
                 autoComplete="email"
                 inputMode="email"
-                placeholder="name@gmail.com"
+                placeholder="name@gmail.com (Google 1-क्लिक लॉगिन हेतु)"
                 className="input-field"
               />
-              <p className="text-xs text-gray-400 mt-1">Google खाता जोड़ने पर ईमेल से भी लॉगिन संभव होगा</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Google खाता लिंक होने पर उपयोगकर्ता मोबाइल अथवा Google 1-Click दोनों माध्यमों से लॉगिन कर सकेंगे।
+              </p>
             </div>
 
-            {/* Password */}
-            <div>
-              <label htmlFor="user-password" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
-                <FiLock className="w-4 h-4 text-[#C85A17]" /> पासवर्ड (Password) {editItem ? '(बदलने के लिए दर्ज करें)' : '*'}
-              </label>
+            {/* Password Field with Switch to Default Password button */}
+            <div className="md:col-span-2 bg-[#FFF8EC] border border-[#E8DCC8] p-3.5 rounded-2xl">
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="user-password" className="block text-xs font-bold uppercase tracking-wider text-[#7A2525] flex items-center gap-1.5">
+                  <FiLock className="w-4 h-4 text-[#C85A17]" /> पासवर्ड (Password) {editItem ? '(बदलने हेतु दर्ज करें)' : '*'}
+                </label>
+                <button
+                  type="button"
+                  onClick={handleFillDefaultPassword}
+                  className="px-2.5 py-1 bg-white hover:bg-amber-100 text-[#C85A17] text-xs font-bold rounded-lg border border-[#E8DCC8] flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+                  title="डिफ़ॉल्ट पासवर्ड फॉर्मूला अनुसार भरें"
+                >
+                  <FiKey className="w-3.5 h-3.5" /> डिफ़ॉल्ट पासवर्ड भरें ({calculateDefaultPassword()})
+                </button>
+              </div>
+
               <div className="relative">
                 <input
                   id="user-password"
                   {...register('password', {
                     required: editItem ? false : 'Password is required for new users',
-                    minLength: { value: 6, message: 'Minimum 6 characters' },
                   })}
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder={editItem ? 'खाली छोड़ें यदि पासवर्ड नहीं बदलना है' : 'न्यूनतम 6 अक्षर'}
-                  className="input-field pr-10"
+                  placeholder={editItem ? 'खाली छोड़ें यदि पासवर्ड नहीं बदलना है (अथवा ऊपर डिफ़ॉल्ट पर क्लिक करें)' : `उदा. ${calculateDefaultPassword()}`}
+                  className="input-field pr-10 bg-white"
                 />
                 <button
                   type="button"
@@ -308,6 +410,14 @@ const UsersPage = () => {
                 >
                   {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
                 </button>
+              </div>
+              <div className="flex items-center justify-between mt-1.5 text-[11px] text-[#766A60]">
+                <span>
+                  💡 डिफ़ॉल्ट पासवर्ड फॉर्मूला: <strong className="font-mono text-[#7A2525]">&lt;मोबाइल के अंतिम 4 अंक&gt;@&lt;परिवार आईडी&gt;</strong>
+                </span>
+                <span className="font-mono font-bold text-[#C85A17]">
+                  वर्तमान गणना: {calculateDefaultPassword()}
+                </span>
               </div>
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
             </div>
@@ -322,18 +432,6 @@ const UsersPage = () => {
                   <option key={r.value} value={r.value}>{r.label}</option>
                 ))}
               </select>
-            </div>
-
-            {/* Panchayat Family ID Link */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
-                <FiHome className="w-4 h-4 text-[#C85A17]" /> परिवार आईडी (Panchayat Family ID)
-              </label>
-              <input
-                {...register('panchayat_family_id')}
-                placeholder="उदा. KONDA-FAM-001 (वैकल्पिक)"
-                className="input-field font-mono uppercase"
-              />
             </div>
 
             {/* Status */}
@@ -366,6 +464,7 @@ const UsersPage = () => {
         </form>
       </Modal>
 
+      {/* Confirm Delete Dialog */}
       <ConfirmDialog
         isOpen={!!deleteItem}
         onClose={() => setDeleteItem(null)}
@@ -373,6 +472,17 @@ const UsersPage = () => {
         title="यूजर हटाएं (Delete User)"
         message={`क्या आप उपयोगकर्ता "${deleteItem?.name}" को निश्चित रूप से हटाना चाहते हैं?`}
         isLoading={deleting}
+      />
+
+      {/* Confirm 1-Click Reset to Default Password Dialog */}
+      <ConfirmDialog
+        isOpen={!!resetUser}
+        onClose={() => setResetUser(null)}
+        onConfirm={handleResetToDefault}
+        title="डिफ़ॉल्ट पासवर्ड पर रीसेट करें (Reset to Default Password)"
+        message={`क्या आप "${resetUser?.name}" का पासवर्ड डिफ़ॉल्ट (${(resetUser?.phone || '').replace(/\D/g, '').slice(-4) || '0000'}@${resetUser?.panchayat_family_id || '1'}) पर रीसेट करना चाहते हैं? अगली बार लॉगिन करने पर उन्हें नया पासवर्ड सेट करने के लिए कहा जाएगा।`}
+        confirmText="हाँ, डिफ़ॉल्ट पासवर्ड सेट करें"
+        isLoading={resettingPassword}
       />
     </div>
   );

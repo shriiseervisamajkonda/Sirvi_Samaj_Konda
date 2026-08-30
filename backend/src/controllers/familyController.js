@@ -196,9 +196,11 @@ export const createFamily = asyncHandler(async (req, res) => {
 // PUT /api/families/:id
 export const updateFamily = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const { id: _id, created_at: _ca, created_by: _cb, ...cleanBody } = req.body || {};
+
   const { data, error } = await supabase
     .from('families')
-    .update({ ...req.body, updated_at: new Date().toISOString() })
+    .update({ ...cleanBody, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
     .single();

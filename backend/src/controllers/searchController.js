@@ -3,7 +3,10 @@ import { asyncHandler } from '../middleware/validate.js';
 
 // GET /api/search
 export const globalSearch = asyncHandler(async (req, res) => {
-  const q = req.query.q || req.query.search;
+  const rawQ = req.query.q || req.query.search || '';
+  // Sanitize search term to prevent PostgREST delimiter/filter injection
+  const q = rawQ.replace(/[%_(),.'"\\*]/g, '').trim().slice(0, 100);
+
   if (!q || q.length < 2) {
     return res.json({
       success: true,

@@ -35,6 +35,7 @@ import businessRoutes from './routes/businessRoutes.js';
 import socialInfoRoutes from './routes/socialInfoRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import gramUnitRoutes from './routes/gramUnitRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
 import {
   getGramUnitMembers,
   createGramUnitMember,
@@ -149,6 +150,7 @@ app.use('/api/businesses', businessRoutes);
 app.use('/api/social-info', socialInfoRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/gram-units', gramUnitRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Direct /api/gram-unit-members mounting
 app.get('/api/gram-unit-members', optionalAuth, getGramUnitMembers);

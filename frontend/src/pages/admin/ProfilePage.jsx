@@ -5,7 +5,10 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../services/api';
 import { supabase } from '../../config/supabase';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import toast from 'react-hot-toast';
+
+const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
 const ProfilePage = () => {
   const { user, updateUser } = useAuth();
@@ -14,21 +17,29 @@ const ProfilePage = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
+  const [googleActionLoading, setGoogleActionLoading] = useState(false);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
-  const { register: regPwd, handleSubmit: handlePwd, reset: resetPwd, watch, formState: { errors: pwdErrors } } = useForm();
-  const newPassword = watch('newPassword');
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
+  const {
+    register: regPwd,
+    handleSubmit: handlePwd,
+    reset: resetPwd,
+    watch: watchPwd,
+    formState: { errors: pwdErrors },
+  } = useForm();
+
+  const currentPassword = watchPwd('currentPassword');
+  const newPassword = watchPwd('newPassword');
 
   useEffect(() => {
     if (user) {
       const parts = (user.name || '').trim().split(' ');
       const fName = parts[0] || '';
       const lName = parts.slice(1).join(' ') || '';
-      reset({ firstName: fName, lastName: lName, email: user.email, phone: user.phone });
+      reset({ firstName: fName, lastName: lName, email: user.email || '', phone: user.phone || '' });
     }
   }, [user, reset]);
-
-  const [googleActionLoading, setGoogleActionLoading] = useState(false);
 
   const handleLinkGoogle = async () => {
     setGoogleActionLoading(true);
@@ -48,16 +59,13 @@ const ProfilePage = () => {
   };
 
   const handleUnlinkGoogle = async () => {
-    if (!window.confirm('क्या आप Google खाता हटाना चाहते हैं? इसके बाद आप Google से 1-क्लिक लॉगिन नहीं कर सकेंगे।')) return;
+    setShowUnlinkConfirm(false);
     setGoogleActionLoading(true);
     try {
-      const res = await authAPI.updateProfile({
-        ...user,
-        email: null,
-      });
+      const res = await authAPI.unlinkGoogle();
       if (updateUser) updateUser(res.data.data);
       setValue('email', '');
-      toast.success('Google खाता हटा दिया गया है।');
+      toast.success('Google खाता सफलतापूर्वक हटा दिया गया है।');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Google खाता हटाने में विफल।');
     } finally {
@@ -74,17 +82,28 @@ const ProfilePage = () => {
         name: combinedName,
       });
       if (updateUser) updateUser(res.data.data);
-      toast.success('Profile updated!');
-    } catch { toast.error('Update failed.'); } finally { setLoading(false); }
+      toast.success('प्रोफ़ाइल विवरण सफलतापूर्वक अपडेट हो गया!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'प्रोफ़ाइल अपडेट करने में त्रुटि।');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const onPasswordSubmit = async (data) => {
     setPasswordLoading(true);
     try {
-      await authAPI.changePassword({ currentPassword: data.currentPassword, newPassword: data.newPassword });
-      toast.success('Password changed!');
+      await authAPI.changePassword({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      });
+      toast.success('पासवर्ड सफलतापूर्वक बदल दिया गया है!');
       resetPwd();
-    } catch { toast.error('Password change failed. Check current password.'); } finally { setPasswordLoading(false); }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'पासवर्ड बदलने में विफल। वर्तमान पासवर्ड जांचें।');
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   const preventEnterSubmit = (e) => {
@@ -96,8 +115,8 @@ const ProfilePage = () => {
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 ">My Profile</h1>
-        <p className="text-gray-500 text-sm mt-1">Manage your account settings</p>
+        <h1 className="text-2xl font-bold text-gray-900 ">मेरी प्रोफ़ाइल (My Profile)</h1>
+        <p className="text-gray-500 text-sm mt-1">खाता विवरण एवं सुरक्षा प्रबंधन</p>
       </div>
 
       {/* Google Account Quick Connect Card */}
@@ -146,12 +165,12 @@ const ProfilePage = () => {
               </button>
               <button
                 type="button"
-                onClick={handleUnlinkGoogle}
+                onClick={() => setShowUnlinkConfirm(true)}
                 disabled={googleActionLoading}
                 className="px-3.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer border border-red-200"
                 title="Disconnect Google"
               >
-                Unlink
+                {googleActionLoading ? 'हटा रहे हैं...' : 'Unlink'}
               </button>
             </>
           ) : (
@@ -178,31 +197,31 @@ const ProfilePage = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 ">
           <h2 className="font-semibold text-gray-900 mb-5 flex items-center gap-2">
-            <FiUser className="w-5 h-5 text-orange-500" /> Profile Information
+            <FiUser className="w-5 h-5 text-orange-500" /> व्यक्तिगत जानकारी (Profile Information)
           </h2>
           <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onProfileSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="profile-first-name" className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                <label htmlFor="profile-first-name" className="block text-sm font-medium text-gray-700 mb-1">प्रथम नाम (First Name) *</label>
                 <input
                   id="profile-first-name"
-                  {...register('firstName', { required: true })}
+                  {...register('firstName', { required: 'First name is required' })}
                   autoComplete="given-name"
                   className="input-field"
                   placeholder="प्रथम नाम"
                 />
-                {errors.firstName && <p className="text-red-500 text-xs mt-1">Required</p>}
+                {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName.message}</p>}
               </div>
               <div>
-                <label htmlFor="profile-last-name" className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                <label htmlFor="profile-last-name" className="block text-sm font-medium text-gray-700 mb-1">उपनाम / गोत्र (Last Name) *</label>
                 <input
                   id="profile-last-name"
-                  {...register('lastName', { required: true })}
+                  {...register('lastName', { required: 'Last name is required' })}
                   autoComplete="family-name"
                   className="input-field"
                   placeholder="उपनाम / गोत्र"
                 />
-                {errors.lastName && <p className="text-red-500 text-xs mt-1">Required</p>}
+                {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName.message}</p>}
               </div>
             </div>
             <div>
@@ -223,21 +242,25 @@ const ProfilePage = () => {
               </p>
             </div>
             <div>
-              <label htmlFor="profile-phone" className="block text-sm font-medium text-gray-700 mb-1">Mobile Number (Phone)</label>
+              <label htmlFor="profile-phone" className="block text-sm font-medium text-gray-700 mb-1">मोबाइल नंबर (Mobile / Login ID) *</label>
               <input
                 id="profile-phone"
-                {...register('phone')}
+                {...register('phone', {
+                  required: 'Mobile number is required',
+                  pattern: { value: /^[0-9]{10}$/, message: '10 digit mobile number required' },
+                })}
                 type="tel"
                 autoComplete="tel"
                 inputMode="tel"
                 maxLength={10}
-                placeholder="+91..."
-                className="input-field"
+                placeholder="10 अंकों का मोबाइल नंबर"
+                className="input-field font-mono"
               />
+              {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Role</label>
-              <input value={user?.role || 'User'} className="input-field bg-gray-100 cursor-not-allowed text-gray-600 font-semibold" readOnly />
+              <label htmlFor="profile-assigned-role" className="block text-sm font-medium text-gray-700 mb-1">Assigned Role</label>
+              <input id="profile-assigned-role" value={user?.role || 'User'} className="input-field bg-gray-100 cursor-not-allowed text-gray-600 font-semibold" readOnly />
             </div>
             <button type="submit" disabled={loading} className="w-full py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-orange-500/20">
               {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FiSave className="w-4 h-4" />}
@@ -250,19 +273,19 @@ const ProfilePage = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 ">
           <h2 className="font-semibold text-gray-900 mb-5 flex items-center gap-2">
-            <FiKey className="w-5 h-5 text-orange-500" /> Change Password
+            <FiKey className="w-5 h-5 text-orange-500" /> पासवर्ड बदलें (Change Password)
           </h2>
           <form onKeyDown={preventEnterSubmit} onSubmit={handlePwd(onPasswordSubmit)} className="space-y-4">
             {/* Current Password */}
             <div>
-              <label htmlFor="profile-current-password" className="block text-sm font-medium text-gray-700 mb-1">वर्तमान पासवर्ड (Current Password)</label>
+              <label htmlFor="profile-current-password" className="block text-sm font-medium text-gray-700 mb-1">वर्तमान पासवर्ड (Current Password) *</label>
               <div className="relative">
                 <input
                   id="profile-current-password"
                   {...regPwd('currentPassword', { required: 'वर्तमान पासवर्ड आवश्यक है' })}
                   type={showCurrentPassword ? 'text' : 'password'}
                   autoComplete="current-password"
-                  placeholder="••••••••"
+                  placeholder="वर्तमान पासवर्ड"
                   className="input-field pr-10"
                 />
                 <button
@@ -280,14 +303,24 @@ const ProfilePage = () => {
 
             {/* New Password */}
             <div>
-              <label htmlFor="profile-new-password" className="block text-sm font-medium text-gray-700 mb-1">नया पासवर्ड (New Password)</label>
+              <label htmlFor="profile-new-password" className="block text-sm font-medium text-gray-700 mb-1">नया पासवर्ड (New Password) *</label>
               <div className="relative">
                 <input
                   id="profile-new-password"
-                  {...regPwd('newPassword', { required: 'नया पासवर्ड आवश्यक है', minLength: { value: 6, message: 'न्यूनतम 6 अक्षर आवश्यक हैं' } })}
+                  {...regPwd('newPassword', {
+                    required: 'नया पासवर्ड आवश्यक है',
+                    minLength: { value: 8, message: 'न्यूनतम 8 अक्षर आवश्यक हैं' },
+                    pattern: {
+                      value: PASSWORD_PATTERN,
+                      message: 'कम से कम 1 बड़ा अक्षर (A-Z), 1 छोटा अक्षर (a-z), 1 अंक (0-9) और 1 विशेष चिह्न (!@#$) आवश्यक है',
+                    },
+                    validate: {
+                      notSameAsCurrent: (v) => v !== currentPassword || 'नया पासवर्ड वर्तमान पासवर्ड से अलग होना चाहिए',
+                    },
+                  })}
                   type={showNewPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="••••••••"
+                  placeholder="न्यूनतम 8 अक्षर (उदा. Konda@2026)"
                   className="input-field pr-10"
                 />
                 <button
@@ -300,19 +333,25 @@ const ProfilePage = () => {
                   {showNewPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
                 </button>
               </div>
+              <p className="text-[11px] text-gray-500 mt-1">
+                नियम: न्यूनतम 8 अक्षर, बड़ा व छोटा अक्षर, एक संख्या और विशेष चिह्न (!@#$)
+              </p>
               {pwdErrors.newPassword && <p className="text-red-500 text-xs mt-1">{pwdErrors.newPassword.message}</p>}
             </div>
 
             {/* Confirm New Password */}
             <div>
-              <label htmlFor="profile-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">पासवर्ड की पुष्टि (Confirm New Password)</label>
+              <label htmlFor="profile-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">पासवर्ड की पुष्टि (Confirm New Password) *</label>
               <div className="relative">
                 <input
                   id="profile-confirm-password"
-                  {...regPwd('confirmPassword', { required: 'पासवर्ड पुष्टि आवश्यक है', validate: (v) => v === newPassword || 'पासवर्ड मेल नहीं खा रहे हैं' })}
+                  {...regPwd('confirmPassword', {
+                    required: 'पासवर्ड पुष्टि आवश्यक है',
+                    validate: (v) => v === newPassword || 'पासवर्ड मेल नहीं खा रहे हैं',
+                  })}
                   type={showConfirmPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="••••••••"
+                  placeholder="नया पासवर्ड पुनः दर्ज करें"
                   className="input-field pr-10"
                 />
                 <button
@@ -339,21 +378,31 @@ const ProfilePage = () => {
       {/* Account Info */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
         className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 ">
-        <h2 className="font-semibold text-gray-900 mb-4">Account Details</h2>
+        <h2 className="font-semibold text-gray-900 mb-4">खाता विवरण (Account Details)</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { label: 'User ID', value: (user?.id || user?._id)?.slice(-8)?.toUpperCase() },
             { label: 'Role', value: user?.role },
-            { label: 'Status', value: user?.is_active !== false ? 'Active ✓' : 'Inactive' },
+            { label: 'Status', value: user?.is_active !== false ? 'Active ✓' : 'Inactive', isActive: user?.is_active !== false },
             { label: 'Member Since', value: (user?.created_at || user?.createdAt) ? new Date(user.created_at || user.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : 'N/A' },
-          ].map(({ label, value }) => (
+          ].map(({ label, value, isActive }) => (
             <div key={label} className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{label}</p>
-              <p className={`font-semibold text-sm ${label === 'Status' ? 'text-green-700' : 'text-gray-900'}`}>{value || '—'}</p>
+              <p className={`font-semibold text-sm ${label === 'Status' ? (isActive ? 'text-green-700' : 'text-red-600') : 'text-gray-900'}`}>{value || '—'}</p>
             </div>
           ))}
         </div>
       </motion.div>
+
+      {/* Confirm Unlink Dialog */}
+      <ConfirmDialog
+        isOpen={showUnlinkConfirm}
+        onClose={() => setShowUnlinkConfirm(false)}
+        onConfirm={handleUnlinkGoogle}
+        title="Google खाता हटाएं (Unlink Google)"
+        message="क्या आप निश्चित रूप से Google खाता हटाना चाहते हैं? इसके बाद आप Google 1-क्लिक से लॉगिन नहीं कर सकेंगे।"
+        isLoading={googleActionLoading}
+      />
     </div>
   );
 };

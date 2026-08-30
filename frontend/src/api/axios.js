@@ -23,26 +23,19 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config;
-    const isAuthUrl = original?.url?.includes('/auth/me') || original?.url?.includes('/auth/login') || original?.url?.includes('/auth/refresh-token');
+    const isAuthUrl = original?.url?.includes('/auth/login') || original?.url?.includes('/auth/google-login');
 
     if (error.response?.status === 401 && !original._retry && !isAuthUrl) {
       original._retry = true;
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (refreshToken) {
-        try {
-          const res = await axios.post(`${API_URL}/auth/refresh-token`, { refreshToken });
-          const newAccess = res.data?.accessToken || res.data?.data?.accessToken;
-          const newRefresh = res.data?.refreshToken || res.data?.data?.refreshToken;
-          if (newAccess) {
-            localStorage.setItem('accessToken', newAccess);
-            if (newRefresh) localStorage.setItem('refreshToken', newRefresh);
-            original.headers.Authorization = `Bearer ${newAccess}`;
-            return api(original);
-          }
-        } catch {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+
+      // If user was on a protected page, safely redirect to login
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+        const currentPath = window.location.pathname;
+        if (currentPath.startsWith('/admin')) {
+          window.location.href = `/login?from=${encodeURIComponent(currentPath)}`;
         }
       }
     }

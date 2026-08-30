@@ -75,12 +75,14 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  const updateUser = (updatedUser) => {
+  const updateUser = useCallback((updatedUser) => {
     if (!updatedUser) return;
-    const merged = { ...user, ...updatedUser };
-    localStorage.setItem('user', JSON.stringify(merged));
-    setUser(merged);
-  };
+    setUser((prev) => {
+      const merged = { ...prev, ...updatedUser };
+      localStorage.setItem('user', JSON.stringify(merged));
+      return merged;
+    });
+  }, []);
 
   const register = async (userData) => {
     const res = await authAPI.register(userData);

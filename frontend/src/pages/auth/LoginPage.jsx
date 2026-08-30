@@ -47,11 +47,13 @@ const LoginPage = () => {
     try {
       const result = await login({ identifier, password: data.password });
       toast.success(`स्वागत है, ${result.user?.name || 'उपयोगकर्ता'}!`);
-      const role = result.user?.role;
-      if (['developer', 'super_admin', 'admin', 'editor', 'treasurer'].includes(role)) {
-        navigate('/admin');
+      const role = result.user?.role || result.data?.user?.role;
+      const isAdminRole = ['developer', 'super_admin', 'admin', 'editor', 'treasurer'].includes(role);
+      if (isAdminRole) {
+        navigate(from && from.startsWith('/admin') ? from : '/admin');
       } else {
-        navigate(from);
+        const safeDestination = from && !from.startsWith('/admin') ? from : '/';
+        navigate(safeDestination);
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'लॉगिन विफल रहा। कृपया सही फ़ोन नंबर/ईमेल और पासवर्ड दर्ज करें।');

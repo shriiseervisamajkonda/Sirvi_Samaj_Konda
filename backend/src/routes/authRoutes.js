@@ -4,8 +4,11 @@ import {
   login,
   googleLogin,
   linkGoogleOAuth,
+  unlinkGoogle,
   getMe,
   forgotPassword,
+  sendOTP,
+  verifyOTP,
   updatePassword,
   updateProfile,
 } from '../controllers/authController.js';
@@ -17,7 +20,10 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/google-login', googleLogin);
 router.post('/link-google-oauth', protect, linkGoogleOAuth);
+router.post('/unlink-google', protect, unlinkGoogle);
 router.post('/forgot-password', forgotPassword);
+router.post('/send-otp', sendOTP);
+router.post('/verify-otp', verifyOTP);
 router.get('/me', protect, getMe);
 router.put('/profile', protect, updateProfile);
 router.put('/update-password', protect, updatePassword);
