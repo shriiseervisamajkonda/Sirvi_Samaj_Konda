@@ -85,8 +85,8 @@ export const getDashboardStats = asyncHandler(async (_req, res) => {
     success: true,
     data: {
       stats: {
-        totalFamilies: totalFamilies || 213,
-        totalMembers: tMembers || 1184,
+        totalFamilies: totalFamilies || 0,
+        totalMembers: tMembers || 0,
         maleCount: mCount,
         femaleCount: fCount,
         studentCount: studentCount || 0,
@@ -125,8 +125,8 @@ export const getPublicStats = asyncHandler(async (_req, res) => {
   res.json({
     success: true,
     data: {
-      totalFamilies: totalFamilies || 213,
-      totalMembers: totalMembers || 1184,
+      totalFamilies: totalFamilies || 0,
+      totalMembers: totalMembers || 0,
       bloodDonorCount: bloodDonorCount || 0,
       eventCount: eventCount || 0,
       newsCount: newsCount || 0,

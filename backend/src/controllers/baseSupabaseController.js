@@ -89,9 +89,11 @@ export const createSupabaseCRUDController = (tableName, options = {}) => {
 
   // CREATE RECORD
   const create = asyncHandler(async (req, res) => {
+    const { id: _id, created_at: _ca, updated_at: _ua, ...safeBody } = req.body || {};
+
     const { data, error } = await supabase
       .from(tableName)
-      .insert(req.body)
+      .insert(safeBody)
       .select(select)
       .single();
 
@@ -108,7 +110,8 @@ export const createSupabaseCRUDController = (tableName, options = {}) => {
   // UPDATE RECORD
   const update = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const updateData = { ...req.body, updated_at: new Date().toISOString() };
+    const { id: _id, created_at: _ca, ...cleanBody } = req.body || {};
+    const updateData = { ...cleanBody, updated_at: new Date().toISOString() };
 
     const { data, error } = await supabase
       .from(tableName)

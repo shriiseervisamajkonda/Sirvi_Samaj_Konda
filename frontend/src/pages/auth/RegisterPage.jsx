@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
-import { FiUser, FiMail, FiLock, FiPhone, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiMail, FiLock, FiPhone, FiEye, FiEyeOff } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+
+const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
 const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -28,8 +30,8 @@ const RegisterPage = () => {
         password: data.password,
         phone: data.phone,
       });
-      toast.success('खाता सफलतापूर्वक बनाया गया!');
-      navigate('/login');
+      toast.success('खाता सफलतापूर्वक बनाया गया! स्वागत है।');
+      navigate('/');
     } catch (err) {
       toast.error(err.response?.data?.message || 'पंजीकरण विफल रहा। कृपया पुनः प्रयास करें।');
     } finally {
@@ -58,7 +60,7 @@ const RegisterPage = () => {
                 <label htmlFor="reg-first-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">First Name *</label>
                 <input
                   id="reg-first-name"
-                  {...register('firstName', { required: 'Required', minLength: { value: 2, message: 'Too short' } })}
+                  {...register('firstName', { required: 'प्रथम नाम आवश्यक है', minLength: { value: 2, message: 'Too short' } })}
                   placeholder="प्रथम नाम"
                   autoComplete="given-name"
                   className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all"
@@ -70,7 +72,7 @@ const RegisterPage = () => {
                 <label htmlFor="reg-last-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Last Name *</label>
                 <input
                   id="reg-last-name"
-                  {...register('lastName', { required: 'Required', minLength: { value: 2, message: 'Too short' } })}
+                  {...register('lastName', { required: 'उपनाम आवश्यक है', minLength: { value: 2, message: 'Too short' } })}
                   placeholder="उपनाम / गोत्र"
                   autoComplete="family-name"
                   className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all"
@@ -86,14 +88,14 @@ const RegisterPage = () => {
                 <input
                   id="reg-phone"
                   {...register('phone', {
-                    required: 'Mobile number is required for login',
-                    pattern: { value: /^[0-9]{10}$/, message: '10-digit Indian mobile number' }
+                    required: 'मोबाइल नंबर आवश्यक है',
+                    pattern: { value: /^[0-9]{10}$/, message: '10 अंकों का वैध भारतीय मोबाइल नंबर दर्ज करें' }
                   })}
                   type="tel"
                   autoComplete="tel"
                   inputMode="tel"
                   maxLength={10}
-                  placeholder="10-digit mobile number (e.g. 9826012345)"
+                  placeholder="10-digit mobile number"
                   className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all font-mono"
                 />
               </div>
@@ -120,37 +122,47 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <label htmlFor="reg-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Password</label>
+              <label htmlFor="reg-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Password *</label>
               <div className="relative">
                 <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   id="reg-password"
-                  {...register('password', { required: 'Password is required', minLength: { value: 6, message: 'Min 6 characters' } })}
+                  {...register('password', {
+                    required: 'पासवर्ड आवश्यक है',
+                    minLength: { value: 8, message: 'कम से कम 8 अक्षर आवश्यक हैं' },
+                    pattern: {
+                      value: PASSWORD_PATTERN,
+                      message: 'कम से कम 1 बड़ा अक्षर, 1 छोटा अक्षर, 1 संख्या और 1 विशेष चिह्न (!@#$)'
+                    }
+                  })}
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="Min. 6 characters"
+                  placeholder="न्यूनतम 8 अक्षर (उदा. Konda@2026)"
                   className="w-full pl-10 pr-10 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all"
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 p-1 cursor-pointer">
                   {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
                 </button>
               </div>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+                नियम: न्यूनतम 8 अक्षर, बड़ा व छोटा अक्षर, एक संख्या और विशेष चिह्न (!@#$)
+              </p>
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
             </div>
 
             <div>
-              <label htmlFor="reg-confirm-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Confirm Password</label>
+              <label htmlFor="reg-confirm-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Confirm Password *</label>
               <div className="relative">
                 <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   id="reg-confirm-password"
                   {...register('confirmPassword', {
-                    required: 'Please confirm password',
-                    validate: (v) => v === password || 'Passwords do not match',
+                    required: 'पासवर्ड पुष्टि आवश्यक है',
+                    validate: (v) => v === password || 'पासवर्ड मेल नहीं खा रहे हैं',
                   })}
                   type={showConfirmPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="Re-enter password"
+                  placeholder="नया पासवर्ड पुनः दर्ज करें"
                   className="w-full pl-10 pr-10 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all"
                 />
                 <button
@@ -174,20 +186,20 @@ const RegisterPage = () => {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Creating account...
+                  खाता बनाया जा रहा है...
                 </span>
-              ) : 'Create Account'}
+              ) : 'खाता बनाएं (Create Account)'}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-5">
             Already have an account?{' '}
-            <Link to="/login" className="text-orange-500 hover:text-orange-600 font-medium">Sign in</Link>
+            <Link to="/login" className="text-orange-500 hover:text-orange-600 font-medium">लॉगिन करें (Sign In)</Link>
           </p>
 
           <div className="mt-5 pt-5 border-t border-gray-100 dark:border-slate-700">
             <Link to="/" className="flex items-center justify-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
-              ← Back to website
+              ← मुख्य वेबसाइट पर जाएं (Back to website)
             </Link>
           </div>
         </div>

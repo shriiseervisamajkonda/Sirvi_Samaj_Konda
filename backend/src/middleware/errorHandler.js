@@ -1,28 +1,48 @@
-const errorHandler = (err, req, res, _next) => {
+const errorHandler = (err, _req, res, _next) => {
   let error = { ...err };
-  error.message = err.message;
+  error.message = err.message || 'Server Error';
 
-  console.error(err);
+  console.error('[Error Handler]', err);
 
-  if (err.name === 'CastError') {
-    error.message = 'Resource not found';
+  // PostgreSQL / Supabase Unique Violation Error (23505)
+  if (err.code === '23505') {
+    error.message = 'यह रिकॉर्ड पहले से मौजूद है (Duplicate entry / record already exists)';
+    error.statusCode = 400;
+  }
+
+  // PostgreSQL Foreign Key Violation (23503)
+  if (err.code === '23503') {
+    error.message = 'संबंधित रिकॉर्ड नहीं मिला (Referenced record not found)';
+    error.statusCode = 400;
+  }
+
+  // PostgreSQL Not Null Violation (23502)
+  if (err.code === '23502') {
+    error.message = 'आवश्यक फ़ील्ड भरना अनिवार्य है (Required field is missing)';
+    error.statusCode = 400;
+  }
+
+  // Supabase PGRST116 (No rows returned when expecting single)
+  if (err.code === 'PGRST116') {
+    error.message = 'रिकॉर्ड उपलब्ध नहीं है (Record not found)';
     error.statusCode = 404;
   }
 
-  if (err.code === 11000) {
-    const field = Object.keys(err.keyValue)[0];
-    error.message = `${field} already exists`;
-    error.statusCode = 400;
-  }
-
-  if (err.name === 'ValidationError') {
-    error.message = Object.values(err.errors).map((e) => e.message).join(', ');
-    error.statusCode = 400;
-  }
-
+  // JWT Errors
   if (err.name === 'JsonWebTokenError') {
-    error.message = 'Invalid token';
+    error.message = 'अमान्य सुरक्षा टोकन (Invalid token)';
     error.statusCode = 401;
+  }
+
+  if (err.name === 'TokenExpiredError') {
+    error.message = 'सत्र समाप्त हो गया है, कृपया पुनः लॉगिन करें (Session expired, please login again)';
+    error.statusCode = 401;
+  }
+
+  // Multer file size error
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    error.message = 'फ़ाइल का आकार निर्धारित सीमा से अधिक है (File size exceeds limit)';
+    error.statusCode = 400;
   }
 
   res.status(error.statusCode || 500).json({

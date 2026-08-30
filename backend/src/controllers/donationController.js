@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
 import { clearCacheByPattern } from '../middleware/cache.js';
@@ -138,9 +139,9 @@ export const createDonation = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Donor name and a valid amount are required' });
   }
 
-  // Generate clean sequential receipt number
-  const timestamp = Date.now().toString().slice(-4);
-  const receipt_number = `KONDA-${financial_year}-${timestamp}`;
+  // Generate clean, collision-safe receipt number
+  const randHex = crypto.randomBytes(2).toString('hex').toUpperCase();
+  const receipt_number = `KONDA-${financial_year}-${Date.now().toString().slice(-4)}-${randHex}`;
 
   const { data: donation, error } = await supabase
     .from('donations')
@@ -232,6 +233,9 @@ export const deleteDonation = asyncHandler(async (req, res) => {
   if (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
+
+  clearCacheByPattern('donations');
+  clearCacheByPattern('dashboard');
 
   res.json({ success: true, message: 'Donation record deleted successfully' });
 });

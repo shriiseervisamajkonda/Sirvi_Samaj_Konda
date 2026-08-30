@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
+import { validatePasswordPolicy } from './authController.js';
 
 // GET /api/users
 export const getUsers = asyncHandler(async (req, res) => {
@@ -76,8 +77,18 @@ export const createUser = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'First name (or full name), mobile number, and password are required' });
   }
 
-  const cleanPhone = phone.trim();
+  const cleanPhone = phone.trim().replace(/\D/g, '');
+  if (cleanPhone.length !== 10) {
+    return res.status(400).json({ success: false, message: 'कृपया 10 अंकों का वैध भारतीय मोबाइल नंबर दर्ज करें' });
+  }
+
   const cleanEmail = email ? email.trim().toLowerCase() : null;
+
+  // Validate password complexity
+  const passwordError = validatePasswordPolicy(password);
+  if (passwordError) {
+    return res.status(400).json({ success: false, message: passwordError });
+  }
 
   // Check if phone already in use
   const { data: existingPhone } = await supabase
@@ -87,7 +98,7 @@ export const createUser = asyncHandler(async (req, res) => {
     .maybeSingle();
 
   if (existingPhone) {
-    return res.status(400).json({ success: false, message: 'A user with this mobile number already exists' });
+    return res.status(400).json({ success: false, message: 'यह मोबाइल नंबर पहले से पंजीकृत है (Mobile number already exists)' });
   }
 
   // Check if email already in use
@@ -99,17 +110,17 @@ export const createUser = asyncHandler(async (req, res) => {
       .maybeSingle();
 
     if (existingEmail) {
-      return res.status(400).json({ success: false, message: 'A user with this email address already exists' });
+      return res.status(400).json({ success: false, message: 'यह ईमेल आईडी पहले से पंजीकृत है (Email address already exists)' });
     }
   }
 
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await bcrypt.hash(password.trim(), 10);
   const isActive = is_active !== undefined ? Boolean(is_active) : status === 'inactive' ? false : true;
 
   const { data: newUser, error } = await supabase
     .from('users')
     .insert({
-      name: name.trim(),
+      name: resolvedName,
       phone: cleanPhone,
       email: cleanEmail,
       password_hash: passwordHash,
@@ -147,7 +158,10 @@ export const updateUser = asyncHandler(async (req, res) => {
   else if (status !== undefined) updates.is_active = status === 'active';
 
   if (phone !== undefined) {
-    const cleanPhone = phone.trim();
+    const cleanPhone = phone.trim().replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      return res.status(400).json({ success: false, message: 'कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें' });
+    }
     const { data: existingPhone } = await supabase
       .from('users')
       .select('id')
@@ -179,6 +193,10 @@ export const updateUser = asyncHandler(async (req, res) => {
   }
 
   if (password && password.trim() !== '') {
+    const passwordError = validatePasswordPolicy(password.trim());
+    if (passwordError) {
+      return res.status(400).json({ success: false, message: passwordError });
+    }
     updates.password_hash = await bcrypt.hash(password.trim(), 10);
   }
 
@@ -214,4 +232,45 @@ export const deleteUser = asyncHandler(async (req, res) => {
   }
 
   res.json({ success: true, message: 'User deleted successfully' });
+});
+
+// POST /api/users/:id/reset-default-password
+export const resetDefaultPassword = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const { data: user, error: fetchError } = await supabase
+    .from('users')
+    .select('id, name, phone, panchayat_family_id')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (fetchError || !user) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+
+  const cleanPhone = (user.phone || '').replace(/\D/g, '');
+  const last4 = cleanPhone.length >= 4 ? cleanPhone.slice(-4) : '0000';
+  const familyId = user.panchayat_family_id || '1';
+  const defaultPassword = `${last4}@${familyId}`;
+
+  const passwordHash = await bcrypt.hash(defaultPassword, 10);
+
+  const { error: updateError } = await supabase
+    .from('users')
+    .update({
+      password_hash: passwordHash,
+      must_change_password: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id);
+
+  if (updateError) {
+    return res.status(400).json({ success: false, message: updateError.message });
+  }
+
+  res.json({
+    success: true,
+    message: `पासवर्ड डिफ़ॉल्ट (${defaultPassword}) पर रीसेट कर दिया गया है।`,
+    defaultPassword,
+  });
 });

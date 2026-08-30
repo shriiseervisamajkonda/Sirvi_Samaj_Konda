@@ -101,21 +101,24 @@ export const getStudentById = asyncHandler(async (req, res) => {
 export const createStudent = asyncHandler(async (req, res) => {
   const { memberId, member, course, education } = req.body;
   const targetMemberId = memberId || member || req.body.id;
-  const eduValue = course || education || 'Student';
+  const eduValue = course || education || 'विद्यार्थी';
 
-  if (targetMemberId) {
-    const { data, error } = await supabase
-      .from('family_members')
-      .update({ education: eduValue, updated_at: new Date().toISOString() })
-      .eq('id', targetMemberId)
-      .select()
-      .single();
-
-    if (error) return res.status(400).json({ success: false, message: error.message });
-    return res.status(201).json({ success: true, message: 'Student record created', data });
+  if (!targetMemberId) {
+    return res.status(400).json({ success: false, message: 'सदस्य आईडी आवश्यक है (memberId is required)' });
   }
 
-  res.status(201).json({ success: true, message: 'Student created', data: req.body });
+  const { data, error } = await supabase
+    .from('family_members')
+    .update({ education: eduValue, updated_at: new Date().toISOString() })
+    .eq('id', targetMemberId)
+    .select()
+    .single();
+
+  if (error || !data) {
+    return res.status(400).json({ success: false, message: error ? error.message : 'Member not found' });
+  }
+
+  res.status(201).json({ success: true, message: 'Student record created successfully', data });
 });
 
 // PUT /api/students/:id
@@ -124,28 +127,35 @@ export const updateStudent = asyncHandler(async (req, res) => {
   const { course, education } = req.body;
   const eduValue = course || education;
 
-  if (eduValue) {
-    const { data, error } = await supabase
-      .from('family_members')
-      .update({ education: eduValue, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) return res.status(400).json({ success: false, message: error.message });
-    return res.json({ success: true, message: 'Student record updated', data });
+  if (!eduValue) {
+    return res.status(400).json({ success: false, message: 'Course or education details required' });
   }
 
-  res.json({ success: true, message: 'Updated', data: req.body });
+  const { data, error } = await supabase
+    .from('family_members')
+    .update({ education: eduValue, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .maybeSingle();
+
+  if (error) return res.status(400).json({ success: false, message: error.message });
+  if (!data) return res.status(404).json({ success: false, message: 'Student record not found' });
+
+  res.json({ success: true, message: 'Student record updated', data });
 });
 
 // DELETE /api/students/:id
 export const deleteStudent = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  await supabase
+  const { data, error } = await supabase
     .from('family_members')
     .update({ education: null, updated_at: new Date().toISOString() })
-    .eq('id', id);
+    .eq('id', id)
+    .select()
+    .maybeSingle();
 
-  res.json({ success: true, message: 'Student record removed' });
+  if (error) return res.status(400).json({ success: false, message: error.message });
+  if (!data) return res.status(404).json({ success: false, message: 'Student record not found' });
+
+  res.json({ success: true, message: 'Student record removed successfully' });
 });

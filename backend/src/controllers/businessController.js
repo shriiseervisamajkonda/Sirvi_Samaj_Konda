@@ -129,21 +129,24 @@ export const getBusinessById = asyncHandler(async (req, res) => {
 export const createBusiness = asyncHandler(async (req, res) => {
   const { memberId, member, category, occupation } = req.body;
   const targetMemberId = memberId || member || req.body.id;
-  const occValue = category || occupation || 'Business';
+  const occValue = category || occupation || 'व्यापार (Business)';
 
-  if (targetMemberId) {
-    const { data, error } = await supabase
-      .from('family_members')
-      .update({ occupation: occValue, updated_at: new Date().toISOString() })
-      .eq('id', targetMemberId)
-      .select()
-      .single();
-
-    if (error) return res.status(400).json({ success: false, message: error.message });
-    return res.status(201).json({ success: true, message: 'Business record created', data });
+  if (!targetMemberId) {
+    return res.status(400).json({ success: false, message: 'सदस्य आईडी आवश्यक है (memberId is required)' });
   }
 
-  res.status(201).json({ success: true, message: 'Business created', data: req.body });
+  const { data, error } = await supabase
+    .from('family_members')
+    .update({ occupation: occValue, updated_at: new Date().toISOString() })
+    .eq('id', targetMemberId)
+    .select()
+    .single();
+
+  if (error || !data) {
+    return res.status(400).json({ success: false, message: error ? error.message : 'Member not found' });
+  }
+
+  res.status(201).json({ success: true, message: 'Business record created successfully', data });
 });
 
 // PUT /api/businesses/:id
@@ -152,28 +155,35 @@ export const updateBusiness = asyncHandler(async (req, res) => {
   const { category, occupation } = req.body;
   const occValue = category || occupation;
 
-  if (occValue) {
-    const { data, error } = await supabase
-      .from('family_members')
-      .update({ occupation: occValue, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) return res.status(400).json({ success: false, message: error.message });
-    return res.json({ success: true, message: 'Business updated', data });
+  if (!occValue) {
+    return res.status(400).json({ success: false, message: 'Category or occupation is required' });
   }
 
-  res.json({ success: true, message: 'Updated', data: req.body });
+  const { data, error } = await supabase
+    .from('family_members')
+    .update({ occupation: occValue, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .maybeSingle();
+
+  if (error) return res.status(400).json({ success: false, message: error.message });
+  if (!data) return res.status(404).json({ success: false, message: 'Business record not found' });
+
+  res.json({ success: true, message: 'Business updated successfully', data });
 });
 
 // DELETE /api/businesses/:id
 export const deleteBusiness = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  await supabase
+  const { data, error } = await supabase
     .from('family_members')
     .update({ occupation: null, updated_at: new Date().toISOString() })
-    .eq('id', id);
+    .eq('id', id)
+    .select()
+    .maybeSingle();
 
-  res.json({ success: true, message: 'Business removed' });
+  if (error) return res.status(400).json({ success: false, message: error.message });
+  if (!data) return res.status(404).json({ success: false, message: 'Business record not found' });
+
+  res.json({ success: true, message: 'Business removed successfully' });
 });
