@@ -131,6 +131,31 @@ const MemberDirectoryPage = () => {
             {!loading && <p className="text-[#CDBBA4] text-sm font-semibold shrink-0">{total} कुल सदस्य</p>}
           </div>
 
+          <div className="flex flex-wrap gap-2 pt-2">
+            <button
+              onClick={() => { setBloodGroup(''); setPage(1); }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                !bloodGroup
+                  ? 'bg-[#C85A17] text-white shadow-md'
+                  : 'bg-[#2A1010] text-[#CDBBA4] border border-[#D4AF37]/20 hover:border-[#D4AF37]'
+              }`}
+            >
+              सभी रक्त समूह (All)
+            </button>
+            {bloodGroups.map((bg) => (
+              <button
+                key={bg}
+                onClick={() => handleBloodGroup(bg)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  bloodGroup === bg
+                    ? 'bg-[#C85A17] text-white shadow-md'
+                    : 'bg-[#2A1010] text-[#CDBBA4] border border-[#D4AF37]/20 hover:border-[#D4AF37]'
+                }`}
+              >
+                {bg}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Grid */}

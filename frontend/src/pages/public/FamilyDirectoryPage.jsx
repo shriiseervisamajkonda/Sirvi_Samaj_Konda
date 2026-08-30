@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FiSearch, FiUsers, FiMapPin, FiPhone, FiMap, FiInbox } from 'react-icons/fi';
+import { FiSearch, FiInbox } from 'react-icons/fi';
 import { familyAPI } from '../../services/api';
 import DataTable from '../../components/common/DataTable';
 
