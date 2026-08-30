@@ -39,29 +39,50 @@ const FamilyDirectoryPage = () => {
   };
 
   const columns = [
-    { key: 'familyId', label: 'S.No.', sortable: false, render: (v, row, idx) => <span className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] px-2.5 py-1 rounded-lg border border-[#E8DCC8]">{(page - 1) * 10 + idx + 1}</span> },
+    {
+      key: 'familyId',
+      label: 'S.No.',
+      sortable: false,
+      render: (_, row, idx) => (
+        <span className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] px-2.5 py-1 rounded-lg border border-[#E8DCC8]">
+          {row.panchayat_family_id || row.familyId || ((page - 1) * 10 + idx + 1)}
+        </span>
+      ),
+    },
     { 
       key: 'headOfFamily', 
       label: 'मुखिया (Head)', 
       sortable: true, 
-      render: (v, row) => (
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#C85A17] to-[#C9A44C] text-white text-sm font-bold shrink-0">
-            {row.familyPhoto ? (
-              <img src={row.familyPhoto} alt="Family" className="w-full h-full object-cover" />
-            ) : (
-              row.surname?.charAt(0) || 'F'
-            )}
+      render: (_, row) => {
+        const headName = row.head_name || row.headOfFamily || '—';
+        const gotra = row.gotra || row.surname || '';
+        return (
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#C85A17] to-[#C9A44C] text-white text-sm font-bold shrink-0">
+              {row.familyPhoto || row.family_photo ? (
+                <img src={row.familyPhoto || row.family_photo} alt="Family" className="w-full h-full object-cover" />
+              ) : (
+                gotra.charAt(0) || headName.charAt(0) || 'F'
+              )}
+            </div>
+            <span className="font-bold text-[#2B211B]">{headName}</span>
           </div>
-          <span className="font-bold text-[#2B211B]">{v}</span>
-        </div>
-      ) 
+        );
+      },
     },
-    { key: 'surname', label: 'गोत्र (Surname)', sortable: true, render: (v) => <span className="font-medium text-[#C85A17]">{v}</span> },
-    { key: 'village', label: 'गाँव (Village)' },
-    { key: 'mobileNumber', label: 'मोबाइल (Mobile)', render: (v) => v ? <span className="font-mono text-sm">{v}</span> : '—' },
-    { key: 'numberOfMembers', label: 'सदस्य (Members)', render: (v) => <span className="font-bold">{v || 0}</span> },
-    { key: 'agriculturalLandArea', label: 'कृषि भूमि (Land Area)', render: (v) => v ? <span className="font-bold text-[#3F7655]">{v}</span> : '—' },
+    { key: 'surname', label: 'गोत्र (Surname)', sortable: true, render: (_, row) => <span className="font-medium text-[#C85A17]">{row.gotra || row.surname || '—'}</span> },
+    { key: 'village', label: 'गाँव (Village)', render: (v) => v || 'Konda' },
+    { key: 'mobileNumber', label: 'मोबाइल (Mobile)', render: (_, row) => (row.head_mobile || row.mobileNumber) ? <span className="font-mono text-sm">{row.head_mobile || row.mobileNumber}</span> : '—' },
+    {
+      key: 'numberOfMembers',
+      label: 'सदस्य (Members)',
+      render: (_, row) => (
+        <span className="font-bold">
+          {row.total_members || (Array.isArray(row.family_members) ? row.family_members.length : 0) || row.numberOfMembers || row.memberCount || 0}
+        </span>
+      ),
+    },
+    { key: 'agriculturalLandArea', label: 'कृषि भूमि (Land Area)', render: (_, row) => (row.land_holding || row.agriculturalLandArea) ? <span className="font-bold text-[#3F7655]">{row.land_holding || row.agriculturalLandArea}</span> : '—' },
   ];
 
   return (

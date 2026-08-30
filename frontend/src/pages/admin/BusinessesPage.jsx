@@ -42,12 +42,19 @@ const BusinessesPage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      ...data,
+      business_name: data.businessName || data.business_name,
+      owner_name: data.ownerName || data.owner_name,
+      mobile_number: data.phone || data.mobile_number,
+    };
     try {
-      if (editItem) {
-        await businessAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await businessAPI.update(targetId, payload);
         toast.success('Business updated!');
       } else {
-        await businessAPI.create(data);
+        await businessAPI.create(payload);
         toast.success('Business added!');
       }
       setModalOpen(false);
@@ -61,14 +68,15 @@ const BusinessesPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await businessAPI.delete(targetId);
-      setBusinesses((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Business deleted successfully!');
       setDeleteItem(null);
-      if (businesses.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -81,17 +89,24 @@ const BusinessesPage = () => {
   };
 
   const columns = [
-    { key: 'businessName', label: 'Business Name', sortable: true, render: (v) => <span className="font-medium">{v}</span> },
-    { key: 'category', label: 'Category', render: (v) => <Badge variant="purple">{v}</Badge> },
-    { key: 'ownerName', label: 'Owner' },
-    { key: 'phone', label: 'Phone' },
-    { key: 'address', label: 'Address', render: (v) => <span className="text-xs line-clamp-1 max-w-xs">{v}</span> },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'active' ? 'success' : 'warning'}>{v}</Badge> },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'businessName',
+      label: 'Business Name',
+      sortable: true,
+      render: (_, r) => <span className="font-medium">{r.business_name || r.businessName || r.name || '—'}</span>,
+    },
+    { key: 'category', label: 'Category', render: (v) => <Badge variant="purple">{v || 'Other'}</Badge> },
+    { key: 'ownerName', label: 'Owner', render: (_, r) => r.owner_name || r.ownerName || '—' },
+    { key: 'phone', label: 'Phone', render: (_, r) => r.mobile_number || r.phone || '—' },
+    { key: 'address', label: 'Address', render: (v) => <span className="text-xs line-clamp-1 max-w-xs">{v || '—'}</span> },
+    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'active' ? 'success' : 'warning'}>{v || 'active'}</Badge> },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },

@@ -60,9 +60,16 @@ const DataTable = ({
     return [...filtered].sort((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
-      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      if (aVal === null || aVal === undefined) return 1;
+      if (bVal === null || bVal === undefined) return -1;
+      const aNum = Number(aVal);
+      const bNum = Number(bVal);
+      if (!isNaN(aNum) && !isNaN(bNum) && typeof aVal !== 'boolean') {
+        return sortDir === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+      return sortDir === 'asc'
+        ? String(aVal).localeCompare(String(bVal), undefined, { numeric: true, sensitivity: 'base' })
+        : String(bVal).localeCompare(String(aVal), undefined, { numeric: true, sensitivity: 'base' });
     });
   }, [filtered, sortField, sortDir]);
 
@@ -161,7 +168,7 @@ const DataTable = ({
             <tbody className="divide-y divide-[#E8DCC8]/60">
               {sorted.map((row, idx) => (
                 <tr
-                  key={row._id || idx}
+                  key={row.id || row._id || idx}
                   className="hover:bg-[#FFF8EC]/50 transition-colors"
                 >
                   {columns.map((col) => (

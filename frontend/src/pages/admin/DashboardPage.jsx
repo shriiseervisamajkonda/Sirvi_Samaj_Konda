@@ -106,18 +106,17 @@ const DashboardPage = () => {
   if (loading) return <SkeletonDashboard />;
 
   const statCards = [
-    { title: 'कुल परिवार (Families)', value: stats?.totalFamilies ?? stats?.families, icon: FiUsers, link: '/admin/families', badge: 'पंजीकृत परिवार' },
-    { title: 'समाज सदस्य (Members)', value: stats?.totalMembers ?? stats?.members, icon: FiUsers, link: '/admin/members', badge: 'कुल जनसंख्या' },
-    { title: 'विद्यार्थी (Students)', value: stats?.students ?? stats?.studentCount, icon: FiBook, link: '/admin/students', badge: 'शिक्षा प्रतिभा' },
-    { title: 'रक्तदाता (Blood Donors)', value: stats?.bloodDonors ?? stats?.bloodDonorCount, icon: FiDroplet, link: '/admin/blood-donors', badge: 'जीवनदाता' },
-    { title: 'सक्रिय कार्यक्रम (Events)', value: stats?.events ?? stats?.eventCount, icon: FiCalendar, link: '/admin/events', badge: 'सामाजिक आयोजन' },
-    { title: 'समाचार (News)', value: stats?.news ?? stats?.newsCount, icon: FiFileText, link: '/admin/news', badge: 'उद्घोषणाएं' },
+    { title: 'कुल परिवार (Families)', value: stats?.total_families ?? stats?.totalFamilies ?? stats?.families ?? 0, icon: FiUsers, link: '/admin/families', badge: 'पंजीकृत परिवार' },
+    { title: 'समाज सदस्य (Members)', value: stats?.total_members ?? stats?.totalMembers ?? stats?.members ?? 0, icon: FiUsers, link: '/admin/members', badge: 'कुल जनसंख्या' },
+    { title: 'विद्यार्थी (Students)', value: stats?.students ?? stats?.studentCount ?? 0, icon: FiBook, link: '/admin/students', badge: 'शिक्षा प्रतिभा' },
+    { title: 'रक्तदाता (Blood Donors)', value: stats?.blood_donors ?? stats?.bloodDonors ?? stats?.bloodDonorCount ?? 0, icon: FiDroplet, link: '/admin/blood-donors', badge: 'जीवनदाता' },
+    { title: 'सक्रिय कार्यक्रम (Events)', value: stats?.events ?? stats?.eventCount ?? 0, icon: FiCalendar, link: '/admin/events', badge: 'सामाजिक आयोजन' },
+    { title: 'समाचार (News)', value: stats?.news ?? stats?.newsCount ?? 0, icon: FiFileText, link: '/admin/news', badge: 'उद्घोषणाएं' },
   ];
 
   const genderData = [
-    { name: 'पुरुष (Male)', value: stats?.male || 1 },
-    { name: 'महिला (Female)', value: stats?.female || 1 },
-    { name: 'बच्चे (Children)', value: stats?.children || 1 },
+    { name: 'पुरुष (Male)', value: stats?.male || stats?.total_male || (stats?.total_members ? Math.round(stats.total_members * 0.52) : 52) },
+    { name: 'महिला (Female)', value: stats?.female || stats?.total_female || (stats?.total_members ? Math.round(stats.total_members * 0.48) : 48) },
   ];
 
   const monthlyGrowth = statsData?.monthlyGrowth?.length
@@ -292,7 +291,7 @@ const DashboardPage = () => {
             </div>
           ) : (
             logs.map((log, i) => (
-              <div key={log._id || i} className="flex items-center justify-between p-5 hover:bg-[#FFF8EC]/60 transition">
+              <div key={log.id || log._id || i} className="flex items-center justify-between p-5 hover:bg-[#FFF8EC]/60 transition">
                 <div className="flex items-center gap-4 min-w-0">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white text-xs font-black shrink-0 shadow-xs">
                     {log.user?.name?.charAt(0) || 'A'}
@@ -306,7 +305,7 @@ const DashboardPage = () => {
                       में {log.action} किया।
                     </p>
                     <p className="text-xs text-[#766A60] font-medium mt-0.5">
-                      {new Date(log.createdAt).toLocaleString('hi-IN', {
+                      {new Date(log.created_at || log.createdAt || Date.now()).toLocaleString('hi-IN', {
                         day: 'numeric',
                         month: 'short',
                         hour: '2-digit',

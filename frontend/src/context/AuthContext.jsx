@@ -35,20 +35,34 @@ export const AuthProvider = ({ children }) => {
   }, [checkAuth]);
 
   const login = async (credentials) => {
-    const { data } = await authAPI.login(credentials);
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    setUser(data.user);
+    const res = await authAPI.login(credentials);
+    const data = res.data;
+    const accessToken = data.accessToken || data.data?.accessToken;
+    const refreshToken = data.refreshToken || data.data?.refreshToken;
+    const userObj = data.user || data.data?.user || data.data;
+
+    if (accessToken) localStorage.setItem('accessToken', accessToken);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+    if (userObj) {
+      localStorage.setItem('user', JSON.stringify(userObj));
+      setUser(userObj);
+    }
     return data;
   };
 
   const register = async (userData) => {
-    const { data } = await authAPI.register(userData);
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    setUser(data.user);
+    const res = await authAPI.register(userData);
+    const data = res.data;
+    const accessToken = data.accessToken || data.data?.accessToken;
+    const refreshToken = data.refreshToken || data.data?.refreshToken;
+    const userObj = data.user || data.data?.user || data.data;
+
+    if (accessToken) localStorage.setItem('accessToken', accessToken);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+    if (userObj) {
+      localStorage.setItem('user', JSON.stringify(userObj));
+      setUser(userObj);
+    }
     return data;
   };
 
@@ -63,8 +77,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const isAdmin = user && ['super_admin', 'admin', 'editor'].includes(user.role);
-  const isSuperAdmin = user?.role === 'super_admin';
+  const isAdmin = Boolean(user && ['developer', 'super_admin', 'admin', 'editor', 'treasurer'].includes(user.role));
+  const isSuperAdmin = Boolean(user && ['developer', 'super_admin'].includes(user.role));
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout, isAdmin, isSuperAdmin, checkAuth }}>

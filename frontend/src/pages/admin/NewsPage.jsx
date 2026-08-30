@@ -43,9 +43,10 @@ const NewsPage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
     try {
-      if (editItem) {
-        await newsAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await newsAPI.update(targetId, data);
         toast.success('Updated successfully!');
       } else {
         await newsAPI.create(data);
@@ -62,14 +63,15 @@ const NewsPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await newsAPI.delete(targetId);
-      setArticles((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('News article deleted successfully!');
       setDeleteItem(null);
-      if (articles.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -85,13 +87,23 @@ const NewsPage = () => {
     { key: 'title', label: 'Title', sortable: true, render: (v) => <span className="font-medium line-clamp-1">{v}</span> },
     { key: 'category', label: 'Category', render: (v) => <Badge variant="info">{v}</Badge> },
     { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'published' ? 'success' : 'warning'}>{v}</Badge> },
-    { key: 'views', label: 'Views', sortable: true },
-    { key: 'createdAt', label: 'Date', sortable: true, render: (v) => new Date(v).toLocaleDateString('en-IN') },
+    { key: 'views', label: 'Views', sortable: true, render: (v) => v ?? 0 },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'createdAt',
+      label: 'Date',
+      sortable: true,
+      render: (_, r) => {
+        const d = r.created_at || r.createdAt;
+        return d ? new Date(d).toLocaleDateString('en-IN') : '—';
+      },
+    },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },

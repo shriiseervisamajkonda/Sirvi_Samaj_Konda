@@ -36,17 +36,65 @@ const FamiliesPage = () => {
 
   useEffect(() => { fetchFamilies(); }, [fetchFamilies]);
 
-  const openCreate = () => { setEditItem(null); reset({ village: 'Konda', district: 'Dhar', state: 'Madhya Pradesh', pinCode: '454335', status: 'active' }); setModalOpen(true); };
-  const openEdit = (family) => { setEditItem(family); reset(family); setModalOpen(true); };
+  const openCreate = () => {
+    setEditItem(null);
+    reset({
+      village: 'Konda',
+      district: 'Dhar',
+      state: 'Madhya Pradesh',
+      pinCode: '454335',
+      status: 'active',
+      familyId: '',
+      headOfFamily: '',
+      surname: '',
+      mobileNumber: '',
+      whatsappNumber: '',
+      agriculturalLandArea: '',
+      numberOfMembers: '',
+      address: '',
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (family) => {
+    setEditItem(family);
+    reset({
+      ...family,
+      familyId: family.panchayat_family_id || family.familyId || '',
+      headOfFamily: family.head_name || family.headOfFamily || '',
+      surname: family.gotra || family.surname || '',
+      mobileNumber: family.head_mobile || family.mobileNumber || '',
+      whatsappNumber: family.whatsapp_number || family.whatsappNumber || '',
+      agriculturalLandArea: family.land_holding || family.agriculturalLandArea || '',
+      numberOfMembers: family.total_members || family.memberCount || family.numberOfMembers || '',
+      village: family.village || 'Konda',
+      district: family.district || 'Dhar',
+      state: family.state || 'Madhya Pradesh',
+      pinCode: family.pincode || family.pinCode || '454335',
+      address: family.address || '',
+      status: family.status || 'active',
+    });
+    setModalOpen(true);
+  };
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      ...data,
+      head_name: data.headOfFamily || data.head_name,
+      gotra: data.surname || data.gotra,
+      head_mobile: data.mobileNumber || data.head_mobile,
+      panchayat_family_id: data.familyId || data.panchayat_family_id,
+      land_holding: data.agriculturalLandArea || data.land_holding,
+    };
+
     try {
-      if (editItem) {
-        await familyAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await familyAPI.update(targetId, payload);
         toast.success('परिवार विवरण सफलतापूर्वक अपडेट हो गया!');
       } else {
-        await familyAPI.create(data);
+        await familyAPI.create(payload);
         toast.success('नया परिवार सफलतापूर्वक जुड़ गया!');
       }
       setModalOpen(false);
@@ -58,11 +106,12 @@ const FamiliesPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await familyAPI.delete(targetId);
-      setFamilies((prev) => prev.filter((item) => item._id !== targetId));
+      setFamilies((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('परिवार रिकॉर्ड हटा दिया गया!');
       setDeleteItem(null);
       if (families.length === 1 && page > 1) {
@@ -78,13 +127,44 @@ const FamiliesPage = () => {
   };
 
   const columns = [
-    { key: 'familyId', label: 'S.No.', sortable: false, render: (v, row, idx) => <span className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] px-2.5 py-1 rounded-lg border border-[#E8DCC8]">{(page - 1) * 10 + idx + 1}</span> },
-    { key: 'headOfFamily', label: 'मुखिया का नाम (Head)', sortable: true, render: (v) => <span className="font-bold text-[#2B211B]">{v}</span> },
-    { key: 'surname', label: 'गोत्र / उपनाम', sortable: true, render: (v) => <Badge variant="warning">{v}</Badge> },
-    { key: 'mobileNumber', label: 'मोबाइल नंबर', render: (v) => v ? <span className="font-mono text-xs">{v}</span> : '—' },
-    { key: 'village', label: 'गाँव (Village)' },
-    { key: 'memberCount', label: 'कुल सदस्य', render: (v) => <span className="font-bold">{v || 0} सदस्य</span> },
-    { key: 'status', label: 'स्थिति', render: (v) => <Badge variant={v === 'active' ? 'success' : 'danger'}>{v === 'active' ? 'सक्रिय' : 'निष्क्रिय'}</Badge> },
+    {
+      key: 'familyId',
+      label: 'S.No.',
+      sortable: false,
+      render: (_, row, idx) => (
+        <span className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] px-2.5 py-1 rounded-lg border border-[#E8DCC8]">
+          {row.panchayat_family_id || row.familyId || ((page - 1) * 10 + idx + 1)}
+        </span>
+      ),
+    },
+    {
+      key: 'headOfFamily',
+      label: 'मुखिया का नाम (Head)',
+      sortable: true,
+      render: (_, row) => <span className="font-bold text-[#2B211B]">{row.head_name || row.headOfFamily || '—'}</span>,
+    },
+    {
+      key: 'surname',
+      label: 'गोत्र / उपनाम',
+      sortable: true,
+      render: (_, row) => <Badge variant="warning">{row.gotra || row.surname || '—'}</Badge>,
+    },
+    {
+      key: 'mobileNumber',
+      label: 'मोबाइल नंबर',
+      render: (_, row) => (row.head_mobile || row.mobileNumber) ? <span className="font-mono text-xs">{row.head_mobile || row.mobileNumber}</span> : '—',
+    },
+    { key: 'village', label: 'गाँव (Village)', render: (_, row) => row.village || 'Konda' },
+    {
+      key: 'memberCount',
+      label: 'कुल सदस्य',
+      render: (_, row) => (
+        <span className="font-bold">
+          {row.total_members || (Array.isArray(row.family_members) ? row.family_members.length : 0) || row.memberCount || row.numberOfMembers || 0} सदस्य
+        </span>
+      ),
+    },
+    { key: 'status', label: 'स्थिति', render: (v) => <Badge variant={v === 'inactive' ? 'danger' : 'success'}>{v === 'inactive' ? 'निष्क्रिय' : 'सक्रिय'}</Badge> },
     {
       key: '_actions',
       label: 'कार्यवाही (Actions)',

@@ -58,12 +58,19 @@ const SocialInfoPage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      ...data,
+      is_active: data.isActive !== undefined ? data.isActive : true,
+      display_order: Number(data.order) || 0,
+      order: Number(data.order) || 0,
+    };
     try {
-      if (editItem) {
-        await socialInfoAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await socialInfoAPI.update(targetId, payload);
         toast.success('Social info updated successfully!');
       } else {
-        await socialInfoAPI.create(data);
+        await socialInfoAPI.create(payload);
         toast.success('Social info created successfully!');
       }
       setModalOpen(false);
@@ -77,11 +84,12 @@ const SocialInfoPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await socialInfoAPI.delete(targetId);
-      setItems((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Social info entry deleted successfully!');
       setDeleteItem(null);
       if (items.length === 1 && page > 1) {
@@ -97,15 +105,24 @@ const SocialInfoPage = () => {
   };
 
   const columns = [
-    { key: 'order', label: 'Order', sortable: true, render: (v) => <span className="font-semibold">{v}</span> },
-    { key: 'title', label: 'Title / Subject', render: (v) => <span className="font-medium">{v}</span> },
-    { key: 'category', label: 'Category', render: (v) => <Badge variant="primary">{categories.find(c => c.id === v)?.label || v}</Badge> },
-    { key: 'isActive', label: 'Status', render: (v) => <Badge variant={v ? 'success' : 'warning'}>{v ? 'Active' : 'Inactive'}</Badge> },
+    { key: 'order', label: 'Order', sortable: true, render: (v, r) => <span className="font-semibold">{v || r.display_order || 0}</span> },
+    { key: 'title', label: 'Title / Subject', render: (v) => <span className="font-medium">{v || '—'}</span> },
+    { key: 'category', label: 'Category', render: (v) => <Badge variant="primary">{categories.find((c) => c.id === v)?.label || v || 'General'}</Badge> },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'isActive',
+      label: 'Status',
+      render: (_, r) => {
+        const active = r.is_active !== undefined ? r.is_active : r.isActive !== false;
+        return <Badge variant={active ? 'success' : 'warning'}>{active ? 'Active' : 'Inactive'}</Badge>;
+      },
+    },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
