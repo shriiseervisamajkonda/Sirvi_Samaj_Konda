@@ -11,6 +11,8 @@ import { SkeletonHomePage } from '../../components/common/Skeleton';
 import LazyImage from '../../components/common/LazyImage';
 import { useLanguage } from '../../context/LanguageContext';
 
+import { supabase } from '../../config/supabase';
+
 // Animated counter component
 const Counter = ({ target, suffix = '' }) => {
   const [count, setCount] = useState(0);
@@ -75,7 +77,8 @@ const HomePage = () => {
 
   useEffect(() => {
     let isMounted = true;
-    const fetchData = async () => {
+
+    const fetchAllData = async () => {
       try {
         const [statsRes, newsRes, eventsRes, committeeRes] = await Promise.allSettled([
           dashboardAPI.getPublicStats(),
@@ -96,8 +99,44 @@ const HomePage = () => {
         if (isMounted) setDataLoaded(true);
       }
     };
-    fetchData();
-    return () => { isMounted = false; };
+
+    fetchAllData();
+
+    // Live real-time Supabase subscription
+    const channel = supabase
+      .channel('homepage_live_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, async () => {
+        try {
+          const res = await committeeAPI.getAll({ limit: 100 });
+          if (isMounted && res.data?.data) {
+            setCommittee(res.data.data);
+          }
+        } catch (e) {
+          console.warn('Realtime committee sync error:', e);
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'news' }, async () => {
+        try {
+          const res = await newsAPI.getAll({ limit: 3, status: 'published' });
+          if (isMounted && res.data?.data) setNews(res.data.data);
+        } catch (e) {
+          console.warn('Realtime news sync error:', e);
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, async () => {
+        try {
+          const res = await eventAPI.getAll({ limit: 4, status: 'published' });
+          if (isMounted && res.data?.data) setEvents(res.data.data);
+        } catch (e) {
+          console.warn('Realtime event sync error:', e);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const statCards = [

@@ -15,6 +15,7 @@ import {
   FiUserCheck,
 } from 'react-icons/fi';
 import { committeeAPI, gramUnitAPI } from '../../services/api';
+import { supabase } from '../../config/supabase';
 import { useForm } from 'react-hook-form';
 import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
@@ -70,7 +71,7 @@ const CommitteePage = () => {
     try {
       const params = { page, limit: 20, search };
       if (selectedType !== 'all') {
-        params.type = selectedType;
+        params.committee_type = selectedType;
       }
       const res = await committeeAPI.getAll(params);
       setItems(res.data?.data || []);
@@ -84,14 +85,26 @@ const CommitteePage = () => {
 
   useEffect(() => {
     fetchData();
+
+    // Live real-time Supabase subscription
+    const channel = supabase
+      .channel('admin_committees_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, () => {
+        fetchData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchData]);
 
   const stats = useMemo(() => {
     return {
       total: items.length,
-      sakalPanch: items.filter((i) => i.type === 'sankal_panch').length,
-      women: items.filter((i) => i.type === 'women_committee').length,
-      gramUnit: items.filter((i) => i.type === 'konda_gram_unit' || i.type === 'sangathan').length,
+      sakalPanch: items.filter((i) => i.committee_type === 'sankal_panch' || i.type === 'sankal_panch').length,
+      women: items.filter((i) => i.committee_type === 'women_committee' || i.type === 'women_committee').length,
+      gramUnit: items.filter((i) => i.committee_type === 'konda_gram_unit' || i.committee_type === 'sangathan' || i.type === 'konda_gram_unit').length,
     };
   }, [items]);
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiPhone, FiUsers, FiArrowRight, FiAward } from 'react-icons/fi';
 import { committeeAPI } from '../../services/api';
+import { supabase } from '../../config/supabase';
 import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 
@@ -12,10 +13,26 @@ const CommitteePage = () => {
   const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
-    committeeAPI.getAll({ limit: 100 })
-      .then(res => setCommittee(res.data.data || []))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    const fetchCommittees = () => {
+      committeeAPI.getAll({ limit: 100 })
+        .then(res => setCommittee(res.data.data || []))
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    };
+
+    fetchCommittees();
+
+    // Supabase Realtime subscription for live updates
+    const channel = supabase
+      .channel('public_committees_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, () => {
+        fetchCommittees();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const tabs = [
