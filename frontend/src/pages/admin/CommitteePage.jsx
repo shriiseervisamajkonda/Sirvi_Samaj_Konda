@@ -241,49 +241,61 @@ const CommitteePage = () => {
       ),
     },
     {
-      key: 'type',
+      key: 'committee_type',
       label: 'समिति प्रकार (Committee Type)',
       sortable: true,
-      render: (v) => {
-        const matchingType = committeeTypes.find((t) => t.id === v);
+      render: (v, r) => {
+        const typeVal = v || r.committee_type || r.type;
+        const matchingType = committeeTypes.find((t) => t.id === typeVal);
         return (
           <span className="inline-block px-3 py-1 bg-amber-50 border border-amber-200 text-[#C85A17] rounded-xl text-xs font-bold">
-            {matchingType ? matchingType.label.split('(')[0] : v}
+            {matchingType ? matchingType.label.split('(')[0] : typeVal}
           </span>
         );
       },
     },
     {
-      key: 'order',
+      key: 'order_priority',
       label: 'क्रम (Order)',
       sortable: true,
-      render: (v) => <span className="font-mono text-xs font-bold">{v || 0}</span>,
+      render: (v, r) => <span className="font-mono text-xs font-bold">{v ?? r.order_priority ?? r.order ?? 0}</span>,
     },
     {
-      key: 'isActive',
+      key: 'is_active',
       label: 'स्थिति (Status)',
       sortable: true,
-      render: (v) => (
-        <Badge variant={v !== false ? 'success' : 'warning'}>
-          {v !== false ? 'सक्रिय' : 'निष्क्रिय'}
-        </Badge>
-      ),
+      render: (v, r) => {
+        const active = v !== undefined ? v : (r.is_active !== false && r.isActive !== false);
+        return (
+          <Badge variant={active ? 'success' : 'warning'}>
+            {active ? 'सक्रिय' : 'निष्क्रिय'}
+          </Badge>
+        );
+      },
     },
     {
-      key: '_id',
+      key: 'actions',
       label: 'कार्यवाही (Actions)',
       render: (_, r) => (
         <div className="flex gap-2">
           <button
-            onClick={() => handleOpenEdit(r)}
-            className="p-2 text-blue-600 hover:bg-blue-50 :bg-blue-900/20 rounded-xl transition cursor-pointer"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenEdit(r);
+            }}
+            className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition cursor-pointer"
             title="संपादित करें"
           >
             <FiEdit2 className="w-4 h-4" />
           </button>
           <button
-            onClick={() => setDeleteItem(r)}
-            className="p-2 text-red-600 hover:bg-red-50 :bg-red-900/20 rounded-xl transition cursor-pointer"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteItem(r);
+            }}
+            className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition cursor-pointer"
             title="हटाएँ"
           >
             <FiTrash2 className="w-4 h-4" />
