@@ -119,13 +119,15 @@ const CommitteePage = () => {
   const handleOpenEdit = (item) => {
     setEditItem(item);
     reset({
-      ...item,
-      name: item.name || item.full_name || '',
-      phone: item.phone || item.mobile_number || '',
-      type: item.type || item.committee_type || 'sankal_panch',
-      order: item.order || item.display_order || 0,
-      photo: item.photo || item.image_url || '',
-      status: item.is_active === false || item.isActive === false || item.status === 'inactive' ? 'inactive' : 'active',
+      name: item.name || '',
+      phone: item.phone || '',
+      email: item.email || '',
+      type: item.committee_type || 'sankal_panch',
+      designation: item.designation || '',
+      order: item.order_priority || 0,
+      photo: item.photo_url || '',
+      bio: item.bio || '',
+      status: item.is_active === false ? 'inactive' : 'active',
     });
     setModalOpen(true);
   };
@@ -134,18 +136,18 @@ const CommitteePage = () => {
     setSaving(true);
     const targetId = editItem ? (editItem.id || editItem._id) : null;
     try {
+      // Only send columns that exist in the committees table
+      // Actual columns: id, name, designation, committee_type, phone, email, photo_url, order_priority, is_active, member_id, bio, created_at, updated_at
       const payload = {
-        ...data,
-        name: data.name,
-        full_name: data.name,
-        phone: data.phone,
-        mobile_number: data.phone,
-        committee_type: data.type,
-        display_order: Number(data.order) || 0,
-        image_url: data.photo,
-        isActive: data.status === 'active',
+        name: (data.name || '').trim(),
+        committee_type: data.type || 'sankal_panch',
+        designation: (data.designation || '').trim(),
+        phone: (data.phone || '').trim() || null,
+        email: (data.email || '').trim() || null,
+        photo_url: data.photo || null,
+        bio: (data.bio || '').trim() || null,
+        order_priority: Number(data.order) || 0,
         is_active: data.status === 'active',
-        order: Number(data.order) || 0,
       };
 
       if (editItem && targetId) {
@@ -188,7 +190,7 @@ const CommitteePage = () => {
 
   const columns = [
     {
-      key: 'photo',
+      key: 'photo_url',
       label: 'फ़ोटो / अवतार',
       render: (v, r) => (
         <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-0.5 shadow-sm flex items-center justify-center text-white font-black overflow-hidden">
@@ -320,11 +322,10 @@ const CommitteePage = () => {
                 setSelectedType(tab.id);
                 setPage(1);
               }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                isSelected
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${isSelected
                   ? 'bg-gradient-to-r from-[#7A2525] to-[#C85A17] text-white shadow-md font-black'
                   : 'bg-white text-[#2B211B] hover:bg-[#FFF8EC] border border-[#E8DCC8]'
-              }`}
+                }`}
             >
               <Icon className="w-4 h-4" />
               {tab.label}
