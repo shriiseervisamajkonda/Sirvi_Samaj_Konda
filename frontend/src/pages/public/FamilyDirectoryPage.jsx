@@ -81,8 +81,14 @@ const FamilyDirectoryPage = () => {
           {row.total_members || (Array.isArray(row.family_members) ? row.family_members.length : 0) || row.numberOfMembers || row.memberCount || 0}
         </span>
       ),
+    { 
+      key: 'agriculturalLandArea', 
+      label: 'कृषि भूमि (Land Area)', 
+      render: (_, row) => {
+        const area = row.land_area_acres ? `${row.land_area_acres} एकड़` : (row.land_details_text || row.land_holding || row.agriculturalLandArea);
+        return area ? <span className="font-bold text-[#3F7655]">{area}</span> : '—';
+      } 
     },
-    { key: 'agriculturalLandArea', label: 'कृषि भूमि (Land Area)', render: (_, row) => (row.land_holding || row.agriculturalLandArea) ? <span className="font-bold text-[#3F7655]">{row.land_holding || row.agriculturalLandArea}</span> : '—' },
   ];
 
   return (

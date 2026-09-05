@@ -65,7 +65,7 @@ const FamiliesPage = () => {
       surname: family.gotra || family.surname || '',
       mobileNumber: family.head_mobile || family.mobileNumber || '',
       whatsappNumber: family.whatsapp_number || family.whatsappNumber || '',
-      agriculturalLandArea: family.land_holding || family.agriculturalLandArea || '',
+      agriculturalLandArea: family.land_area_acres !== undefined && family.land_area_acres !== null && family.land_area_acres !== 0 ? family.land_area_acres : (family.land_details_text || family.land_holding || family.agriculturalLandArea || ''),
       numberOfMembers: family.total_members || family.memberCount || family.numberOfMembers || '',
       village: family.village || 'Konda',
       district: family.district || 'Dhar',
