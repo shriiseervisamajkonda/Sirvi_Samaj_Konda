@@ -8,6 +8,8 @@ export const TABLE_ALLOWED_COLUMNS = {
   blood_donors: ['member_id', 'name', 'blood_group', 'phone', 'village', 'last_donated_date', 'is_available'],
   committees: ['name', 'designation', 'committee_type', 'phone', 'email', 'photo_url', 'order_priority', 'is_active', 'member_id', 'bio'],
   panch_settlements: ['title', 'parties', 'settlement_date', 'description', 'panchs', 'documents', 'status', 'created_by'],
+  albums: ['title', 'description', 'cover_image_url', 'event_id', 'photo_count', 'status'],
+  gallery_photos: ['album_id', 'title', 'photo_url', 'caption', 'order_index'],
   families: ['panchayat_family_id', 'gotra', 'head_name', 'head_mobile', 'land_area_acres', 'land_details_text', 'village', 'tehsil', 'district', 'state', 'pin_code', 'faliya_or_ward', 'house_number', 'total_members', 'photo_url', 'qr_code_token', 'status', 'notes', 'created_by'],
   family_members: ['family_id', 'member_number', 'first_name', 'last_name', 'full_name', 'relation_to_head', 'relative_relation_type', 'relative_name', 'parent_member_id', 'spouse_member_id', 'is_head', 'dob', 'approximate_age', 'gender', 'education', 'occupation', 'mobile_number', 'blood_group', 'is_blood_donor', 'marital_status', 'is_matrimonial_profile', 'life_status', 'photo_url', 'notes'],
 };
