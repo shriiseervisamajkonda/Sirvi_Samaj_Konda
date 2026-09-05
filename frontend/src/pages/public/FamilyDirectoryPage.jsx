@@ -81,6 +81,7 @@ const FamilyDirectoryPage = () => {
           {row.total_members || (Array.isArray(row.family_members) ? row.family_members.length : 0) || row.numberOfMembers || row.memberCount || 0}
         </span>
       ),
+    },
     { 
       key: 'agriculturalLandArea', 
       label: 'कृषि भूमि (Land Area)', 
