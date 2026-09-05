@@ -14,8 +14,8 @@ router.get('/', optionalAuth, getCommittees);
 router.get('/:id', optionalAuth, getCommitteeById);
 
 router.use(protect);
-router.post('/', authorize('developer', 'super_admin', 'admin', 'committees:write'), createCommittee);
-router.put('/:id', authorize('developer', 'super_admin', 'admin', 'committees:write'), updateCommittee);
-router.delete('/:id', authorize('developer', 'super_admin', 'admin', 'committees:write'), deleteCommittee);
+router.post('/', authorize('developer', 'super_admin', 'admin', 'editor', 'treasurer', 'committees:write'), createCommittee);
+router.put('/:id', authorize('developer', 'super_admin', 'admin', 'editor', 'treasurer', 'committees:write'), updateCommittee);
+router.delete('/:id', authorize('developer', 'super_admin', 'admin', 'editor', 'treasurer', 'committees:write'), deleteCommittee);
 
 export default router;

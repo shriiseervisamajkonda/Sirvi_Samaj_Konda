@@ -3,28 +3,53 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiPhone, FiUsers, FiArrowRight, FiAward } from 'react-icons/fi';
 import { committeeAPI } from '../../services/api';
+import { supabase } from '../../config/supabase';
 import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 
 const CommitteePage = () => {
   const [committee, setCommittee] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('committee'); // 'committee', 'sangathan', 'sankal_panch'
+  const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
-    committeeAPI.getAll({ limit: 100 })
-      .then(res => setCommittee(res.data.data || []))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    const fetchCommittees = () => {
+      committeeAPI.getAll({ limit: 100 })
+        .then(res => setCommittee(res.data.data || []))
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    };
+
+    fetchCommittees();
+
+    // Supabase Realtime subscription for live updates
+    const channel = supabase
+      .channel('public_committees_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, () => {
+        fetchCommittees();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const tabs = [
+    { id: 'all', label: 'सभी (All)' },
+    { id: 'sankal_panch', label: 'सकल पंच' },
     { id: 'committee', label: 'कार्यकारिणी समिति' },
+    { id: 'women_committee', label: 'महिला समिती' },
+    { id: 'konda_gram_unit', label: 'ग्राम इकाई' },
+    { id: 'yuva_sangathan', label: 'युवा संगठन' },
+    { id: 'sahayata_kosh', label: 'सहायता कोष' },
+    { id: 'bhavan_samiti', label: 'भवन समिति' },
     { id: 'sangathan', label: 'संगठन' },
-    { id: 'sankal_panch', label: 'संकल पंच' },
   ];
 
-  const filteredMembers = committee.filter(m => m.type === activeTab || (!m.type && activeTab === 'committee'));
+  const filteredMembers = activeTab === 'all'
+    ? committee
+    : committee.filter(m => m.committee_type === activeTab);
 
   const designationOrder = ['President', 'Vice President', 'Secretary', 'Joint Secretary', 'Treasurer', 'अध्यक्ष', 'उपाध्यक्ष', 'सचिव', 'सह सचिव', 'कोषाध्यक्ष'];
   const main = filteredMembers.filter(m => designationOrder.some(d => m.designation?.includes(d)));

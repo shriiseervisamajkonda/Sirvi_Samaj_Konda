@@ -2,7 +2,21 @@ const errorHandler = (err, _req, res, _next) => {
   let error = { ...err };
   error.message = err.message || 'Server Error';
 
-  console.error('[Error Handler]', err);
+  // Only log full stack for unexpected server errors (5xx); suppress noisy 4xx client errors
+  const statusCode = err.statusCode || err.status || 500;
+  if (statusCode >= 500) {
+    console.error('[Error Handler]', err);
+  } else {
+    console.warn(`[Error Handler] ${statusCode} — ${err.message || err.type || 'Client Error'}`);
+  }
+
+  // Malformed JSON body (body-parser / express.json parse failure)
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({
+      success: false,
+      message: 'अनुरोध का प्रारूप गलत है (Invalid or malformed JSON in request body)',
+    });
+  }
 
   // PostgreSQL / Supabase Unique Violation Error (23505)
   if (err.code === '23505') {

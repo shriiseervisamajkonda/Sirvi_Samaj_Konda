@@ -11,6 +11,8 @@ import { SkeletonHomePage } from '../../components/common/Skeleton';
 import LazyImage from '../../components/common/LazyImage';
 import { useLanguage } from '../../context/LanguageContext';
 
+import { supabase } from '../../config/supabase';
+
 // Animated counter component
 const Counter = ({ target, suffix = '' }) => {
   const [count, setCount] = useState(0);
@@ -75,7 +77,8 @@ const HomePage = () => {
 
   useEffect(() => {
     let isMounted = true;
-    const fetchData = async () => {
+
+    const fetchAllData = async () => {
       try {
         const [statsRes, newsRes, eventsRes, committeeRes] = await Promise.allSettled([
           dashboardAPI.getPublicStats(),
@@ -96,8 +99,44 @@ const HomePage = () => {
         if (isMounted) setDataLoaded(true);
       }
     };
-    fetchData();
-    return () => { isMounted = false; };
+
+    fetchAllData();
+
+    // Live real-time Supabase subscription
+    const channel = supabase
+      .channel('homepage_live_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, async () => {
+        try {
+          const res = await committeeAPI.getAll({ limit: 100 });
+          if (isMounted && res.data?.data) {
+            setCommittee(res.data.data);
+          }
+        } catch (e) {
+          console.warn('Realtime committee sync error:', e);
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'news' }, async () => {
+        try {
+          const res = await newsAPI.getAll({ limit: 3, status: 'published' });
+          if (isMounted && res.data?.data) setNews(res.data.data);
+        } catch (e) {
+          console.warn('Realtime news sync error:', e);
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, async () => {
+        try {
+          const res = await eventAPI.getAll({ limit: 4, status: 'published' });
+          if (isMounted && res.data?.data) setEvents(res.data.data);
+        } catch (e) {
+          console.warn('Realtime event sync error:', e);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const statCards = [
@@ -418,15 +457,19 @@ const HomePage = () => {
 
           {/* Sakal Panch Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-10">
-            {[
-              { name: 'श्री शंकर जी वालाजी पवार', पद: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
-              { name: 'श्री खेमाजी दुदाजी गेहलोत', पद: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
-              { name: 'श्री कन्हैयालाल लालाजी भायल', पद: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
-              { name: 'श्री लक्ष्मण वालाजी काग', पद: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
-              { name: 'श्री सुनिल पन्नालाल जी भायल', पद: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
-            ].map((panch, idx) => (
+            {(
+              committee.filter((m) => (m.committee_type === 'sankal_panch' || m.type === 'sankal_panch') && m.is_active !== false).length > 0
+                ? committee.filter((m) => (m.committee_type === 'sankal_panch' || m.type === 'sankal_panch') && m.is_active !== false)
+                : [
+                    { name: 'श्री शंकर जी वालाजी पवार', designation: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
+                    { name: 'श्री खेमाजी दुदाजी गेहलोत', designation: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
+                    { name: 'श्री कन्हैयालाल लालाजी भायल', designation: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
+                    { name: 'श्री लक्ष्मण वालाजी काग', designation: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
+                    { name: 'श्री सुनिल पन्नालाल जी भायल', designation: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
+                  ]
+            ).map((panch, idx) => (
               <motion.div
-                key={panch.name}
+                key={panch.id || panch._id || panch.name || idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -434,20 +477,30 @@ const HomePage = () => {
                 className="bg-white rounded-3xl p-6 text-center border border-[#E8DCC8] hover:border-[#C9A44C]/60 transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1 relative group flex flex-col justify-between"
               >
                 <div>
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-1 mx-auto mb-4 shadow-lg group-hover:scale-105 transition-transform">
-                    <div className="w-full h-full bg-[#FFF8EC] rounded-full flex items-center justify-center text-[#7A2525] text-2xl font-black">
-                      👑
-                    </div>
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-1 mx-auto mb-4 shadow-lg group-hover:scale-105 transition-transform overflow-hidden">
+                    {panch.photo_url || panch.photo ? (
+                      <img src={panch.photo_url || panch.photo} alt={panch.name} className="w-full h-full object-cover rounded-full" />
+                    ) : (
+                      <div className="w-full h-full bg-[#FFF8EC] rounded-full flex items-center justify-center text-[#7A2525] text-2xl font-black">
+                        {panch.name?.charAt(0) || '👑'}
+                      </div>
+                    )}
                   </div>
                   <div className="inline-block px-3 py-1 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-xs font-extrabold text-[#7A2525] mb-3">
-                    {panch.पद}
+                    {panch.designation || panch.पद || 'सकल पंच / वरिष्ठ मार्गदर्शक'}
                   </div>
                   <h3 className="font-bold text-[#2B211B] text-base leading-snug mb-1.5">
                     {panch.name}
                   </h3>
-                  <p className="text-xs text-[#766A60] font-semibold flex items-center justify-center gap-1">
-                    <FiMapPin className="w-3 h-3 text-[#C85A17]" /> ग्राम {panch.village} (कुक्षी)
-                  </p>
+                  {panch.phone ? (
+                    <a href={`tel:${panch.phone}`} className="text-xs text-[#766A60] font-semibold flex items-center justify-center gap-1 hover:text-[#C85A17]">
+                      <FiPhone className="w-3 h-3 text-[#C85A17]" /> {panch.phone}
+                    </a>
+                  ) : (
+                    <p className="text-xs text-[#766A60] font-semibold flex items-center justify-center gap-1">
+                      <FiMapPin className="w-3 h-3 text-[#C85A17]" /> ग्राम {panch.village || 'कोणदा'} (कुक्षी)
+                    </p>
+                  )}
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-[#E8DCC8] text-xs text-[#C85A17] font-bold">
@@ -1345,7 +1398,7 @@ const HomePage = () => {
 
                     {(() => {
                       const apiWomenMembers = committee.filter(
-                        (m) => m.type === 'women_committee' && m.isActive !== false
+                        (m) => (m.committee_type === 'women_committee' || m.type === 'women_committee') && m.is_active !== false
                       );
                       
                       let storedWomenMembers = [];
@@ -1387,9 +1440,9 @@ const HomePage = () => {
                               transition={{ delay: idx * 0.04 }}
                               className="flex items-center gap-4 p-4 bg-[#FFF8EC] rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-md transition-all duration-300 group"
                             >
-                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white text-base font-bold shadow-md shrink-0">
-                                {member.photo ? (
-                                  <img src={member.photo} alt={member.name} className="w-full h-full object-cover rounded-2xl" />
+                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white text-base font-bold shadow-md shrink-0 overflow-hidden">
+                                {member.photo_url || member.photo ? (
+                                  <img src={member.photo_url || member.photo} alt={member.name} className="w-full h-full object-cover rounded-2xl" />
                                 ) : (
                                   member.name?.charAt(0) || 'म'
                                 )}
@@ -1425,14 +1478,19 @@ const HomePage = () => {
               )}
 
               {[
+                { id: 'sankal_panch', title: 'सकल पंच (Sakal Panch)', icon: '👑' },
                 { id: 'committee', title: 'कार्यकारिणी समिति', icon: '🏛️' },
+                { id: 'women_committee', title: 'श्री आई जी महिला समिती', icon: '🌸' },
+                { id: 'konda_gram_unit', title: 'कोणदा ग्राम इकाई', icon: '🌾' },
+                { id: 'yuva_sangathan', title: 'सिर्वी समाज युवा संगठन', icon: '⚡' },
+                { id: 'sahayata_kosh', title: 'श्री आईं जी सहायता कोष समिति', icon: '🤝' },
+                { id: 'bhavan_samiti', title: 'माँ अन्नपूर्णा भवन समिति', icon: '🏛️' },
                 { id: 'sangathan', title: 'संगठन', icon: '📜' },
-                { id: 'sankal_panch', title: 'संकल पंच', icon: '⚖️' },
               ]
                 .filter((cat) => activeCommitteeTab === 'all' || activeCommitteeTab === cat.id)
                 .map((cat) => {
                   const categoryMembers = committee.filter(
-                    (m) => m.type === cat.id || (!m.type && cat.id === 'committee')
+                    (m) => (m.committee_type === cat.id || m.type === cat.id || (!m.committee_type && !m.type && cat.id === 'committee')) && m.is_active !== false
                   );
                   if (categoryMembers.length === 0) return null;
 
@@ -1449,16 +1507,16 @@ const HomePage = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {categoryMembers.map((member, i) => (
                           <motion.div
-                            key={member._id || i}
+                            key={member.id || member._id || i}
                             initial={{ opacity: 0, y: 15 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.04 }}
                             className="flex items-center gap-4 p-4 bg-[#FFF8EC] rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-md transition-all duration-300 group"
                           >
-                            <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-white text-lg font-bold shadow-md shrink-0">
-                              {member.photo ? (
-                                <img src={member.photo} alt={member.name} className="w-full h-full object-cover rounded-2xl" />
+                            <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-white text-lg font-bold shadow-md shrink-0 overflow-hidden">
+                              {member.photo_url || member.photo ? (
+                                <img src={member.photo_url || member.photo} alt={member.name} className="w-full h-full object-cover rounded-2xl" />
                               ) : (
                                 member.name?.charAt(0) || 'M'
                               )}
