@@ -1,0 +1,158 @@
+{
+  "villageInformation": {
+    "communityNameEn": "Shri Seervi Samaj Konda",
+    "communityNameHi": "श्री सीरवी समाज कोणदा",
+    "villageEn": "Konda",
+    "villageHi": "कोणदा",
+    "tehsilEn": "Kukshi",
+    "tehsilHi": "कुक्षी",
+    "districtEn": "Dhar",
+    "districtHi": "धार",
+    "stateEn": "Madhya Pradesh",
+    "stateHi": "मध्यप्रदेश",
+    "pinCode": "454335",
+    "countryEn": "India",
+    "countryHi": "भारत",
+    "spiritualSeatEn": "Shri Aai Mataji Bader & Akhand Jyot",
+    "spiritualSeatHi": "श्री आई माताजी बडेर एवं अखंड ज्योति",
+    "knownGotras": [
+      "chouhan", "bhayal", "kag", "pawar", "solanki",
+      "choyal", "padiyar", "gehlot", "agalcha", "lacheta",
+      "rathore", "shinada", "barfa", "hammad", "sencha"
+    ]
+  },
+  "roles": [
+    {
+      "name": "developer",
+      "displayNameEn": "Developer / Super Admin",
+      "displayNameHi": "डेवलपर / सुपर एडमिन",
+      "permissions": ["*"],
+      "description": "Full access to database schemas, configurations, and all modules"
+    },
+    {
+      "name": "admin",
+      "displayNameEn": "Executive Admin",
+      "displayNameHi": "कार्यकारी एडमिन",
+      "permissions": [
+        "families:read", "families:write",
+        "members:read", "members:write",
+        "news:write", "events:write", "committees:write",
+        "gallery:write", "documents:write", "blood_donors:write"
+      ],
+      "description": "Manages community directory, news, events, and census records"
+    },
+    {
+      "name": "treasurer",
+      "displayNameEn": "Treasurer / Cashier",
+      "displayNameHi": "कोषाध्यक्ष / खजांची",
+      "permissions": [
+        "donations:read", "donations:write",
+        "families:read", "members:read"
+      ],
+      "description": "Records yearly chanda, donations, issues receipts, and shares on WhatsApp"
+    },
+    {
+      "name": "member",
+      "displayNameEn": "Community Member / Family Head",
+      "displayNameHi": "समाज सदस्य / परिवार मुखिया",
+      "permissions": ["public:read", "personal_receipts:read"],
+      "description": "Reads community directory and downloads personal receipts"
+    }
+  ],
+  "sampleFamilies": [
+    {
+      "panchayatFamilyId": "1",
+      "gotra": "chouhan",
+      "headName": "Shantilal Mohan",
+      "headMobile": "7724878027",
+      "landAreaAcres": 3.0,
+      "landDetailsText": "03 एकड़ (3 Acres)",
+      "village": "Konda",
+      "tehsil": "Kukshi",
+      "district": "Dhar",
+      "state": "Madhya Pradesh",
+      "pinCode": "454335",
+      "totalMembers": 4,
+      "status": "active",
+      "members": [
+        {
+          "memberNumber": 1,
+          "firstName": "Shantilal",
+          "lastName": "Chouhan",
+          "fullName": "Shantilal Mohan Chouhan",
+          "relationToHead": "self",
+          "relativeRelationType": "father",
+          "relativeName": "Mohan",
+          "isHead": true,
+          "dob": "1981-01-01",
+          "education": "6th",
+          "occupation": "tailoring",
+          "mobileNumber": "7724878027",
+          "gender": "male",
+          "maritalStatus": "married"
+        },
+        {
+          "memberNumber": 2,
+          "firstName": "Urmila",
+          "lastName": "Chouhan",
+          "fullName": "Urmila Shantilal Chouhan",
+          "relationToHead": "spouse",
+          "relativeRelationType": "husband",
+          "relativeName": "Shantilal",
+          "isHead": false,
+          "dob": "1978-01-01",
+          "education": "2nd",
+          "occupation": "homemaker",
+          "mobileNumber": null,
+          "gender": "female",
+          "maritalStatus": "married"
+        },
+        {
+          "memberNumber": 3,
+          "firstName": "Anil",
+          "lastName": "Chouhan",
+          "fullName": "Anil Shantilal Chouhan",
+          "relationToHead": "son",
+          "relativeRelationType": "father",
+          "relativeName": "Shantilal",
+          "isHead": false,
+          "dob": "1997-01-01",
+          "education": "8th",
+          "occupation": "shopkeeper",
+          "mobileNumber": "9981644564",
+          "gender": "male",
+          "maritalStatus": "single"
+        },
+        {
+          "memberNumber": 4,
+          "firstName": "Sunil",
+          "lastName": "Chouhan",
+          "fullName": "Sunil Shantilal Chouhan",
+          "relationToHead": "son",
+          "relativeRelationType": "father",
+          "relativeName": "Shantilal",
+          "isHead": false,
+          "dob": "2003-01-01",
+          "education": "9th",
+          "occupation": "agriculture",
+          "mobileNumber": "7909784358",
+          "gender": "male",
+          "maritalStatus": "single"
+        }
+      ]
+    }
+  ],
+  "sampleDonation": {
+    "panchayatFamilyId": "1",
+    "donorName": "Shantilal Mohan Chouhan",
+    "gotra": "chouhan",
+    "mobileNumber": "7724878027",
+    "financialYear": 2026,
+    "amount": 1100.0,
+    "purpose": "annual_chanda",
+    "paymentMode": "cash",
+    "receiptNumber": "KONDA-2026-0001",
+    "collectedByName": "Kailash Agalcha (Treasurer)",
+    "paymentStatus": "confirmed"
+  }
+}
