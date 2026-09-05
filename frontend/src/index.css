@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #C85A17; /* Saffron Sunset */
-  --color-primary-dark: #A7450D;
+  --color-primary: #A64A13; /* Saffron Earth - WCAG AA compliant on light canvas (5.4:1) */
+  --color-primary-dark: #8C3B0C;
   --color-secondary: #7A2525; /* Royal Maroon */
   --color-accent: #C9A44C; /* Temple Gold */
   --font-sans: 'Poppins', 'Noto Sans Devanagari', system-ui, sans-serif;
   --font-serif: 'Noto Serif Devanagari', 'Georgia', serif;
   --font-display: 'Yatra One', cursive;
 
-  --color-orange-500: #C85A17;
-  --color-orange-600: #A7450D;
+  --color-orange-500: #A64A13;
+  --color-orange-600: #8C3B0C;
   --color-orange-100: #FFF3DD;
   --color-blue-500: #7A2525;
   --color-blue-600: #5C1A1A;
@@ -21,8 +21,8 @@
   --color-theme-900: #FFFFFF; /* Pure White Card */
   --color-theme-800: #FAF1E0; /* Surface Accent */
   --color-theme-700: #E8DCC8; /* Cream Border */
-  --color-theme-600: #766A60; /* Muted Espresso Text */
-  --color-theme-500: #C85A17;
+  --color-theme-600: #5C4F45; /* High Contrast Espresso Text (7.6:1) */
+  --color-theme-500: #A64A13;
 }
 
 html {

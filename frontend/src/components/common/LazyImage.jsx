@@ -7,6 +7,8 @@ const LazyImage = ({
   imgClassName = '',
   placeholderClassName = '',
   fallbackSrc = '/hero_background.webp',
+  priority = false,
+  loading,
   ...props
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -27,7 +29,8 @@ const LazyImage = ({
       <img
         src={finalSrc}
         alt={alt}
-        loading="lazy"
+        loading={loading || (priority ? 'eager' : 'lazy')}
+        fetchpriority={priority ? 'high' : undefined}
         decoding="async"
         onLoad={() => setIsLoaded(true)}
         onError={() => {

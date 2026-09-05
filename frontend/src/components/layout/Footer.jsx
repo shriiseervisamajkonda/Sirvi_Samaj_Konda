@@ -14,34 +14,34 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md bg-white border border-[#D4AF37]/30">
-                <img src="/Logo.webp" alt="Logo" className="w-full h-full object-cover" />
+                <img src="/Logo.webp" alt="श्री सिर्वी समाज कोणदा लोगो" width="40" height="40" className="w-full h-full object-cover" />
               </div>
               <div>
                 <p className="font-bold text-[#FFF3DD] leading-tight">{t('hero_title_1')} {t('hero_title_2')}</p>
-                <p className="text-primary text-xs font-bold">{t('hero_title_3')}</p>
+                <p className="text-amber-400 text-xs font-bold">{t('hero_title_3')}</p>
               </div>
             </div>
-            <p className="text-sm text-[#CDBBA4]/90 leading-relaxed">
+            <p className="text-sm text-[#E2D9CF] leading-relaxed">
               {t('about_footer_desc')}
             </p>
           </div>
 
           <div>
-            <h4 className="font-semibold text-[#FFF3DD] mb-4 tracking-wider uppercase text-xs">{t('nav_quick_links')}</h4>
+            <h3 className="font-semibold text-[#FFF3DD] mb-4 tracking-wider uppercase text-xs">{t('nav_quick_links')}</h3>
             <ul className="space-y-2 text-sm">
               {[
                 [t('nav_about'), '/about'], [t('nav_families'), '/families'], [t('nav_events'), '/events'],
                 [t('nav_gallery'), '/gallery'], [t('nav_contact'), '/contact'],
               ].map(([label, path]) => (
                 <li key={path}>
-                  <Link to={path} className="hover:text-primary transition-colors">{label}</Link>
+                  <Link to={path} className="text-[#D1C7BC] hover:text-white transition-colors">{label}</Link>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold text-[#FFF3DD] mb-4 tracking-wider uppercase text-xs">{t('nav_resources')}</h4>
+            <h3 className="font-semibold text-[#FFF3DD] mb-4 tracking-wider uppercase text-xs">{t('nav_resources')}</h3>
             <ul className="space-y-2 text-sm">
               {[
                 [t('nav_students'), '/students'],
@@ -49,36 +49,43 @@ const Footer = () => {
                 ['नियम एवं शर्तें', '/terms'],
               ].map(([label, path]) => (
                 <li key={path}>
-                  <Link to={path} className="hover:text-primary transition-colors">{label}</Link>
+                  <Link to={path} className="text-[#D1C7BC] hover:text-white transition-colors">{label}</Link>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold text-[#FFF3DD] mb-4 tracking-wider uppercase text-xs">{t('nav_contact_us')}</h4>
+            <h3 className="font-semibold text-[#FFF3DD] mb-4 tracking-wider uppercase text-xs">{t('nav_contact_us')}</h3>
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2">
-                <FiMapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-                <span className="text-[#CDBBA4]">{t('contact_address')}</span>
+                <FiMapPin className="w-4 h-4 mt-0.5 text-amber-400 shrink-0" />
+                <span className="text-[#E2D9CF]">{t('contact_address')}</span>
               </li>
               <li className="flex items-center gap-2">
-                <FiPhone className="w-4 h-4 text-primary shrink-0" />
-                <a href="tel:+919981644585" className="text-[#CDBBA4] hover:text-primary transition-colors">+91-9981644585</a>
+                <FiPhone className="w-4 h-4 text-amber-400 shrink-0" />
+                <a href="tel:+919981644585" className="text-[#E2D9CF] hover:text-white transition-colors">+91-9981644585</a>
               </li>
               <li className="flex items-center gap-2">
-                <FiMail className="w-4 h-4 text-primary shrink-0" />
-                <a href="mailto:shriseervisamajkonda@gmail.com" className="text-[#CDBBA4] hover:text-primary transition-colors">shriseervisamajkonda@gmail.com</a>
+                <FiMail className="w-4 h-4 text-amber-400 shrink-0" />
+                <a href="mailto:shriseervisamajkonda@gmail.com" className="text-[#E2D9CF] hover:text-white transition-colors">shriseervisamajkonda@gmail.com</a>
               </li>
             </ul>
             <div className="flex gap-2.5 mt-5">
               {[
-                { Icon: FiFacebook, href: '#' },
-                { Icon: FiInstagram, href: '#' },
-                { Icon: FiYoutube, href: '#' },
-                { Icon: FaWhatsapp, href: 'https://wa.me/919981644585' },
-              ].map(({ Icon, href }, i) => (
-                <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-xl bg-[#351313] border border-[#D4AF37]/10 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-[#CDBBA4]">
+                { Icon: FiFacebook, href: '#', label: 'Visit our Facebook page' },
+                { Icon: FiInstagram, href: '#', label: 'Visit our Instagram page' },
+                { Icon: FiYoutube, href: '#', label: 'Visit our YouTube channel' },
+                { Icon: FaWhatsapp, href: 'https://wa.me/919981644585', label: 'Contact us on WhatsApp' },
+              ].map(({ Icon, href, label }, i) => (
+                <a
+                  key={i}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="w-9 h-9 rounded-xl bg-[#351313] border border-[#D4AF37]/10 flex items-center justify-center hover:bg-[#7A2525] hover:text-white transition-all text-[#D1C7BC]"
+                >
                   <Icon className="w-4.5 h-4.5" />
                 </a>
               ))}
@@ -86,11 +93,11 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-[#D4AF37]/15 mt-10 pt-6 text-center text-xs text-[#766A60] flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="border-t border-[#D4AF37]/15 mt-10 pt-6 text-center text-xs text-[#D1C7BC] flex flex-col sm:flex-row justify-between items-center gap-4">
           <p>&copy; {currentYear} {t('hero_title_1')} {t('hero_title_2')} {t('hero_title_3')}। सर्वाधिकार सुरक्षित।</p>
           <div className="flex gap-4">
-            <Link to="/privacy-policy" className="hover:text-primary transition-colors">गोपनीयता नीति</Link>
-            <Link to="/terms" className="hover:text-primary transition-colors">नियम एवं शर्तें</Link>
+            <Link to="/privacy-policy" className="text-[#D1C7BC] hover:text-white transition-colors">गोपनीयता नीति</Link>
+            <Link to="/terms" className="text-[#D1C7BC] hover:text-white transition-colors">नियम एवं शर्तें</Link>
           </div>
         </div>
       </div>

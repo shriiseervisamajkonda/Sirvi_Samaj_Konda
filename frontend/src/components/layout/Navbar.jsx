@@ -67,7 +67,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-14">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:border-amber-400/50 transition">
-              <img src="/Logo.webp" alt="Logo" className="w-8 h-8 rounded-full object-cover" />
+              <img src="/Logo.webp" alt="श्री सिर्वी समाज कोणदा लोगो" width="32" height="32" className="w-8 h-8 rounded-full object-cover" />
             </div>
             <div>
               <p className="font-extrabold text-sm sm:text-base text-white leading-tight tracking-wide">
@@ -88,7 +88,11 @@ const Navbar = () => {
                   onMouseEnter={() => setDropdown(link.label)}
                   onMouseLeave={() => setDropdown(null)}
                 >
-                  <button className="px-3 py-2 text-sm font-semibold text-orange-100 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
+                  <button
+                    aria-haspopup="true"
+                    aria-expanded={dropdown === link.label}
+                    className="px-3 py-2 text-sm font-semibold text-orange-100 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                  >
                     {link.label}
                   </button>
                   <AnimatePresence>
@@ -143,7 +147,12 @@ const Navbar = () => {
                 लॉगिन
               </Link>
             )}
-            <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2 rounded-xl hover:bg-white/10 text-white cursor-pointer">
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
+              aria-expanded={mobileOpen}
+              className="lg:hidden p-2 rounded-xl hover:bg-white/10 text-white cursor-pointer"
+            >
               {mobileOpen ? <FiX className="w-6 h-6" /> : <FiMenu className="w-6 h-6" />}
             </button>
           </div>
