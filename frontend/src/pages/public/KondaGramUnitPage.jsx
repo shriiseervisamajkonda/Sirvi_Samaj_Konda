@@ -13,6 +13,7 @@ import {
   FiInfo,
 } from 'react-icons/fi';
 import { gramUnitAPI } from '../../services/api';
+import { supabase } from '../../config/supabase';
 import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 // TODO: This is mock/fallback data. Remove when actual data is filled in the database.
@@ -25,7 +26,7 @@ const KondaGramUnitPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'sakal_panch', 'office_bearers', 'members', 'representatives', 'formation'
 
-  useEffect(() => {
+  const fetchGramUnitData = () => {
     gramUnitAPI
       .getPublicDetails()
       .then((res) => {
@@ -37,6 +38,29 @@ const KondaGramUnitPage = () => {
         console.warn('Using official fallback data for gram unit:', err);
       })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchGramUnitData();
+
+    let debounceTimer = null;
+    const handleRealtimeChange = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchGramUnitData();
+      }, 300);
+    };
+
+    const channel = supabase
+      .channel('public:gram_unit_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gram_unit_members' }, handleRealtimeChange)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gram_units' }, handleRealtimeChange)
+      .subscribe();
+
+    return () => {
+      clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const unit = data?.unit || officialFallbackData.unit;

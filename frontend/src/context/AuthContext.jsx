@@ -38,6 +38,49 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     checkAuth();
+
+    const handleUnauthorized = () => {
+      setUser(null);
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && localStorage.getItem('accessToken')) {
+        checkAuth();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Inactivity timeout: 30 minutes of inactivity
+    const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
+    let inactivityTimer = null;
+
+    const resetInactivityTimer = () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      if (!localStorage.getItem('accessToken')) return;
+      inactivityTimer = setTimeout(() => {
+        if (localStorage.getItem('accessToken')) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          setUser(null);
+          if (typeof window !== 'undefined' && (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/profile'))) {
+            window.location.href = '/login?reason=idle_timeout';
+          }
+        }
+      }, INACTIVITY_LIMIT_MS);
+    };
+
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    activityEvents.forEach((ev) => window.addEventListener(ev, resetInactivityTimer, { passive: true }));
+    resetInactivityTimer();
+
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      activityEvents.forEach((ev) => window.removeEventListener(ev, resetInactivityTimer));
+    };
   }, [checkAuth]);
 
   const login = async (credentials) => {

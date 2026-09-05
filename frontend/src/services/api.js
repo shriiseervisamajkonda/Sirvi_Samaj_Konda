@@ -129,9 +129,19 @@ export const lekhaJokhaAPI = {
 export const panchSettlementAPI = {
   getAll: (params) => api.get('/panch-settlements', { params }),
   getPublic: (params) => api.get('/panch-settlements/public', { params }),
+  getOne: (id) => api.get(`/panch-settlements/${id}`),
   create: (data) => api.post('/panch-settlements', data),
   update: (id, data) => api.put(`/panch-settlements/${id}`, data),
   delete: (id) => api.delete(`/panch-settlements/${id}`),
+};
+
+export const donationAPI = {
+  getStats: () => api.get('/donations/stats'),
+  getReceipt: (receiptNumber) => api.get(`/donations/receipt/${receiptNumber}`),
+  getAll: (params) => api.get('/donations', { params }),
+  create: (data) => api.post('/donations', data),
+  update: (id, data) => api.put(`/donations/${id}`, data),
+  delete: (id) => api.delete(`/donations/${id}`),
 };
 
 export const socialInfoAPI = {
@@ -144,8 +154,10 @@ export const socialInfoAPI = {
 
 export const villageAPI = {
   getAll: () => api.get('/village'),
+  getDetails: () => api.get('/village'),
   getOne: (id) => api.get(`/village/${id}`),
   update: (id, data) => api.put(`/village/${id}`, data),
+  updateInfo: (data) => api.put('/village', data),
 };
 
 export const contactAPI = {
@@ -196,17 +208,10 @@ export const gramUnitMemberAPI = {
   delete: (id) => api.delete(`/gram-unit-members/${id}`),
 };
 
-export const formationEventAPI = {
-  getAll: (params) => api.get('/formation-events', { params }),
-  getOne: (id) => api.get(`/formation-events/${id}`),
-  create: (data) => api.post('/formation-events', data),
-  update: (id, data) => api.put(`/formation-events/${id}`, data),
-  delete: (id) => api.delete(`/formation-events/${id}`),
-};
-
 export const uploadAPI = {
   upload: (formData) => api.post('/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120000,
   }),
 };
 

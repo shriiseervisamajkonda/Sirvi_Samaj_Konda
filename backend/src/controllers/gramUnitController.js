@@ -52,6 +52,7 @@ export const getGramUnits = unitBase.getAll;
 export const updateGramUnit = unitBase.update;
 
 export const getGramUnitMembers = memberBase.getAll;
+export const getGramUnitMemberById = memberBase.getOne;
 export const createGramUnitMember = memberBase.create;
 export const updateGramUnitMember = memberBase.update;
 export const deleteGramUnitMember = memberBase.remove;

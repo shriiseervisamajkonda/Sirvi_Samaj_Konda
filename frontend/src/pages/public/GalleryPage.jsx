@@ -5,11 +5,8 @@ import { galleryAPI } from '../../services/api';
 import { SkeletonImageGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 
-const defaultGalleryImages = [
-  { _id: 'g-temple-1', url: '/aai_mata_temple.webp', title: 'श्री आई जी मंदिर (बडेर) कोणदा' },
-  { _id: 'g-temple-2', url: '/aai_mataji_portrait.jpg', title: 'श्री आई माताजी पावन स्वरूप' },
-  { _id: 'g-temple-3', url: '/hero_background.webp', title: 'सिर्वी समाज कोणदा धरोहर' },
-];
+// TODO: This is mock/fallback data. Remove when actual data is filled in the database.
+import defaultGalleryImages from '../../data/mock/galleryFallback.json';
 
 const GalleryPage = () => {
   const [images, setImages] = useState(defaultGalleryImages);

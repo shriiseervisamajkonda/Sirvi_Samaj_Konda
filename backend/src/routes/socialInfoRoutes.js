@@ -10,6 +10,7 @@ import { protect, authorize, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
+router.get('/public', optionalAuth, getSocialInfo);
 router.get('/', optionalAuth, getSocialInfo);
 router.get('/:id', optionalAuth, getSocialInfoById);
 

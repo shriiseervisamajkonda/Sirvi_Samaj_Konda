@@ -32,7 +32,7 @@ const committeeTypes = [
   { id: 'yuva_sangathan', label: 'सिर्वी समाज युवा संगठन', icon: FiUsers },
   { id: 'sahayata_kosh', label: 'श्री आईं जी सहायता कोष समिति', icon: FiHeart },
   { id: 'bhavan_samiti', label: 'माँ अन्नपूर्णा भवन समिति', icon: FiAward },
-  { id: 'committee', label: 'सामान्य कार्यकारिणी समिति', icon: FiUsers },
+  { id: 'executive_body', label: 'सामान्य कार्यकारिणी समिति', icon: FiUsers },
 ];
 
 const designationsList = [
@@ -86,15 +86,22 @@ const CommitteePage = () => {
   useEffect(() => {
     fetchData();
 
+    let debounceTimer = null;
+    const handleRealtimeChange = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchData();
+      }, 300);
+    };
+
     // Live real-time Supabase subscription
     const channel = supabase
       .channel('admin_committees_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, () => {
-        fetchData();
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, handleRealtimeChange)
       .subscribe();
 
     return () => {
+      clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, [fetchData]);

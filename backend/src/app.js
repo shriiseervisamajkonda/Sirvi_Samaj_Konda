@@ -38,6 +38,7 @@ import gramUnitRoutes from './routes/gramUnitRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import {
   getGramUnitMembers,
+  getGramUnitMemberById,
   createGramUnitMember,
   updateGramUnitMember,
   deleteGramUnitMember,
@@ -154,6 +155,7 @@ app.use('/api/settings', settingsRoutes);
 
 // Direct /api/gram-unit-members mounting
 app.get('/api/gram-unit-members', optionalAuth, getGramUnitMembers);
+app.get('/api/gram-unit-members/:id', optionalAuth, getGramUnitMemberById);
 app.post('/api/gram-unit-members', protect, authorize('developer', 'super_admin', 'admin'), createGramUnitMember);
 app.put('/api/gram-unit-members/:id', protect, authorize('developer', 'super_admin', 'admin'), updateGramUnitMember);
 app.delete('/api/gram-unit-members/:id', protect, authorize('developer', 'super_admin', 'admin'), deleteGramUnitMember);

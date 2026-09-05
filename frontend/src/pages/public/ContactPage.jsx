@@ -24,8 +24,8 @@ const ContactPage = () => {
 
   const contactInfo = [
     { icon: FiMapPin, label: 'Address', value: 'Sirvi Samaj Dharmshala, Konda, Tehsil Kukshi, Dhar, MP 454335', href: null, color: 'from-[#C85A17] to-[#D4AF37]' },
-    { icon: FiPhone, label: 'Phone', value: '+91 98765 43210', href: 'tel:+919876543210', color: 'from-[#C85A17] to-[#E27620]' },
-    { icon: FiMail, label: 'Email', value: 'contact@seervisamajkonda.org', href: 'mailto:contact@seervisamajkonda.org', color: 'from-[#7A2525] to-[#C85A17]' },
+    { icon: FiPhone, label: 'Phone', value: '+91-9981644585', href: 'tel:+919981644585', color: 'from-[#C85A17] to-[#E27620]' },
+    { icon: FiMail, label: 'Email', value: 'shriseervisamajkonda@gmail.com', href: 'mailto:shriseervisamajkonda@gmail.com', color: 'from-[#7A2525] to-[#C85A17]' },
   ];
 
   return (

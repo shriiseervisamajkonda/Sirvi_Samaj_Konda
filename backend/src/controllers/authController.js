@@ -21,13 +21,13 @@ const generateTokens = (user) => {
   const accessToken = jwt.sign(
     { id: user.id, role: user.role, phone: user.phone },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE || '7d' }
+    { expiresIn: process.env.JWT_EXPIRE || '8h' }
   );
 
   const refreshToken = jwt.sign(
     { id: user.id },
     process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_REFRESH_EXPIRE || '30d' }
+    { expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d' }
   );
 
   return { accessToken, refreshToken };
@@ -485,3 +485,11 @@ export const updateProfile = asyncHandler(async (req, res) => {
     data: updatedUser,
   });
 });
+
+export const logout = asyncHandler(async (req, res) => {
+  res.json({
+    success: true,
+    message: 'Logged out successfully',
+  });
+});
+

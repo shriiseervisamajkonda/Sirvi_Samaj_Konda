@@ -2,6 +2,7 @@ import express from 'express';
 import {
   register,
   login,
+  logout,
   googleLogin,
   linkGoogleOAuth,
   unlinkGoogle,
@@ -18,6 +19,7 @@ const router = express.Router();
 
 router.post('/register', register);
 router.post('/login', login);
+router.post('/logout', logout);
 router.post('/google-login', googleLogin);
 router.post('/link-google-oauth', protect, linkGoogleOAuth);
 router.post('/unlink-google', protect, unlinkGoogle);

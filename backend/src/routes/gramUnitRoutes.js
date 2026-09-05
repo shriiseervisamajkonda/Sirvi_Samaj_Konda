@@ -4,6 +4,7 @@ import {
   getGramUnits,
   updateGramUnit,
   getGramUnitMembers,
+  getGramUnitMemberById,
   createGramUnitMember,
   updateGramUnitMember,
   deleteGramUnitMember,
@@ -16,6 +17,7 @@ const router = express.Router();
 router.get('/public/details', optionalAuth, getGramUnitPublicDetails);
 router.get('/', optionalAuth, getGramUnits);
 router.get('/members', optionalAuth, getGramUnitMembers);
+router.get('/members/:id', optionalAuth, getGramUnitMemberById);
 
 // Protected routes
 router.use(protect);

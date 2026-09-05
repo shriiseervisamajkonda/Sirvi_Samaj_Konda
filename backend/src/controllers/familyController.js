@@ -177,7 +177,15 @@ export const createFamily = asyncHandler(async (req, res) => {
       .insert(formattedMembers)
       .select();
 
-    if (!mError) insertedMembers = memData;
+    if (mError) {
+      // Rollback family header creation if member insert fails
+      await supabase.from('families').delete().eq('id', family.id);
+      return res.status(400).json({
+        success: false,
+        message: `सदस्य विवरण सुरक्षित करने में त्रुटि: ${mError.message}`,
+      });
+    }
+    insertedMembers = memData || [];
   }
 
   clearCacheByPattern('families');
@@ -229,3 +237,20 @@ export const deleteFamily = asyncHandler(async (req, res) => {
 
   res.json({ success: true, message: 'Family record deleted successfully' });
 });
+
+// GET /api/families/stats
+export const getFamilyStats = asyncHandler(async (req, res) => {
+  const [{ count: totalFamilies }, { count: totalMembers }] = await Promise.all([
+    supabase.from('families').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+    supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active'),
+  ]);
+
+  res.json({
+    success: true,
+    data: {
+      totalFamilies: totalFamilies || 0,
+      totalMembers: totalMembers || 0,
+    },
+  });
+});
+
