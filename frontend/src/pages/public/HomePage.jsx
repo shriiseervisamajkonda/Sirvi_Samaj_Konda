@@ -192,7 +192,14 @@ const HomePage = () => {
       <section className="relative min-h-[90vh] flex items-center bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525] text-white">
         {/* Full-width background image with gradient overlay */}
         <div className="absolute inset-0">
-          <img src="/hero_background.webp" alt="Hero Background" className="w-full h-full object-cover opacity-20" />
+          <img
+            src="/hero_background.webp"
+            alt="Shri Seervi Samaj Konda Hero Background"
+            fetchpriority="high"
+            loading="eager"
+            decoding="async"
+            className="w-full h-full object-cover opacity-20"
+          />
           <div className="absolute inset-0 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]" />
         </div>
 
@@ -317,7 +324,8 @@ const HomePage = () => {
             >
               <LazyImage
                 src="/aai_mataji_portrait.jpg"
-                alt="Shri Aai Mataji"
+                alt="श्री आई माताजी पावन चित्र"
+                priority={true}
                 className="w-full max-h-[480px] rounded-2xl"
               />
             </motion.div>
@@ -1580,19 +1588,19 @@ const HomePage = () => {
           <div className="bg-white border border-[#E8DCC8] rounded-3xl p-6 shadow-md">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#7A2525] to-[#C85A17] rounded-2xl flex items-center justify-center shadow-md">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#7A2525] to-[#A64A13] rounded-2xl flex items-center justify-center shadow-md">
                   <FiPhone className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <p className="font-extrabold text-[#2B211B] text-base">आपातकालीन संपर्क (Emergency Contacts)</p>
-                  <p className="text-xs text-[#766A60] font-medium">समाज एवं ग्राम सुरक्षा व सहायता हेतु 24x7 उपलब्ध</p>
+                  <p className="text-xs text-[#5C4F45] font-medium">समाज एवं ग्राम सुरक्षा व सहायता हेतु 24x7 उपलब्ध</p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-6 sm:ml-auto">
                 {emergencyContacts.map(({ name, phone, label }) => (
-                  <a key={name || label} href={`tel:${(phone || '').replace(/[\s-]/g, '')}`} className="flex flex-col">
-                    <span className="text-xs text-[#766A60] font-semibold">{name || label}</span>
-                    <span className="font-bold text-[#C85A17] hover:underline text-sm">{phone}</span>
+                  <a key={name || label} href={`tel:${(phone || '').replace(/[\s-]/g, '')}`} className="flex flex-col group">
+                    <span className="text-xs text-[#5C4F45] font-semibold">{name || label}</span>
+                    <span className="font-bold text-[#A64A13] group-hover:text-[#7A2525] group-hover:underline text-sm">{phone}</span>
                   </a>
                 ))}
               </div>

@@ -17,6 +17,11 @@ export default defineConfig({
     target: 'esnext',
     reportCompressedSize: false,
     chunkSizeWarningLimit: 1000,
+    modulePreload: {
+      resolveDependencies(_filename, deps) {
+        return deps.filter((dep) => !dep.includes('vendor-charts') && !dep.includes('vendor-swiper') && !dep.includes('vendor-lightbox'));
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
