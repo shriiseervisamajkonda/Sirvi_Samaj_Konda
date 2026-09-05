@@ -30,6 +30,7 @@ export const FormSection = ({ title, subtitle, icon: Icon, children }) => (
  */
 export const FormField = ({
   label,
+  htmlFor,
   required = false,
   error,
   helperText,
@@ -38,7 +39,7 @@ export const FormField = ({
 }) => (
   <div className={`space-y-1.5 ${className}`}>
     {label && (
-      <label className="block text-xs font-black uppercase tracking-wider text-[#7A2525]">
+      <label htmlFor={htmlFor} className="block text-xs font-black uppercase tracking-wider text-[#7A2525]">
         {label} {required && <span className="text-red-500 font-black">*</span>}
       </label>
     )}

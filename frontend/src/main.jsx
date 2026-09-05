@@ -50,6 +50,7 @@ const GalleryPage = lazy(() => import('./pages/public/GalleryPage'));
 const DocumentsPage = lazy(() => import('./pages/public/DocumentsPage'));
 const ContactPage = lazy(() => import('./pages/public/ContactPage'));
 const LekhaJokhaPage = lazy(() => import('./pages/public/LekhaJokhaPage'));
+const DonationsPage = lazy(() => import('./pages/public/DonationsPage'));
 const PanchSettlementsPage = lazy(() => import('./pages/public/PanchSettlementsPage'));
 const SocialInfoPage = lazy(() => import('./pages/public/SocialInfoPage'));
 const KondaGramUnitPage = lazy(() => import('./pages/public/KondaGramUnitPage'));
@@ -65,6 +66,7 @@ const AdminStudentsPage = lazy(() => import('./pages/admin/StudentsPage'));
 const AdminBusinessesPage = lazy(() => import('./pages/admin/BusinessesPage'));
 const AdminBloodDonorsPage = lazy(() => import('./pages/admin/BloodDonorsPage'));
 const AdminMarriagePage = lazy(() => import('./pages/admin/MarriagePage'));
+const AdminDonationsPage = lazy(() => import('./pages/admin/DonationsPage'));
 const AdminEventsPage = lazy(() => import('./pages/admin/EventsPage'));
 const AdminGalleryPage = lazy(() => import('./pages/admin/GalleryPage'));
 const AdminNewsPage = lazy(() => import('./pages/admin/NewsPage'));
@@ -134,6 +136,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path="/documents" element={<DocumentsPage />} />
                     <Route path="/contact" element={<ContactPage />} />
                     <Route path="/lekha-jokha" element={<LekhaJokhaPage />} />
+                    <Route path="/donations" element={<DonationsPage />} />
                     <Route path="/panch-settlements" element={<PanchSettlementsPage />} />
                     <Route path="/social-info" element={<SocialInfoPage />} />
                     <Route path="/konda-gram-unit" element={<KondaGramUnitPage />} />
@@ -168,6 +171,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path="businesses" element={<AdminBusinessesPage />} />
                     <Route path="blood-donors" element={<AdminBloodDonorsPage />} />
                     <Route path="marriage" element={<AdminMarriagePage />} />
+                    <Route path="donations" element={<AdminDonationsPage />} />
                     <Route path="events" element={<AdminEventsPage />} />
                     <Route path="gallery" element={<AdminGalleryPage />} />
                     <Route path="news" element={<AdminNewsPage />} />

@@ -2,6 +2,8 @@ import express from 'express';
 import {
   getFamilies,
   getFamilyById,
+  getFamilyByFamilyId,
+  getFamilyStats,
   createFamily,
   updateFamily,
   deleteFamily,
@@ -11,6 +13,8 @@ import { protect, authorize, optionalAuth } from '../middleware/auth.js';
 const router = express.Router();
 
 router.get('/', optionalAuth, getFamilies);
+router.get('/stats', optionalAuth, getFamilyStats);
+router.get('/family-id/:familyId', optionalAuth, getFamilyByFamilyId);
 router.get('/:id', optionalAuth, getFamilyById);
 
 // Admin & Staff operations

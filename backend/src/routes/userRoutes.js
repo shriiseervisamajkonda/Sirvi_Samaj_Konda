@@ -17,6 +17,7 @@ router.use(authorize('developer', 'super_admin', 'admin'));
 router.get('/', getUsers);
 router.get('/:id', getUserById);
 router.post('/', createUser);
+router.put('/:id/role', updateUser);
 router.put('/:id', updateUser);
 router.post('/:id/reset-default-password', resetDefaultPassword);
 router.delete('/:id', deleteUser);

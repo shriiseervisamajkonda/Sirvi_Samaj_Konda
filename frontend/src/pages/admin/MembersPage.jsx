@@ -82,7 +82,7 @@ const MembersPage = () => {
       relation: member.relation_to_head || member.relation || '',
       family: member.family_id || member.family?._id || member.family?.id || '',
       village: member.village || 'Konda',
-      status: member.life_status === 'deceased' || member.status === 'inactive' ? 'inactive' : 'active',
+      status: member.life_status || (member.status === 'inactive' ? 'deceased' : 'active'),
     });
     setModalOpen(true);
   };
@@ -99,6 +99,12 @@ const MembersPage = () => {
       ? `${fName} ${lName}`.trim()
       : (data.full_name || fName || '');
 
+    const rawBg = data.bloodGroup || data.blood_group || 'unknown';
+    const cleanBg = rawBg.toLowerCase() === 'unknown' ? 'unknown' : rawBg;
+    const cleanStatus = ['active', 'deceased', 'married_out', 'moved_away'].includes(data.status)
+      ? data.status
+      : (data.status === 'inactive' ? 'deceased' : 'active');
+
     const payload = {
       first_name: fName,
       last_name: lName,
@@ -106,14 +112,14 @@ const MembersPage = () => {
       family_id: data.family || data.family_id || undefined,
       mobile_number: data.phone || data.mobile_number || null,
       relative_name: guardian || null,
-      blood_group: data.bloodGroup || data.blood_group || 'Unknown',
+      blood_group: cleanBg,
       relation_to_head: data.relation || data.relation_to_head || 'other',
       marital_status: data.maritalStatus || data.marital_status || 'single',
       gender: data.gender || 'male',
       education: data.education || null,
       occupation: data.occupation || null,
       dob: data.dateOfBirth || data.dob || null,
-      life_status: data.status === 'inactive' ? 'inactive' : 'active',
+      life_status: cleanStatus,
     };
 
     try {
@@ -356,10 +362,12 @@ const MembersPage = () => {
                 <input {...register('village')} defaultValue="Konda" className="input-field" />
               </FormField>
 
-              <FormField label="सक्रिय स्थिति (Status)">
+              <FormField label="सक्रिय स्थिति (Life Status)">
                 <select {...register('status')} className="input-field">
-                  <option value="active">सक्रिय (Active)</option>
-                  <option value="inactive">निष्क्रिय (Inactive)</option>
+                  <option value="active">सक्रिय / जीवित (Active)</option>
+                  <option value="deceased">स्वर्गवासी (Deceased)</option>
+                  <option value="married_out">विवाहित अन्यत्र (Married Out)</option>
+                  <option value="moved_away">अन्यत्र स्थानांतरित (Moved Away)</option>
                 </select>
               </FormField>
             </div>

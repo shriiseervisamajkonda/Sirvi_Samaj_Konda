@@ -6,12 +6,17 @@ import {
   FiArrowRight, FiMapPin, FiPhone, FiChevronRight,
   FiAward, FiShield, FiUserCheck, FiFlag, FiCheckCircle,
 } from 'react-icons/fi';
-import { dashboardAPI, newsAPI, eventAPI, committeeAPI } from '../../services/api';
+import { dashboardAPI, newsAPI, eventAPI, committeeAPI, gramUnitAPI, villageAPI } from '../../services/api';
 import { SkeletonHomePage } from '../../components/common/Skeleton';
 import LazyImage from '../../components/common/LazyImage';
 import { useLanguage } from '../../context/LanguageContext';
-
 import { supabase } from '../../config/supabase';
+// TODO: This is mock/fallback data. Remove when actual data is filled in the database.
+import committeeFallback from '../../data/mock/committeeDefaultFallback.json';
+import fallbackUnitPayload from '../../data/mock/kondaGramUnitFallback.json';
+
+const { defaultSakalPanch, defaultSahayataKosh, defaultAnnapurnaBhavan, defaultWomenMembers } = committeeFallback;
+const { officialFallbackData } = fallbackUnitPayload;
 
 // Animated counter component
 const Counter = ({ target, suffix = '' }) => {
@@ -58,12 +63,12 @@ const StatCard = ({ icon: Icon, value, label, color, delay }) => (
 );
 
 const defaultStats = {
-  families: 500,
-  members: 2000,
-  students: 300,
-  businesses: 100,
-  bloodDonors: 150,
-  events: 12,
+  families: 0,
+  members: 0,
+  students: 0,
+  businesses: 0,
+  bloodDonors: 0,
+  events: 0,
 };
 
 const HomePage = () => {
@@ -71,6 +76,12 @@ const HomePage = () => {
   const [news, setNews] = useState([]);
   const [events, setEvents] = useState([]);
   const [committee, setCommittee] = useState([]);
+  const [gramUnitData, setGramUnitData] = useState(officialFallbackData);
+  const [emergencyContacts, setEmergencyContacts] = useState([
+    { name: 'कुक्षी पुलिस थाना', phone: '07297-234220' },
+    { name: 'सामुदायिक स्वास्थ्य केंद्र कुक्षी', phone: '07297-234233' },
+    { name: 'ग्राम पंचायत कोणदा', phone: '+91-9981644585' },
+  ]);
   const [activeCommitteeTab, setActiveCommitteeTab] = useState('all');
   const [dataLoaded, setDataLoaded] = useState(false);
   const { t } = useLanguage();
@@ -80,11 +91,13 @@ const HomePage = () => {
 
     const fetchAllData = async () => {
       try {
-        const [statsRes, newsRes, eventsRes, committeeRes] = await Promise.allSettled([
+        const [statsRes, newsRes, eventsRes, committeeRes, gramUnitRes, villageRes] = await Promise.allSettled([
           dashboardAPI.getPublicStats(),
           newsAPI.getAll({ limit: 3, status: 'published' }),
           eventAPI.getAll({ limit: 4, status: 'published' }),
           committeeAPI.getAll({ limit: 100 }),
+          gramUnitAPI.getPublicDetails(),
+          villageAPI.getDetails(),
         ]);
         if (!isMounted) return;
         if (statsRes.status === 'fulfilled' && statsRes.value?.data?.data) {
@@ -93,6 +106,15 @@ const HomePage = () => {
         if (newsRes.status === 'fulfilled') setNews(newsRes.value?.data?.data || []);
         if (eventsRes.status === 'fulfilled') setEvents(eventsRes.value?.data?.data || []);
         if (committeeRes.status === 'fulfilled') setCommittee(committeeRes.value?.data?.data || []);
+        if (gramUnitRes.status === 'fulfilled' && gramUnitRes.value?.data?.data) {
+          setGramUnitData(gramUnitRes.value.data.data);
+        }
+        if (villageRes.status === 'fulfilled' && villageRes.value?.data?.data) {
+          const vData = villageRes.value.data.data;
+          if (Array.isArray(vData.emergency_contacts) && vData.emergency_contacts.length > 0) {
+            setEmergencyContacts(vData.emergency_contacts);
+          }
+        }
       } catch (err) {
         console.warn('Home background data fetch warning:', err);
       } finally {
@@ -102,10 +124,11 @@ const HomePage = () => {
 
     fetchAllData();
 
-    // Live real-time Supabase subscription
-    const channel = supabase
-      .channel('homepage_live_sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, async () => {
+    // Debounce timer for realtime sync to prevent rapid duplicate DB calls
+    let committeeSyncTimer = null;
+    const debouncedSyncCommittees = () => {
+      if (committeeSyncTimer) clearTimeout(committeeSyncTimer);
+      committeeSyncTimer = setTimeout(async () => {
         try {
           const res = await committeeAPI.getAll({ limit: 100 });
           if (isMounted && res.data?.data) {
@@ -114,6 +137,14 @@ const HomePage = () => {
         } catch (e) {
           console.warn('Realtime committee sync error:', e);
         }
+      }, 300);
+    };
+
+    // Live real-time Supabase subscription
+    const channel = supabase
+      .channel('homepage_live_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, () => {
+        debouncedSyncCommittees();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'news' }, async () => {
         try {
@@ -135,6 +166,7 @@ const HomePage = () => {
 
     return () => {
       isMounted = false;
+      if (committeeSyncTimer) clearTimeout(committeeSyncTimer);
       supabase.removeChannel(channel);
     };
   }, []);
@@ -206,7 +238,7 @@ const HomePage = () => {
               <div className="flex flex-wrap gap-6 mt-10 pt-8 border-t border-white/20">
                 {[
                   { icon: FiMapPin, text: t('hero_center_title') },
-                  { icon: FiPhone, text: t('emergency_president') + ': +91 98765 43210' },
+                  { icon: FiPhone, text: `${t('emergency_president')}: +91-9981644585` },
                 ].map(({ icon: Icon, text }) => (
                   <div key={text} className="flex items-center gap-2 text-orange-100 text-sm font-semibold">
                     <Icon className="w-4 h-4 text-[#FDE68A]" />
@@ -460,13 +492,7 @@ const HomePage = () => {
             {(
               committee.filter((m) => (m.committee_type === 'sankal_panch' || m.type === 'sankal_panch') && m.is_active !== false).length > 0
                 ? committee.filter((m) => (m.committee_type === 'sankal_panch' || m.type === 'sankal_panch') && m.is_active !== false)
-                : [
-                    { name: 'श्री शंकर जी वालाजी पवार', designation: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
-                    { name: 'श्री खेमाजी दुदाजी गेहलोत', designation: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
-                    { name: 'श्री कन्हैयालाल लालाजी भायल', designation: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
-                    { name: 'श्री लक्ष्मण वालाजी काग', designation: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
-                    { name: 'श्री सुनिल पन्नालाल जी भायल', designation: 'सकल पंच / वरिष्ठ मार्गदर्शक', village: 'कोणदा' },
-                  ]
+                : defaultSakalPanch
             ).map((panch, idx) => (
               <motion.div
                 key={panch.id || panch._id || panch.name || idx}
@@ -592,26 +618,12 @@ const HomePage = () => {
                 </div>
 
                 <ul className="space-y-2.5 text-xs sm:text-sm">
-                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
-                    <span className="text-[#C85A17] font-extrabold block text-xs">अध्यक्ष</span>
-                    <span className="font-bold text-[#2B211B]">सुनिल/पन्नालाल जी भायल</span>
-                  </li>
-                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
-                    <span className="text-[#C85A17] font-extrabold block text-xs">महासचिव</span>
-                    <span className="font-bold text-[#2B211B]">अजय/गोपाल जी शिनदडा</span>
-                  </li>
-                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
-                    <span className="text-[#C85A17] font-extrabold block text-xs">उपाध्यक्ष</span>
-                    <span className="font-bold text-[#2B211B]">कन्हैयालाल/रत्न जी चोहान</span>
-                  </li>
-                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
-                    <span className="text-[#C85A17] font-extrabold block text-xs">सचिव</span>
-                    <span className="font-bold text-[#2B211B]">दिनेश/गोविंद जी लछेटा</span>
-                  </li>
-                  <li className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
-                    <span className="text-[#C85A17] font-extrabold block text-xs">कोषाध्यक्ष</span>
-                    <span className="font-bold text-[#2B211B]">कैलाश/रत्नजी अगल्चा</span>
-                  </li>
+                  {(gramUnitData?.officeBearers?.length ? gramUnitData.officeBearers : officialFallbackData.officeBearers).map((ob, idx) => (
+                    <li key={ob.id || ob.name || idx} className="p-2.5 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                      <span className="text-[#C85A17] font-extrabold block text-xs">{ob.designation || 'पदाधिकारी'}</span>
+                      <span className="font-bold text-[#2B211B]">{ob.name}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
             </motion.div>
@@ -629,23 +641,18 @@ const HomePage = () => {
                   <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white font-bold text-sm shadow-sm">
                     👥
                   </div>
-                  <h4 className="font-bold text-base text-[#2B211B]">ग्राम इकाई सदस्य (6)</h4>
+                  <h4 className="font-bold text-base text-[#2B211B]">
+                    ग्राम इकाई सदस्य ({ (gramUnitData?.members?.length ? gramUnitData.members : officialFallbackData.members).length })
+                  </h4>
                 </div>
 
                 <ul className="space-y-2 text-xs sm:text-sm">
-                  {[
-                    'जिवन /गोपाल जी सोलंकी',
-                    'दिलीप/मोतीलाल जी चोयल',
-                    'कमल/लक्ष्मण जी पड़ियार',
-                    'सुनिल/शंकर जी गेहलोत',
-                    'सुनील/मुन्नालाल पवार',
-                    'रवि/पारस जी लछेटा',
-                  ].map((name, i) => (
-                    <li key={name} className="flex items-center gap-2 p-2 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                  {(gramUnitData?.members?.length ? gramUnitData.members : officialFallbackData.members).map((m, i) => (
+                    <li key={m.id || m.name || i} className="flex items-center gap-2 p-2 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
                       <span className="w-5 h-5 rounded-full bg-[#C85A17] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
                         {i + 1}
                       </span>
-                      <span className="font-semibold text-[#2B211B] truncate">{name}</span>
+                      <span className="font-semibold text-[#2B211B] truncate">{m.name}</span>
                     </li>
                   ))}
                 </ul>
@@ -669,18 +676,15 @@ const HomePage = () => {
                 </div>
 
                 <ul className="space-y-2 text-xs sm:text-sm">
-                  {[
-                    'शान्तिलाल/काशिराम जी पवार',
-                    'मुकेश/हिराजी पड़ियार',
-                    'अनिल/हामाजी भायल',
-                    'महेन्द्र/मोहनजी काग',
-                    'कैलाश/मंगताजी राठौर',
-                  ].map((name, i) => (
-                    <li key={name} className="flex items-center gap-2 p-2 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                  {(gramUnitData?.representatives?.tehsil?.length
+                    ? gramUnitData.representatives.tehsil
+                    : officialFallbackData.representatives.tehsil
+                  ).map((rep, i) => (
+                    <li key={rep.id || rep.name || i} className="flex items-center gap-2 p-2 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
                       <span className="w-5 h-5 rounded-full bg-[#C9A44C] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
                         {i + 1}
                       </span>
-                      <span className="font-semibold text-[#2B211B] truncate">{name}</span>
+                      <span className="font-semibold text-[#2B211B] truncate">{rep.name}</span>
                     </li>
                   ))}
                 </ul>
@@ -709,14 +713,13 @@ const HomePage = () => {
                       जिला प्रतिनिधि (धार)
                     </span>
                     <ul className="space-y-1.5 text-xs">
-                      {[
-                        'जगदीश /देवाजी भायल',
-                        'दिलीप/हामाजी चोयल',
-                        'खेमाजी/दुदाजी गेहलोत',
-                      ].map((name, i) => (
-                        <li key={name} className="flex items-center gap-2 p-1.5 rounded-xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
+                      {(gramUnitData?.representatives?.district?.length
+                        ? gramUnitData.representatives.district
+                        : officialFallbackData.representatives.district
+                      ).map((rep, i) => (
+                        <li key={rep.id || rep.name || i} className="flex items-center gap-2 p-1.5 rounded-xl bg-[#FFF8EC] border border-[#E8DCC8]/60">
                           <span className="text-[10px] text-[#C85A17] font-bold">{i + 1}.</span>
-                          <span className="font-semibold text-[#2B211B] truncate">{name}</span>
+                          <span className="font-semibold text-[#2B211B] truncate">{rep.name}</span>
                         </li>
                       ))}
                     </ul>
@@ -727,7 +730,9 @@ const HomePage = () => {
                       प्रदेश प्रतिनिधि (मध्यप्रदेश)
                     </span>
                     <div className="p-2.5 rounded-2xl bg-gradient-to-r from-[#FFF8EC] to-[#FAF1E0] border border-[#E8DCC8]">
-                      <span className="text-xs font-black text-[#7A2525] block">1. जितेन्द्र/देवाजी शिनदडा</span>
+                      <span className="text-xs font-black text-[#7A2525] block">
+                        1. { (gramUnitData?.representatives?.state?.[0]?.name || officialFallbackData.representatives.state[0].name) }
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1146,7 +1151,7 @@ const HomePage = () => {
               {[
                 { id: 'all', label: 'सभी समितियां' },
                 { id: 'sahayata_kosh', label: 'श्री आईं जी सहायता कोष समिति' },
-                { id: 'annapurna_bhavan', label: 'प्रमुख समिति एवं माँ अन्नपूर्णा भवन समिति' },
+                { id: 'bhavan_samiti', label: 'प्रमुख समिति एवं माँ अन्नपूर्णा भवन समिति' },
                 { id: 'committee', label: 'कार्यकारिणी समिति' },
                 { id: 'women_committee', label: 'श्री आई जी महिला समिती' },
                 { id: 'sangathan', label: 'संगठन' },
@@ -1169,328 +1174,304 @@ const HomePage = () => {
             {/* Members Display grouped by Committee */}
             <div className="space-y-10">
               {/* Shri Aai Ji Sahayata Kosh Samiti */}
-              {(activeCommitteeTab === 'all' || activeCommitteeTab === 'sahayata_kosh') && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-md relative overflow-hidden text-[#2B211B]"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E8DCC8] pb-5 mb-6">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-2xl shadow-md shrink-0 text-white font-black">
-                        🤝
-                      </div>
-                      <div>
-                        <div className="inline-block px-3 py-0.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-[11px] font-bold text-[#C85A17] uppercase tracking-wider mb-1">
-                          आपातकालीन सहायता • समाज सेवा • परस्पर सहयोग कोष
+              {(activeCommitteeTab === 'all' || activeCommitteeTab === 'sahayata_kosh') && (() => {
+                const liveSahayataMembers = committee.filter(
+                  (m) => (m.committee_type === 'sahayata_kosh' || m.type === 'sahayata_kosh') && m.is_active !== false
+                );
+                const hasLiveSahayata = liveSahayataMembers.length > 0;
+
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-md relative overflow-hidden text-[#2B211B]"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E8DCC8] pb-5 mb-6">
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-2xl shadow-md shrink-0 text-white font-black">
+                          🤝
                         </div>
-                        <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2B211B]">
-                          श्री आईं जी सहायता कोष समिति
-                        </h3>
-                      </div>
-                    </div>
-
-                    <span className="self-start md:self-auto px-4 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] text-[#C85A17] text-xs font-bold rounded-xl">
-                      पदाधिकारी एवं कार्यकारिणी सदस्य
-                    </span>
-                  </div>
-
-                  <p className="text-[#766A60] text-sm sm:text-base leading-relaxed mb-6 font-medium">
-                    समाज बंधुओं के आकस्मिक सहयोग, चिकित्सा व आपातकालीन सहायता तथा कल्याणकारी कार्यों हेतु स्थापित श्री आईं जी सहायता कोष समिति।
-                  </p>
-
-                  {/* Main Office Bearers (5) */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-bold text-[#7A2525] uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <span>👑</span> मुख्य पदाधिकारी
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
-                      {[
-                        { name: 'शंकर जी वालाजी जी पवार', role: 'अध्यक्ष', num: '1' },
-                        { name: 'कैलाश जी रतनाजी अगल्चा', role: 'उपाध्यक्ष', num: '2' },
-                        { name: 'कमलजी चेनाजी काग', role: 'कोषाध्यक्ष', num: '3' },
-                        { name: 'अनिल जी हामाजी भायल', role: 'सचिव', num: '4' },
-                        { name: 'शान्तिलाल जी काशिराम जी पवार', role: 'सहसचिव', num: '5' },
-                      ].map((item, idx) => (
-                        <motion.div
-                          key={item.name}
-                          initial={{ opacity: 0, y: 15 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: idx * 0.04 }}
-                          className="p-4 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-md transition-all"
-                        >
-                          <div className="flex items-center justify-between gap-2 mb-2">
-                            <span className="text-xs font-extrabold text-[#C85A17] px-2 py-0.5 bg-white rounded-lg border border-[#E8DCC8]">
-                              {item.role}
-                            </span>
-                            <span className="text-[10px] text-green-700 font-bold bg-green-50 px-1.5 py-0.5 rounded border border-green-200">सक्रिय</span>
-                          </div>
-                          <p className="font-bold text-[#2B211B] text-sm leading-snug">
-                            {item.name}
-                          </p>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Executive Members (6) */}
-                  <div className="pt-4 border-t border-[#E8DCC8]">
-                    <h4 className="text-sm font-bold text-[#7A2525] uppercase tracking-wider mb-3 flex items-center gap-2">
-                      <span>👥</span> कार्यकारिणी सदस्य (6)
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-                      {[
-                        'मुकेश हिराजी पड़ियार',
-                        'कन्हैयालाल लालाजी भायल',
-                        'टिकम जी मंगता जी शिंनदडा',
-                        'गोपाल जी रुखडुजी गेहलोत',
-                        'दिलीप मोतीलाल जी चोयल',
-                        'हुकुम कानाजी लछेटा',
-                      ].map((name, i) => (
-                        <div
-                          key={name}
-                          className="flex items-center gap-2 p-3 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60"
-                        >
-                          <span className="w-5 h-5 rounded-full bg-[#C85A17] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-                            {i + 1}
-                          </span>
-                          <span className="font-semibold text-xs text-[#2B211B] truncate">{name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Pramukh Samiti Evam Maa Annapurna Bhavan Samiti */}
-              {(activeCommitteeTab === 'all' || activeCommitteeTab === 'annapurna_bhavan') && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-md relative overflow-hidden text-[#2B211B]"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E8DCC8] pb-5 mb-6">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-2xl shadow-md shrink-0 text-white font-black">
-                        🏛️
-                      </div>
-                      <div>
-                        <div className="inline-block px-3 py-0.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-[11px] font-bold text-[#C85A17] uppercase tracking-wider mb-1">
-                          भवन प्रबंधन • समाज सेवा • व्यवस्था संचालन
-                        </div>
-                        <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2B211B]">
-                          प्रमुख समिति एवं माँ अन्नपूर्णा भवन समिति
-                        </h3>
-                      </div>
-                    </div>
-
-                    <span className="self-start md:self-auto px-4 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] text-[#C85A17] text-xs font-bold rounded-xl">
-                      5 प्रमुख पदाधिकारी एवं सदस्य
-                    </span>
-                  </div>
-
-                  <p className="text-[#766A60] text-sm sm:text-base leading-relaxed mb-6 font-medium">
-                    माँ अन्नपूर्णा भवन कोणदा के सुव्यवस्थित संचालन, सामाजिक एवं मांगलिक आयोजनों की व्यवस्था तथा समाज हितैषी गतिविधियों हेतु समर्पित प्रमुख समिति।
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                    {[
-                      { name: 'शंकर वालाजी पवार', phone: '9981644585', role: 'प्रमुख सदस्य / संरक्षक' },
-                      { name: 'खेमाजी दुदाजी गेहलोत', phone: '9755309933', role: 'प्रमुख सदस्य / संरक्षक' },
-                      { name: 'कन्हैयालाल लालाजी भायल', phone: '7389089165', role: 'प्रमुख सदस्य / संरक्षक' },
-                      { name: 'लक्ष्मण वालाजी काग', phone: '9893944986', role: 'प्रमुख सदस्य / संरक्षक' },
-                      { name: 'सुनिल पन्नालाल जी भायल', phone: '9993339042', role: 'प्रमुख सदस्य / संरक्षक' },
-                    ].map((member, i) => (
-                      <motion.div
-                        key={member.name}
-                        initial={{ opacity: 0, y: 15 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: i * 0.05 }}
-                        className="flex flex-col justify-between p-5 bg-[#FFF8EC] rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-lg transition-all duration-300 group"
-                      >
                         <div>
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-white text-base font-extrabold shadow-md shrink-0">
-                              {member.name.charAt(0)}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <span className="text-[10px] px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full font-bold">
-                                सक्रिय
-                              </span>
-                            </div>
+                          <div className="inline-block px-3 py-0.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-[11px] font-bold text-[#C85A17] uppercase tracking-wider mb-1">
+                            आपातकालीन सहायता • समाज सेवा • परस्पर सहयोग कोष
                           </div>
-
-                          <h4 className="font-bold text-[#2B211B] text-sm group-hover:text-[#C85A17] transition-colors leading-snug mb-1">
-                            {member.name}
-                          </h4>
-                          <p className="text-xs text-[#766A60] font-medium mb-3">
-                            {member.role}
-                          </p>
+                          <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2B211B]">
+                            श्री आईं जी सहायता कोष समिति
+                          </h3>
                         </div>
-
-                        <a
-                          href={`tel:${member.phone}`}
-                          className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 px-3 bg-white hover:bg-[#C85A17] hover:text-white text-[#C85A17] text-xs font-bold rounded-2xl border border-[#E8DCC8] shadow-sm transition-all duration-200"
-                        >
-                          <FiPhone className="w-3.5 h-3.5" />
-                          <span>{member.phone}</span>
-                        </a>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Shri Aai Ji Women Committee Feature Card */}
-              {(activeCommitteeTab === 'all' || activeCommitteeTab === 'women_committee') && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-md relative overflow-hidden text-[#2B211B]"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E8DCC8] pb-5 mb-6">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-2xl shadow-md shrink-0 text-white font-black">
-                        🌸
                       </div>
-                      <div>
-                        <div className="inline-block px-3 py-0.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-[11px] font-bold text-[#C85A17] uppercase tracking-wider mb-1">
-                          महिला शक्ति • सेवा • संस्कार • सहयोग
-                        </div>
-                        <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2B211B]">
-                          श्री आई जी महिला समिती
-                        </h3>
-                      </div>
-                    </div>
 
-                    <Link
-                      to="/women-committee"
-                      className="self-start md:self-auto inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white font-bold text-xs sm:text-sm rounded-2xl hover:shadow-lg transition-all shrink-0 cursor-pointer shadow-md"
-                    >
-                      महिला समिती पूर्ण विवरण देखें <FiArrowRight className="w-4 h-4" />
-                    </Link>
-                  </div>
-
-                  <p className="text-[#766A60] text-sm sm:text-base leading-relaxed mb-6 font-medium">
-                    श्री आई जी महिला समिती का उद्देश्य समाज की महिलाओं को सशक्त, जागरूक, संगठित और आत्मनिर्भर बनाना है। शिक्षा, संस्कार, स्वास्थ्य एवं सामाजिक सेवा कार्यों के माध्यम से समाज उत्थान में सक्रिय सहयोग।
-                  </p>
-
-                  {/* Active Members of Shri Aai Ji Women Committee */}
-                  <div className="mt-8 pt-6 border-t border-[#E8DCC8]">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h4 className="text-lg font-bold text-[#2B211B] flex items-center gap-2">
-                          <span>👥</span> श्री आई जी महिला समिती — सक्रिय पदाधिकारी एवं सदस्य
-                        </h4>
-                        <p className="text-xs text-[#766A60]">
-                          समिति की सक्रिय कार्यकारिणी एवं मातृशक्ति प्रतिनिधि
-                        </p>
-                      </div>
-                      <span className="px-3 py-1 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-xs font-bold text-[#C85A17]">
-                        सक्रिय सदस्य सूची
+                      <span className="self-start md:self-auto px-4 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] text-[#C85A17] text-xs font-bold rounded-xl">
+                        पदाधिकारी एवं कार्यकारिणी सदस्य
                       </span>
                     </div>
 
-                    {(() => {
-                      const apiWomenMembers = committee.filter(
-                        (m) => (m.committee_type === 'women_committee' || m.type === 'women_committee') && m.is_active !== false
-                      );
-                      
-                      let storedWomenMembers = [];
-                      if (typeof window !== 'undefined') {
-                        try {
-                          const stored = localStorage.getItem('sirvi_women_committee_admin_data');
-                          if (stored) {
-                            const parsed = JSON.parse(stored);
-                            if (Array.isArray(parsed.members)) {
-                              storedWomenMembers = parsed.members.filter(
-                                (m) => m.name && m.name.trim() !== '' && !m.name.includes('यहाँ दर्ज')
-                              );
-                            }
-                          }
-                        } catch {}
-                      }
+                    <p className="text-[#766A60] text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                      समाज बंधुओं के आकस्मिक सहयोग, चिकित्सा व आपातकालीन सहायता तथा कल्याणकारी कार्यों हेतु स्थापित श्री आईं जी सहायता कोष समिति।
+                    </p>
 
-                      const activeMembers = apiWomenMembers.length > 0
-                        ? apiWomenMembers
-                        : storedWomenMembers.length > 0
-                        ? storedWomenMembers
-                        : [
-                            { _id: 'w1', name: 'श्रीमती अध्यक्ष महोदया', designation: 'अध्यक्ष', isActive: true },
-                            { _id: 'w2', name: 'श्रीमती उपाध्यक्ष महोदया', designation: 'उपाध्यक्ष', isActive: true },
-                            { _id: 'w3', name: 'श्रीमती सचिव महोदया', designation: 'सचिव', isActive: true },
-                            { _id: 'w4', name: 'श्रीमती कोषाध्यक्ष महोदया', designation: 'कोषाध्यक्ष', isActive: true },
-                            { _id: 'w5', name: 'मातृशक्ति सक्रिय सदस्य', designation: 'कार्यकारिणी सदस्य', isActive: true },
-                            { _id: 'w6', name: 'मातृशक्ति सक्रिय सदस्य', designation: 'कार्यकारिणी सदस्य', isActive: true },
-                          ];
+                    {/* Main Office Bearers */}
+                    <div className="mb-6">
+                      <h4 className="text-sm font-bold text-[#7A2525] uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <span>👑</span> मुख्य पदाधिकारी
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
+                        {(hasLiveSahayata
+                          ? liveSahayataMembers.map((m) => ({ name: m.name, role: m.designation || 'पदाधिकारी' }))
+                          : defaultSahayataKosh.officers
+                        ).map((item, idx) => (
+                          <motion.div
+                            key={item.name + idx}
+                            initial={{ opacity: 0, y: 15 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.04 }}
+                            className="p-4 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-md transition-all"
+                          >
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <span className="text-xs font-extrabold text-[#C85A17] px-2 py-0.5 bg-white rounded-lg border border-[#E8DCC8]">
+                                {item.role}
+                              </span>
+                              <span className="text-[10px] text-green-700 font-bold bg-green-50 px-1.5 py-0.5 rounded border border-green-200">सक्रिय</span>
+                            </div>
+                            <p className="font-bold text-[#2B211B] text-sm leading-snug">
+                              {item.name}
+                            </p>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
 
-                      return (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                          {activeMembers.map((member, idx) => (
-                            <motion.div
-                              key={member._id || member.id || idx}
-                              initial={{ opacity: 0, y: 15 }}
-                              whileInView={{ opacity: 1, y: 0 }}
-                              viewport={{ once: true }}
-                              transition={{ delay: idx * 0.04 }}
-                              className="flex items-center gap-4 p-4 bg-[#FFF8EC] rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-md transition-all duration-300 group"
+                    {/* Fallback Executive Members when not in DB */}
+                    {!hasLiveSahayata && defaultSahayataKosh.members && (
+                      <div className="pt-4 border-t border-[#E8DCC8]">
+                        <h4 className="text-sm font-bold text-[#7A2525] uppercase tracking-wider mb-3 flex items-center gap-2">
+                          <span>👥</span> कार्यकारिणी सदस्य ({defaultSahayataKosh.members.length})
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+                          {defaultSahayataKosh.members.map((name, i) => (
+                            <div
+                              key={name}
+                              className="flex items-center gap-2 p-3 rounded-2xl bg-[#FFF8EC] border border-[#E8DCC8]/60"
                             >
-                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white text-base font-bold shadow-md shrink-0 overflow-hidden">
+                              <span className="w-5 h-5 rounded-full bg-[#C85A17] text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                                {i + 1}
+                              </span>
+                              <span className="font-semibold text-xs text-[#2B211B] truncate">{name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })()}
+
+              {/* Pramukh Samiti Evam Maa Annapurna Bhavan Samiti */}
+              {(activeCommitteeTab === 'all' || activeCommitteeTab === 'bhavan_samiti') && (() => {
+                const liveBhavanMembers = committee.filter(
+                  (m) => (m.committee_type === 'bhavan_samiti' || m.type === 'bhavan_samiti') && m.is_active !== false
+                );
+                const bhavanList = liveBhavanMembers.length > 0 ? liveBhavanMembers : defaultAnnapurnaBhavan;
+
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-md relative overflow-hidden text-[#2B211B]"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E8DCC8] pb-5 mb-6">
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-2xl shadow-md shrink-0 text-white font-black">
+                          🏛️
+                        </div>
+                        <div>
+                          <div className="inline-block px-3 py-0.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-[11px] font-bold text-[#C85A17] uppercase tracking-wider mb-1">
+                            भवन प्रबंधन • समाज सेवा • व्यवस्था संचालन
+                          </div>
+                          <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2B211B]">
+                            प्रमुख समिति एवं माँ अन्नपूर्णा भवन समिति
+                          </h3>
+                        </div>
+                      </div>
+
+                      <span className="self-start md:self-auto px-4 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] text-[#C85A17] text-xs font-bold rounded-xl">
+                        {bhavanList.length} प्रमुख पदाधिकारी एवं सदस्य
+                      </span>
+                    </div>
+
+                    <p className="text-[#766A60] text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                      माँ अन्नपूर्णा भवन कोणदा के सुव्यवस्थित संचालन, सामाजिक एवं मांगलिक आयोजनों की व्यवस्था तथा समाज हितैषी गतिविधियों हेतु समर्पित प्रमुख समिति।
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                      {bhavanList.map((member, i) => (
+                        <motion.div
+                          key={member.id || member._id || member.name || i}
+                          initial={{ opacity: 0, y: 15 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: i * 0.05 }}
+                          className="flex flex-col justify-between p-5 bg-[#FFF8EC] rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-lg transition-all duration-300 group"
+                        >
+                          <div>
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C85A17] to-[#C9A44C] flex items-center justify-center text-white text-base font-extrabold shadow-md shrink-0 overflow-hidden">
                                 {member.photo_url || member.photo ? (
                                   <img src={member.photo_url || member.photo} alt={member.name} className="w-full h-full object-cover rounded-2xl" />
                                 ) : (
-                                  member.name?.charAt(0) || 'म'
+                                  member.name?.charAt(0) || '🏛️'
                                 )}
                               </div>
                               <div className="min-w-0 flex-1">
-                                <p className="font-bold text-[#2B211B] text-sm group-hover:text-[#C85A17] transition-colors truncate">
-                                  {member.name}
-                                </p>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                  <span className="text-[#C85A17] text-xs font-semibold truncate">
-                                    {member.designation || member.position || 'सदस्य'}
-                                  </span>
-                                  <span className="text-[10px] px-1.5 py-0.2 bg-green-50 text-green-700 rounded-md font-bold border border-green-200">
-                                    सक्रिय
-                                  </span>
-                                </div>
-                                {member.phone && (
-                                  <a
-                                    href={`tel:${member.phone}`}
-                                    className="inline-flex items-center gap-1 text-[11px] text-[#766A60] hover:text-[#C85A17] transition-colors mt-1"
-                                  >
-                                    <FiPhone className="w-3 h-3 text-[#C85A17]" /> {member.phone}
-                                  </a>
-                                )}
+                                <span className="text-[10px] px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full font-bold">
+                                  सक्रिय
+                                </span>
                               </div>
-                            </motion.div>
-                          ))}
+                            </div>
+
+                            <h4 className="font-bold text-[#2B211B] text-sm group-hover:text-[#C85A17] transition-colors leading-snug mb-1">
+                              {member.name}
+                            </h4>
+                            <p className="text-xs text-[#766A60] font-medium mb-3">
+                              {member.designation || member.role || 'प्रमुख सदस्य / संरक्षक'}
+                            </p>
+                          </div>
+
+                          {member.phone && (
+                            <a
+                              href={`tel:${member.phone}`}
+                              className="inline-flex items-center justify-center gap-1.5 w-full py-2.5 px-3 bg-white hover:bg-[#C85A17] hover:text-white text-[#C85A17] text-xs font-bold rounded-2xl border border-[#E8DCC8] shadow-sm transition-all duration-200"
+                            >
+                              <FiPhone className="w-3.5 h-3.5" />
+                              <span>{member.phone}</span>
+                            </a>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                );
+              })()}
+
+              {/* Shri Aai Ji Women Committee Feature Card */}
+              {(activeCommitteeTab === 'all' || activeCommitteeTab === 'women_committee') && (() => {
+                const apiWomenMembers = committee.filter(
+                  (m) => (m.committee_type === 'women_committee' || m.type === 'women_committee') && m.is_active !== false
+                );
+                const activeMembers = apiWomenMembers.length > 0 ? apiWomenMembers : defaultWomenMembers;
+
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="bg-white p-6 sm:p-8 rounded-3xl border border-[#E8DCC8] shadow-md relative overflow-hidden text-[#2B211B]"
+                  >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E8DCC8] pb-5 mb-6">
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-2xl shadow-md shrink-0 text-white font-black">
+                          🌸
                         </div>
-                      );
-                    })()}
-                  </div>
-                </motion.div>
-              )}
+                        <div>
+                          <div className="inline-block px-3 py-0.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-[11px] font-bold text-[#C85A17] uppercase tracking-wider mb-1">
+                            महिला शक्ति • सेवा • संस्कार • सहयोग
+                          </div>
+                          <h3 className="text-2xl sm:text-3xl font-extrabold text-[#2B211B]">
+                            श्री आई जी महिला समिती
+                          </h3>
+                        </div>
+                      </div>
+
+                      <Link
+                        to="/women-committee"
+                        className="self-start md:self-auto inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white font-bold text-xs sm:text-sm rounded-2xl hover:shadow-lg transition-all shrink-0 cursor-pointer shadow-md"
+                      >
+                        महिला समिती पूर्ण विवरण देखें <FiArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+
+                    <p className="text-[#766A60] text-sm sm:text-base leading-relaxed mb-6 font-medium">
+                      श्री आई जी महिला समिती का उद्देश्य समाज की महिलाओं को सशक्त, जागरूक, संगठित और आत्मनिर्भर बनाना है। शिक्षा, संस्कार, स्वास्थ्य एवं सामाजिक सेवा कार्यों के माध्यम से समाज उत्थान में सक्रिय सहयोग।
+                    </p>
+
+                    {/* Active Members of Shri Aai Ji Women Committee */}
+                    <div className="mt-8 pt-6 border-t border-[#E8DCC8]">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h4 className="text-lg font-bold text-[#2B211B] flex items-center gap-2">
+                            <span>👥</span> श्री आई जी महिला समिती — सक्रिय पदाधिकारी एवं सदस्य
+                          </h4>
+                          <p className="text-xs text-[#766A60]">
+                            समिति की सक्रिय कार्यकारिणी एवं मातृशक्ति प्रतिनिधि
+                          </p>
+                        </div>
+                        <span className="px-3 py-1 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-xs font-bold text-[#C85A17]">
+                          सक्रिय सदस्य सूची
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {activeMembers.map((member, idx) => (
+                          <motion.div
+                            key={member.id || member._id || idx}
+                            initial={{ opacity: 0, y: 15 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.04 }}
+                            className="flex items-center gap-4 p-4 bg-[#FFF8EC] rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-md transition-all duration-300 group"
+                          >
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white text-base font-bold shadow-md shrink-0 overflow-hidden">
+                              {member.photo_url || member.photo ? (
+                                <img src={member.photo_url || member.photo} alt={member.name} className="w-full h-full object-cover rounded-2xl" />
+                              ) : (
+                                member.name?.charAt(0) || 'म'
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-bold text-[#2B211B] text-sm group-hover:text-[#C85A17] transition-colors truncate">
+                                {member.name}
+                              </p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[#C85A17] text-xs font-semibold truncate">
+                                  {member.designation || member.position || 'सदस्य'}
+                                </span>
+                                <span className="text-[10px] px-1.5 py-0.2 bg-green-50 text-green-700 rounded-md font-bold border border-green-200">
+                                  सक्रिय
+                                </span>
+                              </div>
+                              {member.phone && (
+                                <a
+                                  href={`tel:${member.phone}`}
+                                  className="inline-flex items-center gap-1 text-[11px] text-[#766A60] hover:text-[#C85A17] transition-colors mt-1"
+                                >
+                                  <FiPhone className="w-3 h-3 text-[#C85A17]" /> {member.phone}
+                                </a>
+                              )}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })()}
 
               {[
                 { id: 'sankal_panch', title: 'सकल पंच (Sakal Panch)', icon: '👑' },
-                { id: 'committee', title: 'कार्यकारिणी समिति', icon: '🏛️' },
+                { id: 'executive_body', title: 'कार्यकारिणी समिति', icon: '🏛️' },
                 { id: 'women_committee', title: 'श्री आई जी महिला समिती', icon: '🌸' },
                 { id: 'konda_gram_unit', title: 'कोणदा ग्राम इकाई', icon: '🌾' },
                 { id: 'yuva_sangathan', title: 'सिर्वी समाज युवा संगठन', icon: '⚡' },
                 { id: 'sahayata_kosh', title: 'श्री आईं जी सहायता कोष समिति', icon: '🤝' },
                 { id: 'bhavan_samiti', title: 'माँ अन्नपूर्णा भवन समिति', icon: '🏛️' },
-                { id: 'sangathan', title: 'संगठन', icon: '📜' },
               ]
                 .filter((cat) => activeCommitteeTab === 'all' || activeCommitteeTab === cat.id)
                 .map((cat) => {
                   const categoryMembers = committee.filter(
-                    (m) => (m.committee_type === cat.id || m.type === cat.id || (!m.committee_type && !m.type && cat.id === 'committee')) && m.is_active !== false
+                    (m) => (m.committee_type === cat.id || m.type === cat.id) && m.is_active !== false
                   );
                   if (categoryMembers.length === 0) return null;
 
@@ -1603,18 +1584,14 @@ const HomePage = () => {
                   <FiPhone className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="font-extrabold text-[#2B211B] text-base">{t('emergency_title')}</p>
-                  <p className="text-xs text-[#766A60] font-medium">{t('emergency_desc')}</p>
+                  <p className="font-extrabold text-[#2B211B] text-base">आपातकालीन संपर्क (Emergency Contacts)</p>
+                  <p className="text-xs text-[#766A60] font-medium">समाज एवं ग्राम सुरक्षा व सहायता हेतु 24x7 उपलब्ध</p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-6 sm:ml-auto">
-                {[
-                  { label: t('emergency_president'), phone: '+91 98765 43210' },
-                  { label: t('emergency_secretary'), phone: '+91 87654 32109' },
-                  { label: t('emergency_blood'), phone: '+91 76543 21098' },
-                ].map(({ label, phone }) => (
-                  <a key={label} href={`tel:${phone.replace(/\s/g, '')}`} className="flex flex-col">
-                    <span className="text-xs text-[#766A60] font-semibold">{label}</span>
+                {emergencyContacts.map(({ name, phone, label }) => (
+                  <a key={name || label} href={`tel:${(phone || '').replace(/[\s-]/g, '')}`} className="flex flex-col">
+                    <span className="text-xs text-[#766A60] font-semibold">{name || label}</span>
                     <span className="font-bold text-[#C85A17] hover:underline text-sm">{phone}</span>
                   </a>
                 ))}

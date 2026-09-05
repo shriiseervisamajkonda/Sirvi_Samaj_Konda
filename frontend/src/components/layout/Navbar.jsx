@@ -1,18 +1,14 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMenu, FiX, FiSun, FiMoon, FiUser, FiGlobe } from 'react-icons/fi';
-import { useTheme } from '../../context/ThemeContext';
+import { FiMenu, FiX, FiUser } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
-import { useLanguage } from '../../context/LanguageContext';
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdown, setDropdown] = useState(null);
   const [scrolled, setScrolled] = useState(false);
-  const { darkMode, toggleTheme } = useTheme();
   const { user, isAdmin, logout } = useAuth();
-  const { language, toggleLanguage, t } = useLanguage();
   const location = useLocation();
 
   useEffect(() => {
@@ -26,9 +22,9 @@ const Navbar = () => {
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
-    { label: t('nav_home'), path: '/' },
+    { label: 'मुख्य पृष्ठ', path: '/' },
     {
-      label: t('nav_about'),
+      label: 'समाज परिचय',
       children: [
         { label: 'समाज परिचय व इतिहास', path: '/about' },
         { label: 'ग्राम कोणदा परिचय', path: '/village' },
@@ -39,23 +35,24 @@ const Navbar = () => {
       ],
     },
     {
-      label: t('nav_directory'),
+      label: 'निर्देशिका',
       children: [
-        { label: t('nav_families'), path: '/families' },
-        { label: t('nav_members'), path: '/members' },
-        { label: t('nav_students'), path: '/students' },
-        { label: t('nav_business'), path: '/businesses' },
-        { label: t('nav_blood'), path: '/blood-donors' },
-        { label: t('nav_marriage'), path: '/marriage' },
+        { label: 'परिवार निर्देशिका', path: '/families' },
+        { label: 'सदस्य निर्देशिका', path: '/members' },
+        { label: 'विद्यार्थी प्रतिभा', path: '/students' },
+        { label: 'व्यापार निर्देशिका', path: '/businesses' },
+        { label: 'रक्तदाता सूची', path: '/blood-donors' },
+        { label: 'वैवाहिक बायोडाटा', path: '/marriage' },
       ],
     },
     { label: 'लेखा-जोखा', path: '/lekha-jokha' },
     { label: 'पंच फैसले', path: '/panch-settlements' },
-    { label: t('nav_events'), path: '/events' },
-    { label: t('nav_news'), path: '/news' },
-    { label: t('nav_gallery'), path: '/gallery' },
-    { label: t('nav_documents'), path: '/documents' },
-    { label: t('nav_contact'), path: '/contact' },
+    { label: 'दान व्यवस्था', path: '/donations' },
+    { label: 'आयोजन', path: '/events' },
+    { label: 'समाचार', path: '/news' },
+    { label: 'गैलरी', path: '/gallery' },
+    { label: 'दस्तावेज़', path: '/documents' },
+    { label: 'संपर्क', path: '/contact' },
   ];
 
   return (
@@ -135,7 +132,7 @@ const Navbar = () => {
           <div className="flex items-center gap-2">
             {isAdmin ? (
               <Link to="/admin" className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-sm font-bold hover:shadow-lg transition shadow-md">
-                <FiUser className="w-4 h-4" /> {t('nav_admin')}
+                <FiUser className="w-4 h-4" /> एडमिन पैनल
               </Link>
             ) : user ? (
               <Link to="/profile" className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-white/15 border border-white/30 text-white rounded-xl text-sm font-bold hover:bg-white/25 transition">
@@ -143,7 +140,7 @@ const Navbar = () => {
               </Link>
             ) : (
               <Link to="/login" className="hidden sm:flex px-4 py-2.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-sm font-bold hover:shadow-lg transition shadow-md">
-                {t('nav_login')}
+                लॉगिन
               </Link>
             )}
             <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2 rounded-xl hover:bg-white/10 text-white cursor-pointer">
@@ -214,7 +211,7 @@ const Navbar = () => {
                   onClick={() => setMobileOpen(false)}
                   className="block px-4 py-2.5 text-sm font-bold bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-center shadow-lg mt-2"
                 >
-                  {t('nav_login')}
+                  लॉगिन
                 </Link>
               )}
             </div>

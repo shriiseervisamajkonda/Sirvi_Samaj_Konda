@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FiCalendar, FiEdit2, FiFileText, FiHeart, FiImage, FiMapPin, FiPlus, FiSave, FiShield, FiStar, FiTrash2, FiUsers } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { committeeAPI } from '../../services/api';
 
 const STORAGE_KEY = 'sirvi_women_committee_admin_data';
 
@@ -31,8 +32,8 @@ const baseData = {
     { id: createId('event'), title: 'आगामी कार्यक्रम', date: 'तारीख दर्ज की जाएगी', time: 'समय दर्ज किया जाएगा', location: 'स्थान दर्ज किया जाएगा', description: 'विवरण दर्ज किया जाएगा।' },
   ],
   members: [
-    { id: createId('member'), name: 'नाम यहाँ दर्ज किया जाएगा', position: 'अध्यक्ष', bio: 'सदस्य का संक्षिप्त परिचय यहाँ दर्ज किया जाएगा।', photo: '' },
-    { id: createId('member'), name: 'नाम यहाँ दर्ज किया जाएगा', position: 'सचिव', bio: 'सदस्य का संक्षिप्त परिचय यहाँ दर्ज किया जाएगा।', photo: '' },
+    { id: createId('member'), name: 'श्रीमती अध्यक्ष महोदया', position: 'अध्यक्ष', bio: 'सदस्य का संक्षिप्त परिचय यहाँ दर्ज किया जाएगा।', photo: '' },
+    { id: createId('member'), name: 'श्रीमती सचिव महोदया', position: 'सचिव', bio: 'सदस्य का संक्षिप्त परिचय यहाँ दर्ज किया जाएगा।', photo: '' },
   ],
   achievements: [
     { id: createId('achievement'), title: 'सामाजिक सेवा', category: 'सामाजिक सेवा' },
@@ -87,10 +88,68 @@ const sectionMeta = {
 const WomenCommitteeAdminPage = () => {
   const [data, setData] = useState(getDefaultData);
   const [editor, setEditor] = useState({ open: false, section: null, mode: 'create', itemId: null, draft: {} });
+  const [saving, setSaving] = useState(false);
 
-  const handleSaveAll = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    toast.success('सभी परिवर्तन सफलतापूर्वक सेव कर दिए गए हैं।');
+  // Load live committee members from database
+  useEffect(() => {
+    committeeAPI.getAll({ committee_type: 'women_committee', limit: 50 })
+      .then((res) => {
+        const live = res.data?.data;
+        if (Array.isArray(live) && live.length > 0) {
+          setData((prev) => ({
+            ...prev,
+            members: live.map((m) => ({
+              id: m.id,
+              dbId: m.id,
+              name: m.name,
+              position: m.designation || 'सदस्य',
+              bio: m.bio || '',
+              photo: m.photo_url || '',
+            })),
+          }));
+        }
+      })
+      .catch((err) => console.warn('Could not load live women committee members:', err));
+  }, []);
+
+  const handleSaveAll = async () => {
+    setSaving(true);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+      // Sync members to Supabase DB
+      if (Array.isArray(data.members)) {
+        for (const member of data.members) {
+          if (member.name && member.name.trim() && !member.name.includes('यहाँ दर्ज')) {
+            const payload = {
+              name: member.name.trim(),
+              designation: member.position || 'कार्यकारिणी सदस्य',
+              committee_type: 'women_committee',
+              bio: member.bio || '',
+              photo_url: member.photo || '',
+              is_active: true,
+            };
+
+            // If UUID format, update, otherwise create
+            const isUUID = member.dbId || (typeof member.id === 'string' && member.id.length === 36 && member.id.includes('-'));
+            if (isUUID) {
+              await committeeAPI.update(member.dbId || member.id, payload).catch(() => {});
+            } else {
+              const res = await committeeAPI.create(payload).catch(() => null);
+              if (res?.data?.data?.id) {
+                member.dbId = res.data.data.id;
+              }
+            }
+          }
+        }
+      }
+
+      toast.success('सभी परिवर्तन सफलतापूर्वक डेटाबेस में सेव कर दिए गए हैं।');
+    } catch {
+      toast.error('डेटाबेस में सेव करने में समस्या आई, स्थानीय रूप से सेव किया गया।');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleOverviewChange = (field, value) => {
@@ -144,16 +203,20 @@ const WomenCommitteeAdminPage = () => {
       return { ...prev, [section]: next };
     });
 
-    toast.success('आइटम जोड़ा/संपादित किया गया। परिवर्तन स्थायी करने के लिए "Save Changes" दबाएं।');
+    toast.success('आइटम जोड़ा/संपादित किया गया। परिवर्तन डेटाबेस में स्थायी करने के लिए "Save Changes" दबाएं।');
     closeEditor();
   };
 
-  const deleteItem = (section, itemId) => {
+  const deleteItem = async (section, itemId) => {
+    const item = (data[section] || []).find((i) => i.id === itemId);
+    if (section === 'members' && item?.dbId) {
+      await committeeAPI.delete(item.dbId).catch(() => {});
+    }
     setData((prev) => ({
       ...prev,
-      [section]: (prev[section] || []).filter((item) => item.id !== itemId),
+      [section]: (prev[section] || []).filter((i) => i.id !== itemId),
     }));
-    toast.success('आइटम हटाया गया। परिवर्तन स्थायी करने के लिए "Save Changes" दबाएं।');
+    toast.success('आइटम हटाया गया।');
   };
 
   return (

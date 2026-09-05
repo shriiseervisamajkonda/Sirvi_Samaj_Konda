@@ -106,8 +106,8 @@ const DashboardPage = () => {
   if (loading) return <SkeletonDashboard />;
 
   const statCards = [
-    { title: 'कुल परिवार (Families)', value: stats?.totalFamilies ?? stats?.total_families ?? 213, icon: FiUsers, link: '/admin/families', badge: 'पंजीकृत परिवार' },
-    { title: 'समाज सदस्य (Members)', value: stats?.totalMembers ?? stats?.total_members ?? 1184, icon: FiUsers, link: '/admin/members', badge: 'कुल जनसंख्या' },
+    { title: 'कुल परिवार (Families)', value: stats?.totalFamilies ?? stats?.total_families ?? 0, icon: FiUsers, link: '/admin/families', badge: 'पंजीकृत परिवार' },
+    { title: 'समाज सदस्य (Members)', value: stats?.totalMembers ?? stats?.total_members ?? 0, icon: FiUsers, link: '/admin/members', badge: 'कुल जनसंख्या' },
     { title: 'विद्यार्थी (Students)', value: stats?.studentCount ?? stats?.students ?? 0, icon: FiBook, link: '/admin/students', badge: 'शिक्षा प्रतिभा' },
     { title: 'रक्तदाता (Blood Donors)', value: stats?.bloodDonorCount ?? stats?.blood_donors ?? 0, icon: FiDroplet, link: '/admin/blood-donors', badge: 'जीवनदाता' },
     { title: 'सक्रिय कार्यक्रम (Events)', value: stats?.eventCount ?? stats?.events ?? 0, icon: FiCalendar, link: '/admin/events', badge: 'सामाजिक आयोजन' },
@@ -115,18 +115,11 @@ const DashboardPage = () => {
   ];
 
   const genderData = statsData?.genderDistribution || [
-    { name: 'पुरुष (Male)', value: stats?.maleCount || 615 },
-    { name: 'महिला (Female)', value: stats?.femaleCount || 569 },
+    { name: 'पुरुष (Male)', value: stats?.maleCount || 0 },
+    { name: 'महिला (Female)', value: stats?.femaleCount || 0 },
   ];
 
-  const gotraData = statsData?.gotraDistribution || [
-    { gotra: 'भायल (Bhayal)', families: 25 },
-    { gotra: 'पंवार (Pawar)', families: 22 },
-    { gotra: 'चोयल (Choyal)', families: 21 },
-    { gotra: 'गेहलोत (Gehlot)', families: 19 },
-    { gotra: 'लछेटा (Lacheta)', families: 18 },
-    { gotra: 'चौहान (Chouhan)', families: 15 },
-  ];
+  const gotraData = statsData?.gotraDistribution || [];
 
   return (
     <div className="space-y-8 text-[#2B211B]">

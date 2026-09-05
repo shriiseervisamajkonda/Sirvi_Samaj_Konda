@@ -18,7 +18,7 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Badge from '../../components/common/Badge';
 import { FormSection, FormField, FormActions } from '../../components/common/FormComponents';
 import toast from 'react-hot-toast';
-import { gramUnitAPI, gramUnitMemberAPI, formationEventAPI } from '../../services/api';
+import { gramUnitAPI, gramUnitMemberAPI } from '../../services/api';
 
 const GramUnitsPage = () => {
   const [activeTab, setActiveTab] = useState('office_bearers'); // 'unit_info', 'office_bearers', 'members', 'representatives', 'formation_event'
@@ -98,11 +98,14 @@ const GramUnitsPage = () => {
 
   // Save Unit Info
   const onSaveUnit = async (formData) => {
-    const unitId = unitData?.unit?.id || unitData?.unit?._id;
-    if (!unitId) return;
+    const unitId = unitData?.unit?.id;
     setSavingUnit(true);
     try {
-      await gramUnitAPI.update(unitId, formData);
+      if (unitId) {
+        await gramUnitAPI.update(unitId, formData);
+      } else {
+        await gramUnitAPI.create(formData);
+      }
       toast.success('Gram Unit updated successfully!');
       fetchUnitData();
     } catch (err) {
@@ -117,7 +120,6 @@ const GramUnitsPage = () => {
     setEditItem(null);
     let defaultCat = 'office_bearer';
     let defaultDesig = 'अध्यक्ष';
-    let defaultRepLevel = 'none';
 
     if (activeTab === 'members') {
       defaultCat = 'member';
@@ -125,22 +127,16 @@ const GramUnitsPage = () => {
     } else if (activeTab === 'representatives') {
       defaultCat = 'representative';
       defaultDesig = 'तहसील प्रतिनिधि';
-      defaultRepLevel = 'tehsil';
     }
-
-    const unitId = unitData?.unit?.id || unitData?.unit?._id;
-    const orgId = unitData?.organization?.id || unitData?.organization?._id;
 
     resetMember({
       name: '',
       category: defaultCat,
       designation: defaultDesig,
-      representativeLevel: defaultRepLevel,
       phone: '',
       order: items.length + 1,
-      gramUnit: unitId,
-      organization: orgId,
-      isActive: true,
+      village: 'कोणदा',
+      is_active: true,
     });
     setModalOpen(true);
   };
@@ -148,21 +144,31 @@ const GramUnitsPage = () => {
   // Open Edit Modal
   const handleOpenEdit = (item) => {
     setEditItem(item);
-    resetMember(item);
+    resetMember({
+      name: item.name || '',
+      category: item.category || (activeTab === 'office_bearers' ? 'office_bearer' : activeTab === 'representatives' ? 'representative' : 'member'),
+      designation: item.designation || '',
+      phone: item.phone || '',
+      order: item.order_priority ?? item.order ?? 1,
+      village: item.village || 'कोणदा',
+      is_active: item.is_active !== undefined ? Boolean(item.is_active) : true,
+    });
     setModalOpen(true);
   };
 
   // Save Member
   const onSaveMember = async (formData) => {
     setSaving(true);
-    const unitId = unitData?.unit?.id || unitData?.unit?._id;
-    const orgId = unitData?.organization?.id || unitData?.organization?._id;
-    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const targetId = editItem ? editItem.id : null;
     try {
       const payload = {
-        ...formData,
-        gramUnit: unitId,
-        organization: orgId,
+        name: (formData.name || '').trim(),
+        designation: (formData.designation || '').trim(),
+        category: formData.category || (activeTab === 'office_bearers' ? 'office_bearer' : activeTab === 'representatives' ? 'representative' : 'member'),
+        phone: (formData.phone || '').trim() || null,
+        village: (formData.village || 'कोणदा').trim(),
+        order_priority: Number(formData.order || formData.order_priority) || 0,
+        is_active: formData.is_active !== undefined ? Boolean(formData.is_active) : true,
       };
 
       if (editItem && targetId) {

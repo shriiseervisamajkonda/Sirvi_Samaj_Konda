@@ -17,91 +17,28 @@ import {
   FiUsers,
 } from 'react-icons/fi';
 import { committeeAPI, eventAPI, galleryAPI } from '../../services/api';
+import { supabase } from '../../config/supabase';
 import EmptyState from '../../components/common/EmptyState';
 import { SkeletonCardGrid } from '../../components/common/Skeleton';
 
-const objectiveCards = [
-  {
-    icon: FiUsers,
-    title: 'महिला सशक्तिकरण',
-    description: 'महिलाओं को आत्मनिर्भर, जागरूक और संगठित बनाने के लिए सामूहिक प्रयास किए जाते हैं।',
-  },
-  {
-    icon: FiHeart,
-    title: 'समाज सेवा',
-    description: 'जरूरतमंद परिवारों, महिलाओं और बच्चों की सहायता के लिए सामाजिक कार्यों का आयोजन किया जाता है।',
-  },
-  {
-    icon: FiBookOpen,
-    title: 'शिक्षा एवं संस्कार',
-    description: 'शिक्षा, संस्कार और सामाजिक मूल्यों के प्रति जागरूकता को बढ़ावा दिया जाता है।',
-  },
-  {
-    icon: FiShield,
-    title: 'स्वास्थ्य एवं जागरूकता',
-    description: 'स्वच्छता, पोषण और स्वास्थ्य के प्रति जागरूकता फैलाने पर ध्यान दिया जाता है।',
-  },
-  {
-    icon: FiTarget,
-    title: 'सामाजिक सहभागिता',
-    description: 'सामूहिक प्रयासों के माध्यम से समाज में सकारात्मक सहयोग और सहभागिता को प्रोत्साहित किया जाता है।',
-  },
-  {
-    icon: FiGift,
-    title: 'जरूरतमंदों की सहायता',
-    description: 'आर्थिक, भावनात्मक और आवश्यक सहयोग के माध्यम से सहायता पहुंचाने का प्रयास किया जाता है।',
-  },
-  {
-    icon: FiStar,
-    title: 'महिला एकता',
-    description: 'महिलाओं के बीच विश्वास, सहयोग और एकता को बढ़ाने के लिए गतिविधियाँ आयोजित की जाती हैं।',
-  },
-  {
-    icon: FiCheckCircle,
-    title: 'संस्कृति एवं परंपरा',
-    description: 'संस्कृति, परंपरा और सामाजिक मूल्यों के संरक्षण को प्रोत्साहित किया जाता है।',
-  },
-];
+// TODO: This is mock/fallback data. Remove when actual data is filled in the database.
+import fallbackData from '../../data/mock/womenCommitteeFallback.json';
 
-const workAreas = [
-  {
-    title: 'महिला सशक्तिकरण',
-    content: 'महिलाओं को आत्मनिर्भर, जागरूक और संगठित बनाने के लिए विभिन्न गतिविधियों का आयोजन।',
-  },
-  {
-    title: 'समाज सेवा',
-    content: 'जरूरतमंद परिवारों, महिलाओं और बच्चों की सहायता के लिए सामाजिक सेवा कार्य।',
-  },
-  {
-    title: 'शिक्षा एवं संस्कार',
-    content: 'शिक्षा, संस्कार और सामाजिक मूल्यों के प्रति जागरूकता बढ़ाना।',
-  },
-  {
-    title: 'स्वास्थ्य जागरूकता',
-    content: 'स्वास्थ्य, स्वच्छता और पोषण के प्रति जागरूकता फैलाना।',
-  },
-  {
-    title: 'धार्मिक एवं सांस्कृतिक कार्यक्रम',
-    content: 'धार्मिक, सांस्कृतिक एवं सामाजिक कार्यक्रमों में सक्रिय सहभागिता।',
-  },
-  {
-    title: 'सामाजिक जागरूकता',
-    content: 'समाज में सकारात्मक सोच, सहयोग और सामाजिक जिम्मेदारी को बढ़ावा देना।',
-  },
-];
+const {
+  objectiveCards: rawObjectives,
+  workAreas,
+  recordCategories,
+  messageText,
+  defaultMembers,
+  defaultFeaturedActivities,
+  defaultGallery,
+} = fallbackData;
 
-const recordCategories = [
-  'वर्षवार गतिविधियाँ',
-  'आयोजित कार्यक्रम',
-  'सामाजिक सेवा कार्य',
-  'धार्मिक कार्यक्रम',
-  'सांस्कृतिक कार्यक्रम',
-  'जागरूकता अभियान',
-  'सहायता कार्य',
-  'विशेष आयोजन',
-];
-
-const messageText = 'यहाँ श्री आई जी महिला समिती का आधिकारिक संदेश प्रदर्शित किया जाएगा। इस संदेश को सही सूचना के अनुसार एडमिन पैनल से अपडेट किया जा सकता है।';
+const objectiveIcons = [FiUsers, FiHeart, FiBookOpen, FiShield, FiTarget, FiGift, FiStar, FiCheckCircle];
+const objectiveCards = rawObjectives.map((obj, i) => ({
+  ...obj,
+  icon: objectiveIcons[i % objectiveIcons.length],
+}));
 
 const WomenCommitteePage = () => {
   const [committeeMembers, setCommitteeMembers] = useState([]);
@@ -111,76 +48,100 @@ const WomenCommitteePage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      committeeAPI.getAll({ limit: 50 }),
-      eventAPI.getAll({ limit: 6 }),
-      galleryAPI.getAll({ limit: 8 }),
-    ])
-      .then(([committeeRes, eventRes, galleryRes]) => {
-        const committeeData = Array.isArray(committeeRes?.data?.data) ? committeeRes.data.data : [];
-        const eventData = Array.isArray(eventRes?.data?.data) ? eventRes.data.data : [];
-        const galleryData = Array.isArray(galleryRes?.data?.data) ? galleryRes.data.data : [];
+    let isMounted = true;
 
-        if (committeeData.length > 0) {
-          setCommitteeMembers(
-            committeeData.slice(0, 6).map((member, index) => ({
-              _id: member.id || member._id || `committee-${index}`,
-              id: member.id || member._id || `committee-${index}`,
-              name: member.name || 'नाम यहाँ दर्ज किया जाएगा',
-              designation: member.designation || member.role || 'सदस्य',
-              about: member.about || member.bio || 'सदस्य का संक्षिप्त परिचय यहाँ दर्ज किया जाएगा।',
-              photo: member.photo || member.photo_url || '',
-            }))
-          );
+    const fetchAllData = async () => {
+      try {
+        const [committeeRes, eventRes, galleryRes] = await Promise.allSettled([
+          committeeAPI.getAll({ committee_type: 'women_committee', limit: 50 }),
+          eventAPI.getAll({ limit: 6 }),
+          galleryAPI.getAll({ limit: 8 }),
+        ]);
+
+        if (!isMounted) return;
+
+        if (committeeRes.status === 'fulfilled') {
+          const raw = committeeRes.value?.data?.data;
+          const liveMembers = Array.isArray(raw)
+            ? raw.filter((m) => (m.committee_type === 'women_committee' || m.type === 'women_committee') && m.is_active !== false)
+            : [];
+          setCommitteeMembers(liveMembers.length > 0 ? liveMembers : defaultMembers);
+        } else {
+          setCommitteeMembers(defaultMembers);
         }
 
-        if (eventData.length > 0) {
-          setFeaturedActivities(
-            eventData.slice(0, 3).map((eventItem, index) => ({
-              _id: eventItem.id || eventItem._id || `activity-${index}`,
-              id: eventItem.id || eventItem._id || `activity-${index}`,
-              title: eventItem.title || 'कार्यक्रम का नाम',
-              date: eventItem.date || eventItem.startDate || eventItem.start_date || 'तारीख दर्ज की जाएगी',
-              location: eventItem.location || eventItem.venue || 'स्थान दर्ज किया जाएगा',
-              description: eventItem.description || 'कार्यक्रम का विवरण यहाँ दर्ज किया जाएगा।',
-              image: eventItem.image || eventItem.photo || eventItem.image_url || '/hero_background.webp',
-              extraInfo: eventItem.extraInfo || eventItem.extra_info || 'संबंधित जानकारी यहाँ उपलब्ध होगी।',
-            }))
-          );
-
-          setUpcomingEvents(
-            eventData.map((eventItem, index) => ({
-              _id: eventItem.id || eventItem._id || `upcoming-${index}`,
-              id: eventItem.id || eventItem._id || `upcoming-${index}`,
-              title: eventItem.title || 'आगामी कार्यक्रम',
-              date: eventItem.date || eventItem.startDate || eventItem.start_date || 'तारीख दर्ज की जाएगी',
-              time: eventItem.time || 'समय दर्ज किया जाएगा',
-              location: eventItem.location || eventItem.venue || 'स्थान दर्ज किया जाएगा',
-              description: eventItem.description || 'विवरण यहाँ दर्ज किया जाएगा।',
-            }))
-          );
+        if (eventRes.status === 'fulfilled') {
+          const events = Array.isArray(eventRes.value?.data?.data) ? eventRes.value.data.data : [];
+          if (events.length > 0) {
+            setFeaturedActivities(
+              events.slice(0, 3).map((item, idx) => ({
+                id: item.id || `act-${idx}`,
+                title: item.title,
+                date: item.start_date || item.date || 'नवीनतम',
+                location: item.location || 'ग्राम कोणदा',
+                description: item.description,
+                image: item.image_url || '/hero_background.webp',
+                extraInfo: item.event_type || 'विशेष आयोजन',
+              }))
+            );
+            setUpcomingEvents(events);
+          } else {
+            setFeaturedActivities(defaultFeaturedActivities);
+            setUpcomingEvents([]);
+          }
+        } else {
+          setFeaturedActivities(defaultFeaturedActivities);
         }
 
-        if (galleryData.length > 0) {
-          setGalleryItems(
-            galleryData.slice(0, 6).map((item, index) => ({
-              _id: item.id || item._id || `gallery-${index}`,
-              id: item.id || item._id || `gallery-${index}`,
-              title: item.title || 'कार्यक्रम',
-              caption: item.caption || item.description || 'कार्यक्रम एवं गतिविधि गैलरी',
-              image: item.image || item.url || item.image_url || '/hero_background.webp',
-            }))
-          );
+        if (galleryRes.status === 'fulfilled') {
+          const items = Array.isArray(galleryRes.value?.data?.data) ? galleryRes.value.data.data : [];
+          setGalleryItems(items.length > 0 ? items : defaultGallery);
+        } else {
+          setGalleryItems(defaultGallery);
         }
+      } catch (err) {
+        console.warn('Women committee data load warning:', err);
+        if (isMounted) {
+          setCommitteeMembers(defaultMembers);
+          setFeaturedActivities(defaultFeaturedActivities);
+          setGalleryItems(defaultGallery);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchAllData();
+
+    // Debounced realtime channel for live updates
+    let syncTimer = null;
+    const debouncedSync = () => {
+      if (syncTimer) clearTimeout(syncTimer);
+      syncTimer = setTimeout(async () => {
+        try {
+          const res = await committeeAPI.getAll({ committee_type: 'women_committee', limit: 50 });
+          if (isMounted && res.data?.data) {
+            const live = res.data.data.filter((m) => (m.committee_type === 'women_committee' || m.type === 'women_committee') && m.is_active !== false);
+            setCommitteeMembers(live.length > 0 ? live : defaultMembers);
+          }
+        } catch (e) {
+          console.warn('Realtime sync error on WomenCommitteePage:', e);
+        }
+      }, 300);
+    };
+
+    const channel = supabase
+      .channel('women_committee_page_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, () => {
+        debouncedSync();
       })
-      .catch((error) => {
-        console.error('Women committee page data load failed:', error);
-        setCommitteeMembers(defaultMembers);
-        setFeaturedActivities(defaultFeaturedActivities);
-        setUpcomingEvents([]);
-        setGalleryItems(defaultGallery);
-      })
-      .finally(() => setLoading(false));
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      if (syncTimer) clearTimeout(syncTimer);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (

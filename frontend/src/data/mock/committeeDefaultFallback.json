@@ -1,0 +1,41 @@
+{
+  "defaultSakalPanch": [
+    { "id": "sp1", "name": "श्री शंकर जी वालाजी पवार", "designation": "सकल पंच / वरिष्ठ मार्गदर्शक", "committee_type": "sankal_panch", "village": "कोणदा", "is_active": true },
+    { "id": "sp2", "name": "श्री खेमाजी दुदाजी गेहलोत", "designation": "सकल पंच / वरिष्ठ मार्गदर्शक", "committee_type": "sankal_panch", "village": "कोणदा", "is_active": true },
+    { "id": "sp3", "name": "श्री कन्हैयालाल लालाजी भायल", "designation": "सकल पंच / वरिष्ठ मार्गदर्शक", "committee_type": "sankal_panch", "village": "कोणदा", "is_active": true },
+    { "id": "sp4", "name": "श्री लक्ष्मण वालाजी काग", "designation": "सकल पंच / वरिष्ठ मार्गदर्शक", "committee_type": "sankal_panch", "village": "कोणदा", "is_active": true },
+    { "id": "sp5", "name": "श्री सुनिल पन्नालाल जी भायल", "designation": "सकल पंच / वरिष्ठ मार्गदर्शक", "committee_type": "sankal_panch", "village": "कोणदा", "is_active": true }
+  ],
+  "defaultSahayataKosh": {
+    "officers": [
+      { "name": "शंकर जी वालाजी जी पवार", "role": "अध्यक्ष", "num": "1" },
+      { "name": "कैलाश जी रतनाजी अगल्चा", "role": "उपाध्यक्ष", "num": "2" },
+      { "name": "कमलजी चेनाजी काग", "role": "कोषाध्यक्ष", "num": "3" },
+      { "name": "अनिल जी हामाजी भायल", "role": "सचिव", "num": "4" },
+      { "name": "शान्तिलाल जी काशिराम जी पवार", "role": "सहसचिव", "num": "5" }
+    ],
+    "members": [
+      "मुकेश हिराजी पड़ियार",
+      "कन्हैयालाल लालाजी भायल",
+      "टिकम जी मंगता जी शिंनदडा",
+      "गोपाल जी रुखडुजी गेहलोत",
+      "दिलीप मोतीलाल जी चोयल",
+      "हुकुम कानाजी लछेटा"
+    ]
+  },
+  "defaultAnnapurnaBhavan": [
+    { "name": "शंकर वालाजी पवार", "phone": "9981644585", "designation": "प्रमुख सदस्य / संरक्षक" },
+    { "name": "खेमाजी दुदाजी गेहलोत", "phone": "9755309933", "designation": "प्रमुख सदस्य / संरक्षक" },
+    { "name": "कन्हैयालाल लालाजी भायल", "phone": "7389089165", "designation": "प्रमुख सदस्य / संरक्षक" },
+    { "name": "लक्ष्मण वालाजी काग", "phone": "9893944986", "designation": "प्रमुख सदस्य / संरक्षक" },
+    { "name": "सुनिल पन्नालाल जी भायल", "phone": "9993339042", "designation": "प्रमुख सदस्य / संरक्षक" }
+  ],
+  "defaultWomenMembers": [
+    { "id": "w1", "name": "श्रीमती अध्यक्ष महोदया", "designation": "अध्यक्ष", "committee_type": "women_committee", "is_active": true },
+    { "id": "w2", "name": "श्रीमती उपाध्यक्ष महोदया", "designation": "उपाध्यक्ष", "committee_type": "women_committee", "is_active": true },
+    { "id": "w3", "name": "श्रीमती सचिव महोदया", "designation": "सचिव", "committee_type": "women_committee", "is_active": true },
+    { "id": "w4", "name": "श्रीमती कोषाध्यक्ष महोदया", "designation": "कोषाध्यक्ष", "committee_type": "women_committee", "is_active": true },
+    { "id": "w5", "name": "मातृशक्ति सक्रिय सदस्य", "designation": "कार्यकारिणी सदस्य", "committee_type": "women_committee", "is_active": true },
+    { "id": "w6", "name": "मातृशक्ति सक्रिय सदस्य", "designation": "कार्यकारिणी सदस्य", "committee_type": "women_committee", "is_active": true }
+  ]
+}

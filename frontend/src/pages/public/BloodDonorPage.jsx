@@ -50,8 +50,8 @@ const BloodDonorPage = () => {
         <div className="mb-8 p-5 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-4">
           <div className="text-3xl">🩸</div>
           <div>
-            <p className="font-bold text-red-700 mb-1">Blood Donation Saves Lives!</p>
-            <p className="text-red-600 text-sm">If you need blood urgently, please contact the donors directly or call our emergency helpline at <strong>+91 98765 43210</strong></p>
+            <p className="font-bold text-red-700 mb-1">रक्तदान जीवनदान है!</p>
+            <p className="text-red-600 text-sm">आपातकालीन स्थिति में सीधे रक्तदाता से संपर्क करें या हेल्पलाइन पर कॉल करें: <strong>+91-9981644585</strong></p>
           </div>
         </div>
 

@@ -62,6 +62,8 @@ const SocialInfoPage = () => {
     const payload = {
       ...data,
       is_active: data.isActive !== undefined ? data.isActive : true,
+      is_published: data.isActive !== undefined ? data.isActive : true,
+      order_priority: Number(data.order) || 0,
       display_order: Number(data.order) || 0,
       order: Number(data.order) || 0,
     };

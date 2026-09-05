@@ -64,11 +64,11 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2">
                 <FiPhone className="w-4 h-4 text-primary shrink-0" />
-                <a href="tel:+919876543210" className="text-[#CDBBA4] hover:text-primary transition-colors">+91 98765 43210</a>
+                <a href="tel:+919981644585" className="text-[#CDBBA4] hover:text-primary transition-colors">+91-9981644585</a>
               </li>
               <li className="flex items-center gap-2">
                 <FiMail className="w-4 h-4 text-primary shrink-0" />
-                <a href="mailto:contact@seervisamajkonda.org" className="text-[#CDBBA4] hover:text-primary transition-colors">contact@seervisamajkonda.org</a>
+                <a href="mailto:shriseervisamajkonda@gmail.com" className="text-[#CDBBA4] hover:text-primary transition-colors">shriseervisamajkonda@gmail.com</a>
               </li>
             </ul>
             <div className="flex gap-2.5 mt-5">
@@ -76,7 +76,7 @@ const Footer = () => {
                 { Icon: FiFacebook, href: '#' },
                 { Icon: FiInstagram, href: '#' },
                 { Icon: FiYoutube, href: '#' },
-                { Icon: FaWhatsapp, href: 'https://wa.me/919876543210' },
+                { Icon: FaWhatsapp, href: 'https://wa.me/919981644585' },
               ].map(({ Icon, href }, i) => (
                 <a key={i} href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-xl bg-[#351313] border border-[#D4AF37]/10 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-[#CDBBA4]">
                   <Icon className="w-4.5 h-4.5" />

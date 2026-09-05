@@ -6,31 +6,67 @@ import { committeeAPI } from '../../services/api';
 import { supabase } from '../../config/supabase';
 import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
+// TODO: This is mock/fallback data. Remove when actual data is filled in the database.
+import fallbackData from '../../data/mock/committeeDefaultFallback.json';
 
 const CommitteePage = () => {
   const [committee, setCommittee] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
 
-  useEffect(() => {
-    const fetchCommittees = () => {
-      committeeAPI.getAll({ limit: 100 })
-        .then(res => setCommittee(res.data.data || []))
-        .catch(console.error)
-        .finally(() => setLoading(false));
-    };
+  const fetchCommittees = () => {
+    committeeAPI.getAll({ limit: 100 })
+      .then(res => {
+        const liveData = res.data.data;
+        if (Array.isArray(liveData) && liveData.length > 0) {
+          setCommittee(liveData);
+        } else {
+          // Build fallback list from default mock items
+          const fallbacks = [
+            ...(fallbackData.defaultSakalPanch || []),
+            ...(fallbackData.defaultWomenMembers || []),
+            ...(fallbackData.defaultAnnapurnaBhavan?.map((m, i) => ({
+              id: `ab-${i}`,
+              name: m.name,
+              designation: m.designation,
+              phone: m.phone,
+              committee_type: 'bhavan_samiti',
+              is_active: true,
+            })) || []),
+          ];
+          setCommittee(fallbacks);
+        }
+      })
+      .catch((err) => {
+        console.warn('Error fetching committees, using fallback:', err);
+        const fallbacks = [
+          ...(fallbackData.defaultSakalPanch || []),
+          ...(fallbackData.defaultWomenMembers || []),
+        ];
+        setCommittee(fallbacks);
+      })
+      .finally(() => setLoading(false));
+  };
 
+  useEffect(() => {
     fetchCommittees();
+
+    let debounceTimer = null;
+    const handleRealtimeChange = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchCommittees();
+      }, 300);
+    };
 
     // Supabase Realtime subscription for live updates
     const channel = supabase
       .channel('public_committees_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, () => {
-        fetchCommittees();
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, handleRealtimeChange)
       .subscribe();
 
     return () => {
+      clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, []);
@@ -38,13 +74,12 @@ const CommitteePage = () => {
   const tabs = [
     { id: 'all', label: 'सभी (All)' },
     { id: 'sankal_panch', label: 'सकल पंच' },
-    { id: 'committee', label: 'कार्यकारिणी समिति' },
+    { id: 'executive_body', label: 'कार्यकारिणी समिति' },
     { id: 'women_committee', label: 'महिला समिती' },
     { id: 'konda_gram_unit', label: 'ग्राम इकाई' },
     { id: 'yuva_sangathan', label: 'युवा संगठन' },
     { id: 'sahayata_kosh', label: 'सहायता कोष' },
     { id: 'bhavan_samiti', label: 'भवन समिति' },
-    { id: 'sangathan', label: 'संगठन' },
   ];
 
   const filteredMembers = activeTab === 'all'
