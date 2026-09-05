@@ -1,6 +1,7 @@
 import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
 import { clearCacheByPattern } from '../middleware/cache.js';
+import { normalizePayload } from './baseSupabaseController.js';
 
 // GET /api/families (Public & Admin with pagination, search, gotra filter)
 export const getFamilies = asyncHandler(async (req, res) => {
@@ -204,11 +205,11 @@ export const createFamily = asyncHandler(async (req, res) => {
 // PUT /api/families/:id
 export const updateFamily = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { id: _id, created_at: _ca, created_by: _cb, ...cleanBody } = req.body || {};
+  const safeBody = normalizePayload('families', req.body || {});
 
   const { data, error } = await supabase
     .from('families')
-    .update({ ...cleanBody, updated_at: new Date().toISOString() })
+    .update({ ...safeBody, updated_at: new Date().toISOString() })
     .eq('id', id)
     .select()
     .single();

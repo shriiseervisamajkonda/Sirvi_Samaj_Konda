@@ -101,7 +101,16 @@ const HomePage = () => {
         ]);
         if (!isMounted) return;
         if (statsRes.status === 'fulfilled' && statsRes.value?.data?.data) {
-          setStats(prev => ({ ...prev, ...statsRes.value.data.data }));
+          const d = statsRes.value.data.data;
+          setStats(prev => ({
+            ...prev,
+            ...d,
+            families: d.families ?? d.totalFamilies ?? prev.families,
+            members: d.members ?? d.totalMembers ?? prev.members,
+            students: d.students ?? d.studentCount ?? prev.students,
+            events: d.events ?? d.eventCount ?? prev.events,
+            bloodDonors: d.bloodDonors ?? d.bloodDonorCount ?? prev.bloodDonors,
+          }));
         }
         if (newsRes.status === 'fulfilled') setNews(newsRes.value?.data?.data || []);
         if (eventsRes.status === 'fulfilled') setEvents(eventsRes.value?.data?.data || []);
@@ -1110,7 +1119,7 @@ const HomePage = () => {
                           {new Date(event.start_date || event.startDate || event.date || Date.now()).getDate()}
                         </p>
                         <p className="text-[10px] text-orange-200 font-bold uppercase mt-0.5">
-                          {new Date(event.date || event.startDate).toLocaleString('hi-IN', { month: 'short' })}
+                          {new Date(event.start_date || event.startDate || event.date || Date.now()).toLocaleString('hi-IN', { month: 'short' })}
                         </p>
                       </div>
                     </div>

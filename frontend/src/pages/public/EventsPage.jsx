@@ -93,8 +93,18 @@ const EventsPage = () => {
   }, []);
 
   const now = new Date();
-  const upcoming = events.filter(e => new Date(e.startDate || e.date) >= now);
-  const past = events.filter(e => new Date(e.startDate || e.date) < now);
+  const upcoming = events.filter(e => {
+    if (e.event_type === 'upcoming') return true;
+    if (e.event_type === 'past') return false;
+    const d = new Date(e.start_date || e.startDate || e.date);
+    return !isNaN(d) ? d >= now : true;
+  });
+  const past = events.filter(e => {
+    if (e.event_type === 'past') return true;
+    if (e.event_type === 'upcoming') return false;
+    const d = new Date(e.start_date || e.startDate || e.date);
+    return !isNaN(d) ? d < now : false;
+  });
   const displayed = tab === 'upcoming' ? upcoming : past;
 
   return (

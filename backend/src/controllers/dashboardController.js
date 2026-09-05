@@ -111,25 +111,42 @@ export const getPublicStats = asyncHandler(async (_req, res) => {
   const [
     { count: totalFamilies },
     { count: totalMembers },
+    { count: studentCount },
     { count: bloodDonorCount },
     { count: eventCount },
     { count: newsCount },
   ] = await Promise.all([
     supabase.from('families').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active'),
+    supabase.from('family_members').select('*', { count: 'exact', head: true }).or('occupation.ilike.%student%,occupation.ilike.%विद्यार्थी%'),
     supabase.from('blood_donors').select('*', { count: 'exact', head: true }).eq('is_available', true),
     supabase.from('events').select('*', { count: 'exact', head: true }).eq('status', 'published'),
     supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published'),
   ]);
 
+  const fCount = totalFamilies || 0;
+  const mCount = totalMembers || 0;
+  const sCount = studentCount || 0;
+  const bCount = bloodDonorCount || 0;
+  const eCount = eventCount || 0;
+  const nCount = newsCount || 0;
+
   res.json({
     success: true,
     data: {
-      totalFamilies: totalFamilies || 0,
-      totalMembers: totalMembers || 0,
-      bloodDonorCount: bloodDonorCount || 0,
-      eventCount: eventCount || 0,
-      newsCount: newsCount || 0,
+      totalFamilies: fCount,
+      totalMembers: mCount,
+      studentCount: sCount,
+      bloodDonorCount: bCount,
+      eventCount: eCount,
+      newsCount: nCount,
+      // Frontend reflection keys
+      families: fCount,
+      members: mCount,
+      students: sCount,
+      bloodDonors: bCount,
+      events: eCount,
+      news: nCount,
     },
   });
 });

@@ -81,13 +81,19 @@ const FamiliesPage = () => {
     setSaving(true);
     const targetId = editItem ? (editItem.id || editItem._id) : null;
     const payload = {
-      ...data,
-      head_name: data.headOfFamily || data.head_name,
-      gotra: data.surname || data.gotra,
-      head_mobile: data.mobileNumber || data.head_mobile,
-      panchayat_family_id: data.familyId || data.panchayat_family_id,
-      land_area_acres: data.agriculturalLandArea !== undefined && data.agriculturalLandArea !== '' ? Number(data.agriculturalLandArea) : (data.land_area_acres || 0),
-      total_members: data.numberOfMembers ? Number(data.numberOfMembers) : undefined,
+      head_name: (data.headOfFamily || data.head_name || '').trim(),
+      gotra: (data.surname || data.gotra || '').trim(),
+      head_mobile: (data.mobileNumber || data.head_mobile || '').trim(),
+      panchayat_family_id: String(data.familyId || data.panchayat_family_id || '').trim(),
+      land_area_acres: data.agriculturalLandArea !== undefined && data.agriculturalLandArea !== '' ? Number(data.agriculturalLandArea) : (Number(data.land_area_acres) || 0),
+      total_members: data.numberOfMembers ? Number(data.numberOfMembers) : (data.total_members ? Number(data.total_members) : undefined),
+      village: data.village || 'Konda',
+      tehsil: data.tehsil || 'Kukshi',
+      district: data.district || 'Dhar',
+      state: data.state || 'Madhya Pradesh',
+      pin_code: data.pinCode || data.pin_code || '454335',
+      status: data.status || 'active',
+      notes: data.address || data.notes || null,
     };
 
     try {
