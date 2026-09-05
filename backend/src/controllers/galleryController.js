@@ -11,7 +11,7 @@ const albumBase = createSupabaseCRUDController('albums', {
 const photoBase = createSupabaseCRUDController('gallery_photos', {
   searchFields: ['title', 'caption'],
   filterMap: { album_id: 'album_id' },
-  defaultSort: { column: 'display_order', ascending: true },
+  defaultSort: { column: 'order_index', ascending: true },
 });
 
 export const getAlbums = albumBase.getAll;
