@@ -51,7 +51,10 @@ const GalleryPage = () => {
     const targetId = editItem ? (editItem.id || editItem._id) : null;
     const payload = {
       ...data,
-      image_url: data.url || data.image_url,
+      title: data.title || 'फ़ोटो',
+      photo_url: data.url || data.image_url || data.photo_url,
+      album_id: data.album || data.album_id || null,
+      caption: data.caption || '',
     };
     try {
       if (editItem && targetId) {
@@ -73,7 +76,7 @@ const GalleryPage = () => {
   const onAlbumSubmit = async (data) => {
     setSaving(true);
     try {
-      await galleryAPI.create(data);
+      await galleryAPI.createAlbum(data);
       toast.success('Album created!');
       setAlbumModalOpen(false);
       resetAlbum({});
