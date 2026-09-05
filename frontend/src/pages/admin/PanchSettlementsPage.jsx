@@ -52,8 +52,13 @@ const PanchSettlementsPage = () => {
     setSaving(true);
     const targetId = editItem ? (editItem.id || editItem._id) : null;
     const payload = {
-      ...data,
-      settlement_date: data.settlementDate || data.settlement_date,
+      title: (data.title || '').trim(),
+      parties: (data.parties || '').trim(),
+      settlement_date: data.settlementDate || data.settlement_date || new Date().toISOString().slice(0, 10),
+      description: (data.description || '').trim() || null,
+      panchs: Array.isArray(data.panchs) ? data.panchs : (data.panchs ? data.panchs.split(',').map(s => s.trim()) : []),
+      documents: Array.isArray(data.documents) ? data.documents : [],
+      status: data.status || 'settled',
     };
     try {
       if (editItem && targetId) {

@@ -42,12 +42,22 @@ const EventsPage = () => {
   const onSubmit = async (data) => {
     setSaving(true);
     const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      title: (data.title || '').trim(),
+      description: (data.description || '').trim(),
+      location: (data.location || '').trim(),
+      status: data.status || 'published',
+      event_type: data.eventType || data.event_type || 'upcoming',
+      start_date: data.startDate || data.start_date || new Date().toISOString(),
+      end_date: data.endDate || data.end_date || null,
+      images: data.image ? [data.image] : (Array.isArray(data.images) ? data.images : []),
+    };
     try {
       if (editItem && targetId) {
-        await eventAPI.update(targetId, data);
+        await eventAPI.update(targetId, payload);
         toast.success('Event updated!');
       } else {
-        await eventAPI.create(data);
+        await eventAPI.create(payload);
         toast.success('Event created!');
       }
       setModalOpen(false);
@@ -100,7 +110,26 @@ const EventsPage = () => {
       label: 'Actions',
       render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button
+            onClick={() => {
+              setEditItem(r);
+              reset({
+                ...r,
+                title: r.title || '',
+                description: r.description || '',
+                location: r.location || '',
+                status: r.status || 'published',
+                eventType: r.event_type || r.eventType || 'upcoming',
+                startDate: r.start_date ? r.start_date.slice(0, 16) : (r.startDate ? r.startDate.slice(0, 16) : ''),
+                endDate: r.end_date ? r.end_date.slice(0, 16) : (r.endDate ? r.endDate.slice(0, 16) : ''),
+                image: Array.isArray(r.images) && r.images[0] ? r.images[0] : (r.image || ''),
+              });
+              setModalOpen(true);
+            }}
+            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"
+          >
+            <FiEdit2 className="w-4 h-4" />
+          </button>
           <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
@@ -120,7 +149,23 @@ const EventsPage = () => {
           <h1 className="text-2xl font-bold text-gray-900 ">Events Management</h1>
           <p className="text-gray-500 text-sm mt-1">Manage all community events</p>
         </div>
-        <button onClick={() => { setEditItem(null); reset({ status: 'published', registrationRequired: false }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
+        <button
+          onClick={() => {
+            setEditItem(null);
+            reset({
+              title: '',
+              description: '',
+              location: 'Sirvi Samaj Dharmshala, Konda',
+              eventType: 'upcoming',
+              status: 'published',
+              startDate: '',
+              endDate: '',
+              image: '',
+            });
+            setModalOpen(true);
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30"
+        >
           <FiPlus className="w-4 h-4" /> Add Event
         </button>
       </div>

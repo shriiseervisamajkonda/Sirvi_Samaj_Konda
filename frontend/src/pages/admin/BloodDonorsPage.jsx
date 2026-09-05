@@ -49,10 +49,13 @@ const BloodDonorsPage = () => {
     setSaving(true);
     const targetId = editItem ? (editItem.id || editItem._id) : null;
     const payload = {
-      ...data,
+      name: (data.name || '').trim(),
       blood_group: data.bloodGroup || data.blood_group,
-      mobile_number: data.phone || data.mobile_number,
-      last_donation_date: data.lastDonationDate || data.last_donation_date,
+      phone: (data.phone || data.mobile_number || '').trim(),
+      village: (data.village || 'कोणदा').trim(),
+      is_available: data.status === 'available' || data.is_available === true,
+      last_donated_date: data.lastDonationDate || data.last_donated_date || null,
+      member_id: data.member || data.member_id || null,
     };
     try {
       if (editItem && targetId) {
@@ -98,27 +101,67 @@ const BloodDonorsPage = () => {
       key: 'name',
       label: 'Name',
       sortable: true,
-      render: (_, r) => <span className="font-medium">{r.name || r.full_name || (r.member?.firstName ? `${r.member.firstName} ${r.member.lastName || ''}` : '—')}</span>,
+      render: (v, r) => (
+        <div>
+          <p className="font-medium text-gray-900">{v}</p>
+          {r.phone && <p className="text-xs text-gray-400 font-mono">{r.phone}</p>}
+        </div>
+      ),
     },
-    { key: 'bloodGroup', label: 'Blood Group', sortable: true, render: (_, r) => <Badge variant="danger">{r.blood_group || r.bloodGroup || '—'}</Badge> },
-    { key: 'phone', label: 'Phone', sortable: true, render: (_, r) => r.mobile_number || r.phone || '—' },
+    {
+      key: 'bloodGroup',
+      label: 'Blood Group',
+      sortable: true,
+      render: (_, r) => (
+        <Badge variant="danger" size="sm">
+          {r.blood_group || r.bloodGroup || '—'}
+        </Badge>
+      ),
+    },
     { key: 'village', label: 'Village', sortable: true, render: (v) => v || 'Konda' },
     {
       key: 'lastDonationDate',
       label: 'Last Donation',
       sortable: true,
       render: (_, r) => {
-        const d = r.last_donation_date || r.lastDonationDate;
+        const d = r.last_donated_date || r.last_donation_date || r.lastDonationDate;
         return d ? new Date(d).toLocaleDateString('en-IN') : 'Never';
       },
     },
-    { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'available' ? 'success' : 'warning'}>{v || 'available'}</Badge> },
+    {
+      key: 'status',
+      label: 'Status',
+      sortable: true,
+      render: (_, r) => (
+        <Badge variant={r.is_available !== false ? 'success' : 'warning'}>
+          {r.is_available !== false ? 'available' : 'unavailable'}
+        </Badge>
+      ),
+    },
     {
       key: '_actions',
       label: 'Actions',
       render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button
+            onClick={() => {
+              setEditItem(r);
+              reset({
+                ...r,
+                name: r.name || '',
+                phone: r.phone || r.mobile_number || '',
+                bloodGroup: r.blood_group || r.bloodGroup || '',
+                village: r.village || 'कोणदा',
+                status: r.is_available === false ? 'unavailable' : 'available',
+                lastDonationDate: r.last_donated_date ? r.last_donated_date.slice(0, 10) : (r.last_donation_date ? r.last_donation_date.slice(0, 10) : ''),
+                member: r.member_id || '',
+              });
+              setModalOpen(true);
+            }}
+            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"
+          >
+            <FiEdit2 className="w-4 h-4" />
+          </button>
           <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),

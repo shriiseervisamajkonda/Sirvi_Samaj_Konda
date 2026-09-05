@@ -44,12 +44,20 @@ const NewsPage = () => {
   const onSubmit = async (data) => {
     setSaving(true);
     const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      title: (data.title || '').trim(),
+      category: data.category || 'news',
+      status: data.status || 'published',
+      excerpt: (data.excerpt || '').trim() || null,
+      content: (data.content || '').trim(),
+      image_url: data.image || data.image_url || null,
+    };
     try {
       if (editItem && targetId) {
-        await newsAPI.update(targetId, data);
+        await newsAPI.update(targetId, payload);
         toast.success('Updated successfully!');
       } else {
-        await newsAPI.create(data);
+        await newsAPI.create(payload);
         toast.success('Published successfully!');
       }
       setModalOpen(false);
@@ -102,7 +110,19 @@ const NewsPage = () => {
       label: 'Actions',
       render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button
+            onClick={() => {
+              setEditItem(r);
+              reset({
+                ...r,
+                image: r.image_url || r.image || '',
+              });
+              setModalOpen(true);
+            }}
+            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"
+          >
+            <FiEdit2 className="w-4 h-4" />
+          </button>
           <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
