@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMenu, FiX, FiUser, FiFileText, FiLogOut } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiFileText, FiLogOut, FiChevronDown } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
 
@@ -22,6 +22,7 @@ const Navbar = () => {
   }, []);
 
   const isActive = (path) => location.pathname === path;
+  const isDropdownActive = (children) => children.some((c) => location.pathname === c.path);
 
   const navLinks = [
     { label: 'मुख्य पृष्ठ', path: '/' },
@@ -47,13 +48,23 @@ const Navbar = () => {
         { label: 'वैवाहिक बायोडाटा', path: '/marriage' },
       ],
     },
-    { label: 'आय-व्यय लेखा-जोखा', path: '/lekha-jokha' },
-    { label: 'पंच फैसले', path: '/panch-settlements' },
-    { label: 'दान व्यवस्था', path: '/donations' },
-    { label: 'आयोजन', path: '/events' },
-    { label: 'समाचार', path: '/news' },
-    { label: 'गैलरी', path: '/gallery' },
-    { label: 'दस्तावेज़', path: '/documents' },
+    {
+      label: 'लेखा-जोखा',
+      children: [
+        { label: 'आय-व्यय लेखा-जोखा', path: '/lekha-jokha' },
+        { label: 'दान व्यवस्था व चंदा', path: '/donations' },
+        { label: 'पंच फैसले व निर्णय', path: '/panch-settlements' },
+      ],
+    },
+    {
+      label: 'आयोजन व मीडिया',
+      children: [
+        { label: 'सामाजिक आयोजन व उत्सव', path: '/events' },
+        { label: 'समाचार व घोषणाएं', path: '/news' },
+        { label: 'फ़ोटो गैलरी', path: '/gallery' },
+        { label: 'महत्वपूर्ण दस्तावेज़', path: '/documents' },
+      ],
+    },
     { label: 'संपर्क', path: '/contact' },
   ];
 
@@ -62,13 +73,14 @@ const Navbar = () => {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
           ? 'bg-[#7A2525]/95 backdrop-blur-md shadow-lg py-2'
-          : 'bg-[#7A2525] py-3'
+          : 'bg-[#7A2525] py-2.5'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:border-amber-400/50 transition">
+        <div className="flex items-center justify-between h-14 gap-2">
+          {/* Brand Logo & Name */}
+          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:border-amber-400/50 transition shrink-0">
               <img
                 src={logoUrl || '/Logo.webp'}
                 alt="श्री सिर्वी समाज कोणदा लोगो"
@@ -78,7 +90,7 @@ const Navbar = () => {
                 onError={(e) => { e.currentTarget.src = '/Logo.webp'; }}
               />
             </div>
-            <div>
+            <div className="whitespace-nowrap">
               <p className="font-extrabold text-sm sm:text-base text-white leading-tight tracking-wide">
                 श्री सिर्वी समाज
               </p>
@@ -88,7 +100,8 @@ const Navbar = () => {
             </div>
           </Link>
 
-          <div className="hidden lg:flex items-center gap-1">
+          {/* Desktop Navigation Links */}
+          <div className="hidden xl:flex items-center gap-1">
             {navLinks.map((link) =>
               link.children ? (
                 <div
@@ -100,9 +113,14 @@ const Navbar = () => {
                   <button
                     aria-haspopup="true"
                     aria-expanded={dropdown === link.label}
-                    className="px-3 py-2 text-sm font-semibold text-orange-100 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                    className={`px-3 py-1.5 text-xs xl:text-sm font-semibold rounded-xl transition-colors flex items-center gap-1 cursor-pointer whitespace-nowrap ${
+                      isDropdownActive(link.children)
+                        ? 'text-[#7A2525] bg-[#FFF8EC] font-bold shadow-xs'
+                        : 'text-orange-100 hover:text-white hover:bg-white/10'
+                    }`}
                   >
-                    {link.label}
+                    <span>{link.label}</span>
+                    <FiChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${dropdown === link.label ? 'rotate-180' : ''}`} />
                   </button>
                   <AnimatePresence>
                     {dropdown === link.label && (
@@ -111,13 +129,17 @@ const Navbar = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 8 }}
                         transition={{ duration: 0.15 }}
-                        className="absolute top-full left-0 w-64 bg-white rounded-2xl shadow-2xl py-2 mt-1 border border-[#E8DCC8] backdrop-blur-md"
+                        className="absolute top-full left-0 w-64 bg-white rounded-2xl shadow-2xl py-2 mt-1 border border-[#E8DCC8] backdrop-blur-md z-50"
                       >
                         {link.children.map((child) => (
                           <Link
                             key={child.path}
                             to={child.path}
-                            className="block px-4 py-2.5 text-sm text-[#2B211B] hover:bg-[#FFF8EC] hover:text-[#C85A17] font-semibold transition-colors"
+                            className={`block px-4 py-2 text-xs xl:text-sm font-semibold transition-colors whitespace-nowrap ${
+                              isActive(child.path)
+                                ? 'bg-[#FFF8EC] text-[#7A2525] font-bold'
+                                : 'text-[#2B211B] hover:bg-[#FFF8EC] hover:text-[#C85A17]'
+                            }`}
                           >
                             {child.label}
                           </Link>
@@ -130,9 +152,9 @@ const Navbar = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-3 py-2 text-sm font-semibold rounded-lg transition-all ${
+                  className={`px-3 py-1.5 text-xs xl:text-sm font-semibold rounded-xl transition-all whitespace-nowrap ${
                     isActive(link.path)
-                      ? 'text-[#2B211B] bg-[#FFF8EC] font-bold shadow-sm'
+                      ? 'text-[#7A2525] bg-[#FFF8EC] font-bold shadow-xs'
                       : 'text-orange-100 hover:text-white hover:bg-white/10'
                   }`}
                 >
@@ -142,45 +164,69 @@ const Navbar = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {user && (
               <Link
                 to="/my-receipts"
-                className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white rounded-xl text-xs sm:text-sm font-bold transition shadow-xs"
+                className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition shadow-xs whitespace-nowrap ${
+                  isActive('/my-receipts')
+                    ? 'bg-[#FFF8EC] text-[#7A2525] shadow-sm'
+                    : 'bg-white/15 hover:bg-white/25 border border-white/25 text-white'
+                }`}
                 title="मेरी रसीदें एवं लेनदेन (My Receipts)"
               >
                 <FiFileText className="w-4 h-4 text-amber-300" />
                 <span>मेरी रसीदें</span>
               </Link>
             )}
+
             {isAdmin ? (
-              <Link to="/admin" className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-sm font-bold hover:shadow-lg transition shadow-md">
-                <FiUser className="w-4 h-4" /> एडमिन पैनल
+              <Link
+                to="/admin"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] hover:shadow-lg text-white rounded-xl text-xs sm:text-sm font-bold transition shadow-xs whitespace-nowrap"
+              >
+                <FiUser className="w-4 h-4" />
+                <span>एडमिन पैनल</span>
               </Link>
             ) : user ? (
-              <Link to="/profile" className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/15 border border-white/30 text-white rounded-xl text-sm font-bold hover:bg-white/25 transition">
-                <FiUser className="w-4 h-4 text-amber-300" /> प्रोफ़ाइल
+              <Link
+                to="/profile"
+                className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition whitespace-nowrap ${
+                  isActive('/profile')
+                    ? 'bg-[#FFF8EC] text-[#7A2525] shadow-sm'
+                    : 'bg-white/15 hover:bg-white/25 border border-white/25 text-white'
+                }`}
+              >
+                <FiUser className="w-4 h-4 text-amber-300" />
+                <span>प्रोफ़ाइल</span>
               </Link>
             ) : (
-              <Link to="/login" className="hidden sm:flex px-4 py-2.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-sm font-bold hover:shadow-lg transition shadow-md">
+              <Link
+                to="/login"
+                className="hidden sm:inline-flex px-4 py-1.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-xs sm:text-sm font-bold hover:shadow-lg transition shadow-xs whitespace-nowrap"
+              >
                 लॉगिन
               </Link>
             )}
+
             {user && (
               <button
                 onClick={logout}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-red-600/85 hover:bg-red-700 text-white rounded-xl text-xs sm:text-sm font-bold transition shadow-xs cursor-pointer"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600/85 hover:bg-red-700 text-white rounded-xl text-xs sm:text-sm font-bold transition shadow-xs cursor-pointer whitespace-nowrap"
                 title="लॉगआउट करें (Logout)"
               >
-                <FiLogOut className="w-4 h-4" />
+                <FiLogOut className="w-3.5 h-3.5" />
                 <span>लॉगआउट</span>
               </button>
             )}
+
+            {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label={mobileOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
               aria-expanded={mobileOpen}
-              className="lg:hidden p-2 rounded-xl hover:bg-white/10 text-white cursor-pointer"
+              className="xl:hidden p-2 rounded-xl hover:bg-white/10 text-white cursor-pointer"
             >
               {mobileOpen ? <FiX className="w-6 h-6" /> : <FiMenu className="w-6 h-6" />}
             </button>
@@ -188,6 +234,7 @@ const Navbar = () => {
         </div>
       </div>
 
+      {/* Mobile Drawer */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -195,7 +242,7 @@ const Navbar = () => {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden border-t border-[#C9A44C]/20 bg-[#7A2525] overflow-hidden"
+            className="xl:hidden border-t border-[#C9A44C]/20 bg-[#7A2525] overflow-hidden max-h-[85vh] overflow-y-auto"
           >
             <div className="px-4 py-4 space-y-3">
               {navLinks.map((link) =>
@@ -224,8 +271,9 @@ const Navbar = () => {
                   </Link>
                 )
               )}
+
               {user ? (
-                <div className="pt-2 border-t border-white/20 space-y-2">
+                <div className="pt-3 border-t border-white/20 space-y-2">
                   <Link
                     to="/my-receipts"
                     onClick={() => setMobileOpen(false)}
@@ -245,7 +293,7 @@ const Navbar = () => {
                       setMobileOpen(false);
                       logout();
                     }}
-                    className="w-full px-4 py-2.5 text-sm font-bold bg-red-600/80 text-white rounded-xl text-center cursor-pointer"
+                    className="w-full px-4 py-2.5 text-sm font-bold bg-red-600/80 hover:bg-red-700 text-white rounded-xl text-center cursor-pointer"
                   >
                     लॉगआउट (Logout)
                   </button>

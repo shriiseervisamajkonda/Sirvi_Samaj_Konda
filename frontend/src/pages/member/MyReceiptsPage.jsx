@@ -232,7 +232,7 @@ const MyReceiptsPage = () => {
   return (
     <div className="bg-[#FFF8EC] min-h-screen text-[#2B211B] pb-16">
       {/* Header Banner */}
-      <div className="relative py-16 text-white overflow-hidden border-b border-[#D4AF37]/20 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]">
+      <div className="relative pt-28 pb-16 text-white overflow-hidden border-b border-[#D4AF37]/20 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]">
         <div className="absolute inset-0">
           <img src="/hero_background.webp" alt="Header Background" className="w-full h-full object-cover opacity-20" />
           <div className="absolute inset-0 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]" />
