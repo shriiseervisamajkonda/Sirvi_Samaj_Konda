@@ -104,86 +104,88 @@ export const getDonationById = asyncHandler(async (req, res) => {
   res.json({ success: true, data });
 });
 
-// GET /api/donations/my-receipts (For logged-in member to view personal / family receipts)
+// GET /api/donations/my-receipts (For logged-in member to view personal / family receipts across ALL modules)
 export const getMyReceipts = asyncHandler(async (req, res) => {
   const user = req.user;
   if (!user) {
     return res.json({ success: true, data: [] });
   }
 
-  const { familyUuids, panchayatFamilyIds, cleanPhone, isStaff, primaryFamily } = await resolveUserFamily(user);
-
-  // If user is regular member or has identified family
-  if (panchayatFamilyIds.length > 0 || familyUuids.length > 0 || cleanPhone) {
-    const filterClauses = [];
-    panchayatFamilyIds.forEach((pid) => filterClauses.push(`panchayat_family_id.eq.${pid}`));
-    familyUuids.forEach((fid) => filterClauses.push(`family_id.eq.${fid}`));
-    if (cleanPhone) {
-      filterClauses.push(`mobile_number.ilike.%${cleanPhone}%`);
-    }
-
-    if (filterClauses.length > 0) {
-      const { data: matchedData, error: matchError } = await supabase
-        .from('donations')
-        .select('*')
-        .or(filterClauses.join(','))
-        .order('payment_date', { ascending: false });
-
-      if (!matchError && matchedData && matchedData.length > 0) {
-        return res.json({
-          success: true,
-          data: matchedData,
-          family: primaryFamily,
-          panchayatFamilyIds,
-        });
-      }
-    }
-  }
-
-  // If staff/admin and no specific personal records found, return all donations for admin view
-  if (isStaff) {
-    const { data: allData, error: allError } = await supabase
-      .from('donations')
-      .select('*')
-      .order('payment_date', { ascending: false });
-    if (!allError) {
-      return res.json({
-        success: true,
-        data: allData || [],
-        isStaffView: true,
-      });
-    }
-  }
+  const { receipts, primaryFamily, panchayatFamilyIds, isStaff } = await fetchUnifiedFamilyReceipts(user);
 
   res.json({
     success: true,
-    data: [],
+    data: receipts,
     family: primaryFamily,
+    panchayatFamilyIds,
+    isStaffView: isStaff && receipts.length > 0,
   });
 });
 
-// GET /api/donations/receipt/:receiptNumber (Strict family verification)
+// GET /api/donations/receipt/:receiptNumber (Strict family verification across Donations & Lekha-Jokha)
 export const getReceiptByNumber = asyncHandler(async (req, res) => {
   const { receiptNumber } = req.params;
-  const { data, error } = await supabase
+
+  // 1. Try Donations table
+  let { data, error } = await supabase
     .from('donations')
     .select('*, families(id, panchayat_family_id, head_name, gotra, village, faliya_or_ward, head_mobile)')
     .eq('receipt_number', receiptNumber)
     .maybeSingle();
 
-  if (error || !data) {
+  // 2. If not found, try Lekha-Jokha
+  if (!data) {
+    const { data: ljData } = await supabase
+      .from('lekha_jokha')
+      .select('*')
+      .or(`receipt_or_bill_no.eq.${receiptNumber},id.eq.${receiptNumber}`)
+      .maybeSingle();
+
+    if (ljData) {
+      data = {
+        id: ljData.id,
+        receipt_number: ljData.receipt_or_bill_no || receiptNumber,
+        panchayat_family_id: ljData.panchayat_family_id || '—',
+        family_id: ljData.family_id,
+        donor_name: ljData.person_name,
+        head_name: ljData.person_name,
+        gotra: '—',
+        amount: Number(ljData.amount || 0),
+        purpose: ljData.category || 'annual_chanda',
+        payment_mode: ljData.payment_method || 'cash',
+        payment_status: 'confirmed',
+        payment_date: ljData.entry_date || ljData.created_at,
+        notes: ljData.title ? `${ljData.title}${ljData.notes ? ` - ${ljData.notes}` : ''}` : ljData.notes,
+        source: 'लेखा-जोखा (Lekha-Jokha)',
+        financial_year: new Date(ljData.entry_date || Date.now()).getFullYear(),
+        created_at: ljData.created_at,
+      };
+    }
+  }
+
+  if (!data) {
     return res.status(404).json({ success: false, message: 'Receipt not found' });
   }
 
   // Strict Family Authorization Check:
   // If user is authenticated and not staff, ensure this receipt belongs to their family
   if (req.user) {
-    const { familyUuids, panchayatFamilyIds, cleanPhone, isStaff } = await resolveUserFamily(req.user);
+    const { familyUuids, panchayatFamilyIds, cleanPhone, isStaff, familyMemberNames } = await resolveUserFamily(req.user);
     if (!isStaff) {
-      const isFamilyMatch =
+      let isFamilyMatch =
         (data.family_id && familyUuids.includes(data.family_id)) ||
         (data.panchayat_family_id && panchayatFamilyIds.includes(String(data.panchayat_family_id))) ||
         (cleanPhone && data.mobile_number && data.mobile_number.includes(cleanPhone));
+
+      if (!isFamilyMatch && data.donor_name) {
+        const dName = data.donor_name.trim().toLowerCase();
+        for (const mName of familyMemberNames) {
+          if (mName && (dName.includes(mName.toLowerCase()) || mName.toLowerCase().includes(dName))) {
+            isFamilyMatch = true;
+            break;
+          }
+        }
+      }
 
       if (!isFamilyMatch) {
         return res.status(403).json({

@@ -162,7 +162,14 @@ const MyReceiptsPage = () => {
           <span className="font-bold text-[#2B211B] text-xs sm:text-sm block">
             {purposeMap[v] || v}
           </span>
-          <span className="text-[11px] text-[#766A60]">वित्तीय वर्ष {r.financial_year || new Date().getFullYear()}</span>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="text-[11px] text-[#766A60]">वित्तीय वर्ष {r.financial_year || new Date().getFullYear()}</span>
+            {r.source && (
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                {r.source.includes('Lekha') ? 'लेखा-जोखा' : 'दान व्यवस्था'}
+              </span>
+            )}
+          </div>
         </div>
       ),
     },

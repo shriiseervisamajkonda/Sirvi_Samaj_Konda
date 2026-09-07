@@ -84,11 +84,14 @@ const LekhaJokhaPage = () => {
   const onSubmit = async (data) => {
     setSaving(true);
     const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const selectedFam = families.find((f) => f.id === selectedFamilyHeadId);
     const payload = {
       ...data,
+      family_id: selectedFamilyHeadId || data.family_id || null,
+      panchayat_family_id: data.panchayat_family_id || selectedFam?.panchayat_family_id || null,
       entry_type: data.type || data.entry_type,
       entry_date: data.date || data.entry_date,
-      receipt_or_bill_no: data.receiptNumber || data.receipt_or_bill_no,
+      receipt_or_bill_no: data.receiptNumber || data.receipt_or_bill_no || (data.type === 'income' ? `REC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}` : undefined),
       person_name: data.personName || data.person_name,
       payment_method: data.paymentMethod || data.payment_method,
       amount: Number(data.amount) || 0,
@@ -98,8 +101,11 @@ const LekhaJokhaPage = () => {
         await lekhaJokhaAPI.update(targetId, payload);
         toast.success('प्रविष्टि सफलतापूर्वक अपडेट की गई!');
       } else {
-        await lekhaJokhaAPI.create(payload);
+        const res = await lekhaJokhaAPI.create(payload);
         toast.success('प्रविष्टि सफलतापूर्वक दर्ज की गई!');
+        if (payload.entry_type === 'income') {
+          handleOpenReceipt({ ...payload, id: res.data?.data?.id });
+        }
       }
       setModalOpen(false);
       fetchData();
@@ -133,14 +139,22 @@ const LekhaJokhaPage = () => {
   };
 
   const handleOpenReceipt = (row) => {
+    const matchedFam = families.find((f) => f.id === row.family_id || String(f.panchayat_family_id) === String(row.panchayat_family_id));
     const receiptObj = {
-      receipt_number: row.receipt_or_bill_no || row.receiptNumber || `KONDA-${new Date().getFullYear()}-${row.id?.slice(0, 4) || 'REC'}`,
+      id: row.id,
+      receipt_number: row.receipt_or_bill_no || row.receiptNumber || `REC-${new Date().getFullYear()}-${row.id?.slice(0, 4) || '001'}`,
       donor_name: row.person_name || row.personName || row.title,
-      amount: row.amount,
+      head_name: matchedFam?.head_name || row.person_name || row.title,
+      panchayat_family_id: row.panchayat_family_id || matchedFam?.panchayat_family_id || '—',
+      family_id: row.family_id || matchedFam?.id,
+      gotra: matchedFam?.gotra || '—',
+      amount: Number(row.amount || 0),
       payment_date: row.entry_date || row.date,
       purpose: row.category || 'annual_chanda',
       payment_mode: row.payment_method || row.paymentMethod || 'cash',
+      payment_status: 'confirmed',
       notes: row.title,
+      source: 'लेखा-जोखा (Lekha-Jokha)',
     };
     setReceiptDonation(receiptObj);
   };
