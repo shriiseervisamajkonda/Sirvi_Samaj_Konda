@@ -49,12 +49,18 @@ const GalleryPage = () => {
   const onSubmit = async (data) => {
     setSaving(true);
     const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const photoUrl = data.url || data.photo_url || data.image_url;
     const payload = {
       ...data,
+<<<<<<< HEAD
       title: data.title || 'फ़ोटो',
       photo_url: data.url || data.image_url || data.photo_url,
       album_id: data.album || data.album_id || null,
       caption: data.caption || '',
+=======
+      photo_url: photoUrl,
+      image_url: photoUrl,
+>>>>>>> chirag-development
     };
     try {
       if (editItem && targetId) {
@@ -115,7 +121,7 @@ const GalleryPage = () => {
       key: 'url',
       label: 'Preview',
       render: (_, r) => {
-        const src = r.image_url || r.url;
+        const src = r.photo_url || r.image_url || r.url;
         return src ? (
           <img src={src} alt="Gallery" className="w-14 h-14 object-cover rounded-xl" />
         ) : (
@@ -141,7 +147,7 @@ const GalleryPage = () => {
       label: 'Actions',
       render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset({ ...r, url: r.photo_url || r.image_url || r.url }); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
           <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),

@@ -126,10 +126,11 @@ export const normalizePayload = (tableName, rawBody = {}) => {
       normalized.status = 'active';
     }
   } else if (tableName === 'gallery_photos') {
-    if (rawBody.url) normalized.photo_url = rawBody.url;
-    if (rawBody.imageUrl) normalized.photo_url = rawBody.imageUrl;
-    if (rawBody.image_url) normalized.photo_url = rawBody.image_url;
-    if (rawBody.album) normalized.album_id = rawBody.album || null;
+    if (rawBody.url && !normalized.photo_url) normalized.photo_url = rawBody.url;
+    if (rawBody.imageUrl && !normalized.photo_url) normalized.photo_url = rawBody.imageUrl;
+    if (rawBody.image_url && !normalized.photo_url) normalized.photo_url = rawBody.image_url;
+    if (rawBody.photoUrl && !normalized.photo_url) normalized.photo_url = rawBody.photoUrl;
+    if (rawBody.album && !normalized.album_id) normalized.album_id = rawBody.album;
     if (rawBody.order !== undefined) normalized.order_index = Number(rawBody.order) || 0;
     if (rawBody.order_index !== undefined) normalized.order_index = Number(rawBody.order_index) || 0;
   } else if (tableName === 'family_members') {

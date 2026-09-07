@@ -3,12 +3,14 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMenu, FiX, FiUser } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
+import { useSiteSettings } from '../../context/SiteSettingsContext';
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdown, setDropdown] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const { user, isAdmin, logout } = useAuth();
+  const { logoUrl } = useSiteSettings();
   const location = useLocation();
 
   useEffect(() => {
@@ -45,7 +47,7 @@ const Navbar = () => {
         { label: 'वैवाहिक बायोडाटा', path: '/marriage' },
       ],
     },
-    { label: 'लेखा-जोखा', path: '/lekha-jokha' },
+    { label: 'आय-व्यय लेखा-जोखा', path: '/lekha-jokha' },
     { label: 'पंच फैसले', path: '/panch-settlements' },
     { label: 'दान व्यवस्था', path: '/donations' },
     { label: 'आयोजन', path: '/events' },
@@ -67,7 +69,14 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-14">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:border-amber-400/50 transition">
-              <img src="/Logo.webp" alt="श्री सिर्वी समाज कोणदा लोगो" width="32" height="32" className="w-8 h-8 rounded-full object-cover" />
+              <img
+                src={logoUrl || '/Logo.webp'}
+                alt="श्री सिर्वी समाज कोणदा लोगो"
+                width="32"
+                height="32"
+                className="w-8 h-8 rounded-full object-cover"
+                onError={(e) => { e.currentTarget.src = '/Logo.webp'; }}
+              />
             </div>
             <div>
               <p className="font-extrabold text-sm sm:text-base text-white leading-tight tracking-wide">

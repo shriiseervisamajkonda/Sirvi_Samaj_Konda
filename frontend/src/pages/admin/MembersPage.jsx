@@ -274,6 +274,8 @@ const MembersPage = () => {
         onPageChange={setPage}
         onSearchChange={(v) => { setSearch(v); setPage(1); }}
         serverSide
+        downloadable={true}
+        title="सदस्य विवरण सूची (Members Directory)"
         emptyIcon={FiUser}
         emptyText="कोई सदस्य नहीं मिला"
       />

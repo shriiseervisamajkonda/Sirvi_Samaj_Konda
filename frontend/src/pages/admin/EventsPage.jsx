@@ -42,6 +42,7 @@ const EventsPage = () => {
   const onSubmit = async (data) => {
     setSaving(true);
     const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const imgUrl = data.image || (Array.isArray(data.images) ? data.images[0] : '');
     const payload = {
       title: (data.title || '').trim(),
       description: (data.description || '').trim(),
@@ -50,7 +51,8 @@ const EventsPage = () => {
       event_type: data.eventType || data.event_type || 'upcoming',
       start_date: data.startDate || data.start_date || new Date().toISOString(),
       end_date: data.endDate || data.end_date || null,
-      images: data.image ? [data.image] : (Array.isArray(data.images) ? data.images : []),
+      images: imgUrl ? [imgUrl] : [],
+      image_url: imgUrl || null,
     };
     try {
       if (editItem && targetId) {
@@ -92,6 +94,21 @@ const EventsPage = () => {
   };
 
   const columns = [
+    {
+      key: 'image',
+      label: 'Image',
+      render: (_, r) => {
+        const src = r.image || r.image_url || (Array.isArray(r.images) && r.images[0]) || '/aai_mata_temple.webp';
+        return (
+          <img
+            src={src}
+            alt="Event"
+            className="w-14 h-14 object-cover rounded-xl border border-gray-100"
+            onError={(e) => { e.currentTarget.src = '/aai_mata_temple.webp'; }}
+          />
+        );
+      },
+    },
     { key: 'title', label: 'Event Title', sortable: true, render: (v) => <span className="font-medium">{v}</span> },
     {
       key: 'startDate',

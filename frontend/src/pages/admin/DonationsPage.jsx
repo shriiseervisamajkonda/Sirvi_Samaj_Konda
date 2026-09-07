@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FiDollarSign, FiPlus, FiSearch, FiCheckCircle, FiFileText, FiDownload, FiUser, FiCalendar, FiCreditCard } from 'react-icons/fi';
+import { FiDollarSign, FiPlus, FiSearch, FiCheckCircle, FiFileText, FiPrinter, FiDownload, FiUser, FiCalendar, FiCreditCard } from 'react-icons/fi';
 import { useForm } from 'react-hook-form';
-import { donationAPI } from '../../services/api';
+import { donationAPI, familyAPI } from '../../services/api';
 import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
 import Badge from '../../components/common/Badge';
+import SearchableSelect from '../../components/common/SearchableSelect';
+import PaymentReceiptModal from '../../components/common/PaymentReceiptModal';
 import { FormSection, FormField, FormActions } from '../../components/common/FormComponents';
 import toast from 'react-hot-toast';
 
@@ -29,6 +31,7 @@ const paymentModeMap = {
 
 const AdminDonationsPage = () => {
   const [items, setItems] = useState([]);
+  const [families, setFamilies] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -37,12 +40,46 @@ const AdminDonationsPage = () => {
   const [selectedPurpose, setSelectedPurpose] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [receiptDonation, setReceiptDonation] = useState(null);
+  const [selectedFamilyHeadId, setSelectedFamilyHeadId] = useState('');
 
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, setValue } = useForm();
 
   const preventEnterSubmit = (e) => {
     if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
       e.preventDefault();
+    }
+  };
+
+  // Fetch Family Heads list
+  useEffect(() => {
+    familyAPI.getAll({ limit: 1000 })
+      .then((res) => {
+        setFamilies(res.data?.data || []);
+      })
+      .catch(() => {});
+  }, []);
+
+  const familyHeadOptions = useMemo(() => {
+    return (families || [])
+      .filter((f) => f.head_name)
+      .sort((a, b) => Number(a.panchayat_family_id || 0) - Number(b.panchayat_family_id || 0))
+      .map((f) => ({
+        value: f.id,
+        label: `[#${f.panchayat_family_id || '—'}] ${f.head_name} (${f.gotra || '—'})${f.head_mobile || f.mobile_number ? ` - ${f.head_mobile || f.mobile_number}` : ''}`,
+        family: f,
+      }));
+  }, [families]);
+
+  const handleSelectFamilyHead = (famId) => {
+    setSelectedFamilyHeadId(famId);
+    const selected = families.find((f) => f.id === famId);
+    if (selected) {
+      setValue('family_id', selected.id);
+      setValue('panchayat_family_id', selected.panchayat_family_id || '');
+      setValue('donor_name', selected.head_name || '');
+      setValue('gotra', selected.gotra || '');
+      setValue('mobile_number', selected.head_mobile || selected.mobile_number || '');
     }
   };
 
@@ -77,7 +114,9 @@ const AdminDonationsPage = () => {
   }, [fetchData]);
 
   const handleOpenCreate = () => {
+    setSelectedFamilyHeadId('');
     reset({
+      family_id: '',
       donor_name: '',
       panchayat_family_id: '',
       gotra: '',
@@ -97,6 +136,7 @@ const AdminDonationsPage = () => {
     setSaving(true);
     try {
       const payload = {
+        family_id: (formData.family_id || '').trim() || null,
         donor_name: (formData.donor_name || '').trim(),
         panchayat_family_id: (formData.panchayat_family_id || '').trim() || null,
         gotra: (formData.gotra || '').trim() || null,
@@ -110,10 +150,14 @@ const AdminDonationsPage = () => {
         notes: (formData.notes || '').trim() || null,
       };
 
-      await donationAPI.create(payload);
+      const res = await donationAPI.create(payload);
       toast.success('दान प्रविष्टि सफलतापूर्वक दर्ज की गई!');
       setModalOpen(false);
       fetchData();
+
+      // Automatically open payment receipt invoice modal
+      const createdRecord = res.data?.data || payload;
+      setReceiptDonation(createdRecord);
     } catch (err) {
       toast.error(err.response?.data?.message || 'प्रविष्टि दर्ज करने में विफलता');
     } finally {
@@ -128,13 +172,21 @@ const AdminDonationsPage = () => {
       render: (v) => <span className="font-mono font-bold text-xs text-[#7A2525]">{v || '—'}</span>,
     },
     {
+      key: 'panchayat_family_id',
+      label: 'परिवार क्र.',
+      sortable: true,
+      render: (v) => <span className="font-mono font-bold text-xs text-[#7A2525]">#{v || '—'}</span>,
+    },
+    {
       key: 'donor_name',
-      label: 'दानदाता का नाम',
+      label: 'परिवार मुखिया (Donor)',
       sortable: true,
       render: (v, r) => (
         <div>
           <span className="font-bold text-[#2B211B] text-sm block">{v}</span>
-          {r.mobile_number && <span className="text-xs text-[#766A60]">{r.mobile_number}</span>}
+          <span className="text-xs text-[#766A60]">
+            {r.gotra ? `${r.gotra} • ` : ''}{r.mobile_number || ''}
+          </span>
         </div>
       ),
     },
@@ -151,11 +203,11 @@ const AdminDonationsPage = () => {
       key: 'amount',
       label: 'राशि',
       sortable: true,
-      render: (v) => <span className="font-extrabold text-[#C85A17] text-sm">₹{Number(v || 0).toLocaleString('en-IN')}</span>,
+      render: (v) => <span className="font-black text-[#C85A17] text-sm">₹{Number(v || 0).toLocaleString('en-IN')}</span>,
     },
     {
       key: 'payment_mode',
-      label: 'भुगतान माध्यम',
+      label: 'माध्यम',
       render: (v) => <span className="text-xs font-medium text-[#2B211B]">{paymentModeMap[v] || v}</span>,
     },
     {
@@ -172,6 +224,20 @@ const AdminDonationsPage = () => {
         </Badge>
       ),
     },
+    {
+      key: '_actions',
+      label: 'रसीद / इनवॉइस',
+      render: (_, r) => (
+        <button
+          onClick={() => setReceiptDonation(r)}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] hover:border-[#C85A17] hover:bg-[#FAF1E0] text-[#7A2525] hover:text-[#C85A17] text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
+          title="रसीद / इनवॉइस देखें व प्रिंट करें"
+        >
+          <FiFileText className="w-3.5 h-3.5 text-[#C85A17]" />
+          <span>रसीद</span>
+        </button>
+      ),
+    },
   ];
 
   return (
@@ -180,17 +246,17 @@ const AdminDonationsPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#2B211B] tracking-tight">
-            दान एवं वार्षिक चंदा व्यवस्था (Donations)
+            दान एवं वार्षिक चंदा व्यवस्था (Donations & Chanda)
           </h1>
           <p className="text-sm text-[#766A60] mt-1 font-medium">
-            समाज के वार्षिक चंदा, सहायता कोष एवं निर्माण दान की प्रविष्टियों का प्रबंधन
+            परिवार मुखिया अनुसार चंदा, दान रसीदें एवं डिजिटल इनवॉइस निर्माण
           </p>
         </div>
         <button
           onClick={handleOpenCreate}
           className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-[#C85A17] to-[#7A2525] text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all text-sm cursor-pointer"
         >
-          <FiPlus className="w-4 h-4" /> नई दान प्रविष्टि (Record Donation)
+          <FiPlus className="w-4 h-4" /> नई भुगतान रसीद बनाएं (Record Payment)
         </button>
       </div>
 
@@ -244,30 +310,50 @@ const AdminDonationsPage = () => {
         columns={columns}
         data={items}
         loading={loading}
-        page={page}
+        currentPage={page}
         totalPages={totalPages}
         onPageChange={setPage}
-        onSearch={setSearch}
-        searchPlaceholder="दानदाता नाम या रसीद क्रमांक से खोजें..."
-        emptyMessage="कोई दान रिकॉर्ड उपलब्ध नहीं है।"
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        serverSide
+        searchable
+        downloadable={true}
+        title="पंजीकृत भुगतान व दान रसीदें"
+        emptyText="कोई दान रिकॉर्ड उपलब्ध नहीं है।"
       />
 
       {/* Add Donation Modal */}
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title="नई दान प्रविष्टि दर्ज करें (Record Donation)"
+        title="नई भुगतान रसीद दर्ज करें (Record Payment / Invoice)"
         size="lg"
       >
         <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-          <FormSection title="1. दानदाता विवरण (Donor Details)" icon={FiUser}>
-            <FormField label="दानदाता का नाम (Donor Full Name)" htmlFor="donor_name" required>
+          <FormSection title="1. परिवार मुखिया चयन (Select Family Head Only)" icon={FiUser}>
+            {/* Family Head Searchable Dropdown */}
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-[#7A2525] uppercase tracking-wider mb-1.5">
+                परिवार मुखिया का चयन करें (Select Family Head) *
+              </label>
+              <SearchableSelect
+                options={familyHeadOptions}
+                value={selectedFamilyHeadId}
+                onChange={handleSelectFamilyHead}
+                placeholder="-- परिवार मुखिया चुनें (Family Head) --"
+                searchPlaceholder="मुखिया का नाम, गोत्र या परिवार संख्या खोजें..."
+              />
+              <p className="text-[11px] text-[#766A60] mt-1">
+                यहाँ केवल पंजीकृत परिवारों के मुखिया (Family Heads) प्रदर्शित होते हैं।
+              </p>
+            </div>
+
+            <FormField label="दानदाता / परिवार मुखिया का नाम (Family Head Name)" htmlFor="donor_name" required>
               <input
                 id="donor_name"
                 {...register('donor_name', { required: true })}
                 placeholder="उदा. शांतिलाल मोहनजी चौहान"
                 autoComplete="name"
-                className="input-field"
+                className="input-field font-semibold text-[#2B211B]"
               />
             </FormField>
 
@@ -278,7 +364,7 @@ const AdminDonationsPage = () => {
                   {...register('panchayat_family_id')}
                   placeholder="उदा. 1, 2"
                   autoComplete="off"
-                  className="input-field"
+                  className="input-field font-mono font-bold text-[#7A2525]"
                 />
               </FormField>
 
@@ -288,7 +374,7 @@ const AdminDonationsPage = () => {
                   {...register('gotra')}
                   placeholder="उदा. भायल, पंवार, चौहान"
                   autoComplete="off"
-                  className="input-field"
+                  className="input-field font-medium"
                 />
               </FormField>
 
@@ -306,9 +392,9 @@ const AdminDonationsPage = () => {
             </div>
           </FormSection>
 
-          <FormSection title="2. राशि एवं मद (Amount & Purpose)" icon={FiCreditCard}>
+          <FormSection title="2. राशि एवं मद विवरण (Amount & Purpose)" icon={FiCreditCard}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <FormField label="दान राशि (Amount in ₹)" htmlFor="amount" required>
+              <FormField label="दान / चंदा राशि (Amount in ₹)" htmlFor="amount" required>
                 <input
                   id="amount"
                   type="number"
@@ -316,7 +402,7 @@ const AdminDonationsPage = () => {
                   placeholder="उदा. 1100"
                   inputMode="numeric"
                   autoComplete="off"
-                  className="input-field font-mono text-base font-bold text-[#C85A17]"
+                  className="input-field font-mono text-lg font-black text-[#C85A17]"
                 />
               </FormField>
 
@@ -332,8 +418,8 @@ const AdminDonationsPage = () => {
                 />
               </FormField>
 
-              <FormField label="दान मद (Purpose)" htmlFor="purpose">
-                <select id="purpose" {...register('purpose')} className="input-field">
+              <FormField label="मद / कोष (Purpose)" htmlFor="purpose">
+                <select id="purpose" {...register('purpose')} className="input-field font-medium">
                   {Object.entries(purposeMap).map(([k, v]) => (
                     <option key={k} value={k}>{v}</option>
                   ))}
@@ -343,7 +429,7 @@ const AdminDonationsPage = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField label="भुगतान माध्यम (Mode)" htmlFor="payment_mode">
-                <select id="payment_mode" {...register('payment_mode')} className="input-field">
+                <select id="payment_mode" {...register('payment_mode')} className="input-field font-medium">
                   {Object.entries(paymentModeMap).map(([k, v]) => (
                     <option key={k} value={k}>{v}</option>
                   ))}
@@ -355,12 +441,12 @@ const AdminDonationsPage = () => {
                   id="receipt_number"
                   {...register('receipt_number')}
                   autoComplete="off"
-                  className="input-field font-mono font-bold"
+                  className="input-field font-mono font-bold text-[#7A2525]"
                 />
               </FormField>
 
               <FormField label="भुगतान स्थिति (Status)" htmlFor="payment_status">
-                <select id="payment_status" {...register('payment_status')} className="input-field">
+                <select id="payment_status" {...register('payment_status')} className="input-field font-medium">
                   <option value="confirmed">सत्यापित (Confirmed)</option>
                   <option value="pending">प्रतीक्षारत (Pending)</option>
                 </select>
@@ -372,7 +458,7 @@ const AdminDonationsPage = () => {
                 id="notes"
                 {...register('notes')}
                 rows={2}
-                placeholder="अतिरिक्त विवरण या चेक संख्या..."
+                placeholder="अतिरिक्त विवरण या चेक/UPI संदर्भ संख्या..."
                 className="input-field"
               />
             </FormField>
@@ -380,11 +466,18 @@ const AdminDonationsPage = () => {
 
           <FormActions
             onCancel={() => setModalOpen(false)}
-            submitText="प्रविष्टि सहेजें (Save Donation)"
+            submitText="प्रविष्टि सहेजें एवं रसीद बनाएं (Save & Generate Invoice)"
             loading={saving}
           />
         </form>
       </Modal>
+
+      {/* Payment Receipt / Invoice Modal */}
+      <PaymentReceiptModal
+        isOpen={!!receiptDonation}
+        onClose={() => setReceiptDonation(null)}
+        donation={receiptDonation}
+      />
     </div>
   );
 };

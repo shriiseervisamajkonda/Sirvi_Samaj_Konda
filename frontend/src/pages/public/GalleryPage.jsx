@@ -17,7 +17,7 @@ const GalleryPage = () => {
 
   useEffect(() => {
     Promise.all([
-      galleryAPI.getAll({ limit: 60, status: 'active' }),
+      galleryAPI.getAll({ limit: 60 }),
       galleryAPI.getAlbums(),
     ])
       .then(([imgRes, albRes]) => {
@@ -31,6 +31,8 @@ const GalleryPage = () => {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  const getImageUrl = (img) => img?.photo_url || img?.imageUrl || img?.image_url || img?.url || '/hero_background.webp';
 
   const filtered = selectedAlbum === 'All' ? images : images.filter(img => img.album?.title === selectedAlbum || img.album?._id === selectedAlbum || img.album?.id === selectedAlbum || img.album_id === selectedAlbum);
 
@@ -108,31 +110,41 @@ const GalleryPage = () => {
           <EmptyState icon={FiImage} title="कोई चित्र उपलब्ध नहीं" description="वर्तमान में गैलरी में कोई फोटो उपलब्ध नहीं है।" />
         ) : (
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-            {filtered.map((img, i) => (
-              <motion.div
-                key={img.id || img._id || i}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: (i % 12) * 0.04 }}
-                className="break-inside-avoid relative group cursor-pointer overflow-hidden rounded-3xl border border-[#E8DCC8] shadow-md hover:shadow-2xl hover:border-[#C9A44C]/60 transition-all duration-300 bg-white p-2"
-                onClick={() => openLightbox(i)}
-              >
-                <div className="rounded-2xl overflow-hidden bg-[#FAF1E0]">
-                  <img
-                    src={img.url || img.imageUrl}
-                    alt={img.title || `Gallery ${i + 1}`}
-                    className="w-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-2xl"
-                    loading="lazy"
-                  />
-                </div>
-                {img.title && (
-                  <div className="p-3">
-                    <p className="text-[#2B211B] text-sm font-bold truncate group-hover:text-[#C85A17] transition-colors">{img.title}</p>
+            {filtered.map((img, i) => {
+              const src = getImageUrl(img);
+              return (
+                <motion.div
+                  key={img.id || img._id || i}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: (i % 12) * 0.04 }}
+                  className="break-inside-avoid relative group cursor-pointer overflow-hidden rounded-3xl border border-[#E8DCC8] shadow-md hover:shadow-2xl hover:border-[#C9A44C]/60 transition-all duration-300 bg-white p-2"
+                  onClick={() => openLightbox(i)}
+                >
+                  <div className="rounded-2xl overflow-hidden bg-[#FAF1E0] min-h-[160px]">
+                    <img
+                      src={src}
+                      alt={img.title || `Gallery ${i + 1}`}
+                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500 rounded-2xl"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/hero_background.webp';
+                      }}
+                    />
                   </div>
-                )}
-              </motion.div>
-            ))}
+                  {img.title && (
+                    <div className="p-3">
+                      <p className="text-[#2B211B] text-sm font-bold truncate group-hover:text-[#C85A17] transition-colors">{img.title}</p>
+                      {img.caption && (
+                        <p className="text-[#766A60] text-xs mt-0.5 line-clamp-1">{img.caption}</p>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -167,9 +179,13 @@ const GalleryPage = () => {
             </button>
             <div className="max-w-4xl max-h-[85vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
               <img
-                src={filtered[lightbox]?.url || filtered[lightbox]?.imageUrl}
+                src={getImageUrl(filtered[lightbox])}
                 alt={filtered[lightbox]?.title || ''}
                 className="max-h-[75vh] max-w-full object-contain rounded-2xl shadow-2xl border-2 border-white/20"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/hero_background.webp';
+                }}
               />
               {filtered[lightbox]?.title && (
                 <p className="text-white text-center mt-4 text-base font-bold bg-black/50 px-4 py-1.5 rounded-full backdrop-blur-md">

@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight, FiShield, FiHome } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
+import { useSiteSettings } from '../../context/SiteSettingsContext';
 import { supabase } from '../../config/supabase';
 import toast from 'react-hot-toast';
 
@@ -12,6 +13,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const { login, googleLogin } = useAuth();
+  const { logoUrl } = useSiteSettings();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || '/';
@@ -94,7 +96,12 @@ const LoginPage = () => {
           className="relative z-10 text-center max-w-md mx-auto"
         >
           <div className="w-24 h-24 bg-white rounded-3xl overflow-hidden flex items-center justify-center shadow-2xl border-2 border-amber-400/50 mx-auto mb-6 p-1">
-            <img src="/Logo.webp" alt="Logo" className="w-full h-full object-cover rounded-2xl" />
+            <img
+              src={logoUrl || '/Logo.webp'}
+              alt="Logo"
+              className="w-full h-full object-cover rounded-2xl"
+              onError={(e) => { e.currentTarget.src = '/Logo.webp'; }}
+            />
           </div>
           <h1 className="text-3xl lg:text-4xl font-extrabold mb-2 text-white drop-shadow-sm">
             श्री सिर्वी समाज
@@ -139,7 +146,12 @@ const LoginPage = () => {
           <div className="text-center mb-8 lg:hidden">
             <Link to="/" className="inline-block">
               <div className="w-16 h-16 bg-white rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-3 shadow-md border border-[#E8DCC8] p-0.5">
-                <img src="/Logo.webp" alt="Logo" className="w-full h-full object-cover rounded-xl" />
+                <img
+                  src={logoUrl || '/Logo.webp'}
+                  alt="Logo"
+                  className="w-full h-full object-cover rounded-xl"
+                  onError={(e) => { e.currentTarget.src = '/Logo.webp'; }}
+                />
               </div>
             </Link>
             <h1 className="text-xl font-extrabold text-[#7A2525]">श्री सिर्वी समाज कोणदा</h1>
@@ -269,13 +281,6 @@ const LoginPage = () => {
               </button>
             </form>
 
-            {/* Register Link */}
-            <p className="text-center text-[#766A60] text-sm mt-6 font-medium">
-              खाता नहीं है?{' '}
-              <Link to="/register" className="text-[#C85A17] hover:text-[#7A2525] font-bold transition-colors">
-                नया खाता बनाएं
-              </Link>
-            </p>
 
             {/* Back to Home Link */}
             <div className="mt-6 pt-5 border-t border-[#E8DCC8]/60 text-center">

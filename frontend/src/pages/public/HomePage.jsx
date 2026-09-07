@@ -10,6 +10,7 @@ import { dashboardAPI, newsAPI, eventAPI, committeeAPI, gramUnitAPI, villageAPI 
 import { SkeletonHomePage } from '../../components/common/Skeleton';
 import LazyImage from '../../components/common/LazyImage';
 import { useLanguage } from '../../context/LanguageContext';
+import { useSiteSettings } from '../../context/SiteSettingsContext';
 import { supabase } from '../../config/supabase';
 // TODO: This is mock/fallback data. Remove when actual data is filled in the database.
 import committeeFallback from '../../data/mock/committeeDefaultFallback.json';
@@ -85,6 +86,7 @@ const HomePage = () => {
   const [activeCommitteeTab, setActiveCommitteeTab] = useState('all');
   const [dataLoaded, setDataLoaded] = useState(false);
   const { t } = useLanguage();
+  const { heroBgUrl, aaiMatajiUrl, templeBaderUrl } = useSiteSettings();
 
   useEffect(() => {
     let isMounted = true;
@@ -202,12 +204,13 @@ const HomePage = () => {
         {/* Full-width background image with gradient overlay */}
         <div className="absolute inset-0">
           <img
-            src="/hero_background.webp"
+            src={heroBgUrl || '/hero_background.webp'}
             alt="Shri Seervi Samaj Konda Hero Background"
             fetchpriority="high"
             loading="eager"
             decoding="async"
             className="w-full h-full object-cover opacity-20"
+            onError={(e) => { e.currentTarget.src = '/hero_background.webp'; }}
           />
           <div className="absolute inset-0 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]" />
         </div>
@@ -332,7 +335,7 @@ const HomePage = () => {
               className="relative rounded-3xl overflow-hidden shadow-xl border border-[#E8DCC8] bg-white p-2"
             >
               <LazyImage
-                src="/aai_mataji_portrait.jpg"
+                src={aaiMatajiUrl || '/aai_mataji_portrait.jpg'}
                 alt="श्री आई माताजी पावन चित्र"
                 priority={true}
                 className="w-full max-h-[480px] rounded-2xl"
@@ -450,9 +453,10 @@ const HomePage = () => {
               <div className="relative rounded-3xl p-3 bg-white/20 backdrop-blur-md border-2 border-amber-400/40 shadow-2xl overflow-hidden group">
                 <div className="rounded-2xl overflow-hidden shadow-inner bg-[#351313] aspect-[4/3] sm:aspect-[16/11]">
                   <img
-                    src="/aai_mata_temple.webp"
+                    src={templeBaderUrl || '/aai_mata_temple.webp'}
                     alt="श्री आई जी मंदिर (बडेर) कोणदा"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => { e.currentTarget.src = '/aai_mata_temple.webp'; }}
                   />
                 </div>
 
