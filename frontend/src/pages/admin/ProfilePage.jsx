@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiUser, FiShield, FiKey, FiSave, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiUser, FiShield, FiKey, FiSave, FiEye, FiEyeOff, FiLogOut } from 'react-icons/fi';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../services/api';
@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 
 const ProfilePage = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, logout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -114,9 +114,20 @@ const ProfilePage = () => {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 ">मेरी प्रोफ़ाइल (My Profile)</h1>
-        <p className="text-gray-500 text-sm mt-1">खाता विवरण एवं सुरक्षा प्रबंधन</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">मेरी प्रोफ़ाइल (My Profile)</h1>
+          <p className="text-gray-500 text-sm mt-1">खाता विवरण एवं सुरक्षा प्रबंधन</p>
+        </div>
+        <button
+          type="button"
+          onClick={logout}
+          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl text-xs sm:text-sm font-bold transition shadow-xs cursor-pointer"
+          title="खाते से लॉगआउट करें (Logout)"
+        >
+          <FiLogOut className="w-4 h-4" />
+          <span>लॉगआउट (Logout)</span>
+        </button>
       </div>
 
       {/* Google Account Quick Connect Card */}

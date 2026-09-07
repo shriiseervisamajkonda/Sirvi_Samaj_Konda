@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMenu, FiX, FiUser, FiFileText } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiFileText, FiLogOut } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
 
@@ -165,6 +165,16 @@ const Navbar = () => {
               <Link to="/login" className="hidden sm:flex px-4 py-2.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-sm font-bold hover:shadow-lg transition shadow-md">
                 लॉगिन
               </Link>
+            )}
+            {user && (
+              <button
+                onClick={logout}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-2 bg-red-600/85 hover:bg-red-700 text-white rounded-xl text-xs sm:text-sm font-bold transition shadow-xs cursor-pointer"
+                title="लॉगआउट करें (Logout)"
+              >
+                <FiLogOut className="w-4 h-4" />
+                <span>लॉगआउट</span>
+              </button>
             )}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}

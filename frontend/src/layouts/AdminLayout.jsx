@@ -233,15 +233,23 @@ const AdminLayout = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               to="/"
               target="_blank"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#FFF8EC] hover:bg-[#F5EADB] border border-[#E8DCC8] text-[#7A2525] text-xs font-extrabold rounded-2xl transition shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#FFF8EC] hover:bg-[#F5EADB] border border-[#E8DCC8] text-[#7A2525] text-xs font-extrabold rounded-2xl transition shadow-xs cursor-pointer"
             >
               <FiChevronLeft className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">वेबसाइट देखें</span>
             </Link>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-xs font-extrabold rounded-2xl transition shadow-xs cursor-pointer"
+              title="लॉगआउट करें (Logout)"
+            >
+              <FiLogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">लॉगआउट</span>
+            </button>
           </div>
         </header>
 

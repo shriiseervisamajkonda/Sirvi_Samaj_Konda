@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FiFileText, FiPrinter, FiShare2, FiDollarSign, FiSearch, FiCalendar, FiCheckCircle, FiInbox, FiUser, FiHome } from 'react-icons/fi';
+import { FiFileText, FiPrinter, FiShare2, FiDollarSign, FiSearch, FiCalendar, FiCheckCircle, FiInbox, FiUser, FiHome, FiLogOut } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { donationAPI } from '../../services/api';
@@ -28,7 +28,7 @@ const paymentModeMap = {
 };
 
 const MyReceiptsPage = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -232,13 +232,27 @@ const MyReceiptsPage = () => {
               </p>
             </div>
           </div>
-          <div className="flex gap-2.5 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            <Link
+              to="/profile"
+              className="flex-1 sm:flex-none text-center px-4 py-2 bg-[#FFF8EC] border border-[#E8DCC8] hover:bg-[#FAF1E0] text-[#7A2525] font-bold text-xs rounded-xl transition-all"
+            >
+              मेरी प्रोफ़ाइल
+            </Link>
             <Link
               to="/lekha-jokha"
               className="flex-1 sm:flex-none text-center px-4 py-2 bg-[#FFF8EC] border border-[#E8DCC8] hover:bg-[#FAF1E0] text-[#7A2525] font-bold text-xs rounded-xl transition-all"
             >
-              सम्पूर्ण समाज लेखा-जोखा
+              सम्पूर्ण लेखा-जोखा
             </Link>
+            <button
+              onClick={logout}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs rounded-xl transition-all cursor-pointer shadow-xs"
+              title="खाते से लॉगआउट करें"
+            >
+              <FiLogOut className="w-3.5 h-3.5" />
+              <span>लॉगआउट</span>
+            </button>
           </div>
         </div>
 
