@@ -68,10 +68,13 @@ const MyReceiptsPage = () => {
     return receipts.filter((r) => {
       const rNo = (r.receipt_number || '').toLowerCase();
       const pName = (purposeMap[r.purpose] || r.purpose || '').toLowerCase();
-      const dName = (r.donor_name || '').toLowerCase();
+      const dName = (r.donor_name || r.head_name || '').toLowerCase();
+      const gotra = (r.gotra || '').toLowerCase();
+      const famId = String(r.panchayat_family_id || '');
+      const mobile = String(r.mobile_number || '');
       const amt = String(r.amount || '');
       const yr = String(r.financial_year || '');
-      return rNo.includes(q) || pName.includes(q) || dName.includes(q) || amt.includes(q) || yr.includes(q);
+      return rNo.includes(q) || pName.includes(q) || dName.includes(q) || gotra.includes(q) || famId.includes(q) || mobile.includes(q) || amt.includes(q) || yr.includes(q);
     });
   }, [receipts, search]);
 
@@ -117,6 +120,21 @@ const MyReceiptsPage = () => {
         <span className="font-mono font-bold text-xs text-[#7A2525] bg-[#FFF8EC] px-2.5 py-1 rounded-lg border border-[#E8DCC8]">
           {v || '—'}
         </span>
+      ),
+    },
+    {
+      key: 'donor_name',
+      label: 'सदस्य / परिवार मुखिया (Member Name)',
+      sortable: true,
+      render: (v, r) => (
+        <div>
+          <span className="font-extrabold text-[#2B211B] text-xs sm:text-sm block">
+            {v || r.head_name || '—'}
+          </span>
+          <span className="text-[11px] text-[#766A60] block font-medium">
+            {r.panchayat_family_id ? `परिवार क्र. #${r.panchayat_family_id}` : ''} {r.gotra ? `• गोत्र: ${r.gotra}` : ''}
+          </span>
+        </div>
       ),
     },
     {

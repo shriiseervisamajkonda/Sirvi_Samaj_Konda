@@ -110,31 +110,88 @@ export const getMyReceipts = asyncHandler(async (req, res) => {
     return res.json({ success: true, data: [] });
   }
 
-  const cleanPhone = (user.phone || '').trim().replace(/\D/g, '');
-  const familyId = user.panchayat_family_id || user.family_id;
+  const cleanPhone = (user.phone || '').trim().replace(/\D/g, '').slice(-10);
+  let resolvedFamilyIds = [];
+  let resolvedPanchayatIds = [];
 
-  let query = supabase.from('donations').select('*');
-
-  if (familyId && cleanPhone) {
-    query = query.or(`panchayat_family_id.eq.${familyId},mobile_number.ilike.%${cleanPhone}%,donor_name.ilike.%${user.name}%`);
-  } else if (familyId) {
-    query = query.eq('panchayat_family_id', String(familyId));
-  } else if (cleanPhone) {
-    query = query.or(`mobile_number.ilike.%${cleanPhone}%,donor_name.ilike.%${user.name}%`);
-  } else {
-    query = query.eq('donor_name', user.name);
+  if (user.panchayat_family_id) {
+    resolvedPanchayatIds.push(String(user.panchayat_family_id));
+  }
+  if (user.family_id) {
+    resolvedFamilyIds.push(user.family_id);
   }
 
-  query = query.order('payment_date', { ascending: false });
+  // 1. Lookup in families table by phone
+  if (cleanPhone) {
+    const { data: headFamilies } = await supabase
+      .from('families')
+      .select('id, panchayat_family_id')
+      .ilike('head_mobile', `%${cleanPhone}%`);
+    if (headFamilies && headFamilies.length > 0) {
+      headFamilies.forEach((f) => {
+        if (f.id) resolvedFamilyIds.push(f.id);
+        if (f.panchayat_family_id) resolvedPanchayatIds.push(String(f.panchayat_family_id));
+      });
+    }
 
-  const { data, error } = await query;
-  if (error) {
-    return res.status(400).json({ success: false, message: error.message });
+    // 2. Lookup in family_members table by phone
+    const { data: memberRecords } = await supabase
+      .from('family_members')
+      .select('family_id, families(id, panchayat_family_id)')
+      .ilike('mobile_number', `%${cleanPhone}%`);
+    if (memberRecords && memberRecords.length > 0) {
+      memberRecords.forEach((m) => {
+        if (m.family_id) resolvedFamilyIds.push(m.family_id);
+        if (m.families?.panchayat_family_id) resolvedPanchayatIds.push(String(m.families.panchayat_family_id));
+      });
+    }
+  }
+
+  resolvedFamilyIds = [...new Set(resolvedFamilyIds.filter(Boolean))];
+  resolvedPanchayatIds = [...new Set(resolvedPanchayatIds.filter(Boolean))];
+
+  const isStaff = ['developer', 'super_admin', 'admin', 'treasurer'].includes(user.role);
+
+  // If user is regular member or has identified family
+  if (resolvedPanchayatIds.length > 0 || resolvedFamilyIds.length > 0 || cleanPhone) {
+    const filterClauses = [];
+    if (resolvedPanchayatIds.length > 0) {
+      resolvedPanchayatIds.forEach((pid) => filterClauses.push(`panchayat_family_id.eq.${pid}`));
+    }
+    if (resolvedFamilyIds.length > 0) {
+      resolvedFamilyIds.forEach((fid) => filterClauses.push(`family_id.eq.${fid}`));
+    }
+    if (cleanPhone) {
+      filterClauses.push(`mobile_number.ilike.%${cleanPhone}%`);
+    }
+
+    if (filterClauses.length > 0) {
+      const { data: matchedData, error: matchError } = await supabase
+        .from('donations')
+        .select('*')
+        .or(filterClauses.join(','))
+        .order('payment_date', { ascending: false });
+
+      if (!matchError && matchedData && matchedData.length > 0) {
+        return res.json({ success: true, data: matchedData });
+      }
+    }
+  }
+
+  // If staff/admin and no specific personal records found, return all donations
+  if (isStaff) {
+    const { data: allData, error: allError } = await supabase
+      .from('donations')
+      .select('*')
+      .order('payment_date', { ascending: false });
+    if (!allError) {
+      return res.json({ success: true, data: allData || [] });
+    }
   }
 
   res.json({
     success: true,
-    data: data || [],
+    data: [],
   });
 });
 
