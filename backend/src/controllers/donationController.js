@@ -107,7 +107,7 @@ export const getDonationById = asyncHandler(async (req, res) => {
 export const getMyReceipts = asyncHandler(async (req, res) => {
   const user = req.user;
   if (!user) {
-    return res.status(401).json({ success: false, message: 'लॉगिन आवश्यक है' });
+    return res.json({ success: true, data: [] });
   }
 
   const cleanPhone = (user.phone || '').trim().replace(/\D/g, '');

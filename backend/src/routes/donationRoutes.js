@@ -15,10 +15,10 @@ const router = express.Router();
 // Public receipt lookup
 router.get('/receipt/:receiptNumber', optionalAuth, getReceiptByNumber);
 router.get('/stats', optionalAuth, getDonationStats);
+router.get('/my-receipts', optionalAuth, getMyReceipts);
 
-// Protected Member & Staff operations
+// Protected Staff & Treasurer operations
 router.use(protect);
-router.get('/my-receipts', getMyReceipts);
 router.get('/', authorize('developer', 'super_admin', 'admin', 'treasurer', 'donations:read'), getDonations);
 router.post('/', authorize('developer', 'super_admin', 'admin', 'treasurer', 'donations:write'), recordDonation);
 router.put('/:id', authorize('developer', 'super_admin', 'admin', 'treasurer', 'donations:write'), updateDonation);
