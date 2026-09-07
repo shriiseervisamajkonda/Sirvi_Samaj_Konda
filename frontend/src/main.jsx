@@ -7,6 +7,7 @@ import './index.css';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { SiteSettingsProvider } from './context/SiteSettingsContext';
 
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
@@ -90,7 +91,8 @@ createRoot(document.getElementById('root')).render(
       <ThemeProvider>
         <AuthProvider>
           <LanguageProvider>
-            <Toaster
+            <SiteSettingsProvider>
+              <Toaster
               position="top-right"
               toastOptions={{
                 duration: 3000,
@@ -135,7 +137,14 @@ createRoot(document.getElementById('root')).render(
                     <Route path="/gallery" element={<GalleryPage />} />
                     <Route path="/documents" element={<DocumentsPage />} />
                     <Route path="/contact" element={<ContactPage />} />
-                    <Route path="/lekha-jokha" element={<LekhaJokhaPage />} />
+                    <Route
+                      path="/lekha-jokha"
+                      element={
+                        <ProtectedRoute>
+                          <LekhaJokhaPage />
+                        </ProtectedRoute>
+                      }
+                    />
                     <Route path="/donations" element={<DonationsPage />} />
                     <Route path="/panch-settlements" element={<PanchSettlementsPage />} />
                     <Route path="/social-info" element={<SocialInfoPage />} />
@@ -196,6 +205,7 @@ createRoot(document.getElementById('root')).render(
                 </Routes>
               </Suspense>
             </ErrorBoundary>
+            </SiteSettingsProvider>
           </LanguageProvider>
         </AuthProvider>
       </ThemeProvider>

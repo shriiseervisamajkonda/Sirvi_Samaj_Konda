@@ -60,6 +60,12 @@ export const normalizePayload = (tableName, rawBody = {}) => {
       normalized.total_members = Number(rawBody.numberOfMembers);
     }
     if (rawBody.pinCode) normalized.pin_code = String(rawBody.pinCode);
+  } else if (tableName === 'gallery_photos') {
+    if (rawBody.url && !normalized.photo_url) normalized.photo_url = rawBody.url;
+    if (rawBody.imageUrl && !normalized.photo_url) normalized.photo_url = rawBody.imageUrl;
+    if (rawBody.image_url && !normalized.photo_url) normalized.photo_url = rawBody.image_url;
+    if (rawBody.photoUrl && !normalized.photo_url) normalized.photo_url = rawBody.photoUrl;
+    if (rawBody.album && !normalized.album_id) normalized.album_id = rawBody.album;
   }
 
   const allowed = TABLE_ALLOWED_COLUMNS[tableName];

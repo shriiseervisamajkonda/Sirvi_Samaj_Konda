@@ -1,0 +1,16 @@
+{
+  "appName": "Shri Seervi Samaj Konda",
+  "contactEmail": "shriseervisamajkonda@gmail.com",
+  "contactPhone": "+91-9981644585",
+  "logoUrl": "/Logo.webp",
+  "heroBgUrl": "/hero_background.webp",
+  "aaiMatajiUrl": "/aai_mataji_portrait.jpg",
+  "templeBaderUrl": "/aai_mata_temple.webp",
+  "facebookUrl": "https://facebook.com/",
+  "instagramUrl": "https://instagram.com/",
+  "youtubeUrl": "https://youtube.com/",
+  "whatsappNumber": "+919981644585",
+  "twitterUrl": "",
+  "enableNotifications": true,
+  "maintenanceMode": false
+}

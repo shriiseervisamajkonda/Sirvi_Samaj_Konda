@@ -92,6 +92,21 @@ const NewsPage = () => {
   };
 
   const columns = [
+    {
+      key: 'image',
+      label: 'Cover',
+      render: (_, r) => {
+        const src = r.image_url || r.image || r.photo_url || (Array.isArray(r.images) && r.images[0]) || '/hero_background.webp';
+        return (
+          <img
+            src={src}
+            alt="News"
+            className="w-14 h-14 object-cover rounded-xl border border-gray-100"
+            onError={(e) => { e.currentTarget.src = '/hero_background.webp'; }}
+          />
+        );
+      },
+    },
     { key: 'title', label: 'Title', sortable: true, render: (v) => <span className="font-medium line-clamp-1">{v}</span> },
     { key: 'category', label: 'Category', sortable: true, render: (v) => <Badge variant="info">{v}</Badge> },
     { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'published' ? 'success' : 'warning'}>{v}</Badge> },

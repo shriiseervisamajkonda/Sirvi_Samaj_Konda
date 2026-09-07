@@ -28,6 +28,7 @@ import {
   FiMessageSquare,
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 const navigationGroups = [
   {
@@ -83,8 +84,9 @@ const navigationGroups = [
 ];
 
 const AdminLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { logoUrl } = useSiteSettings();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -115,7 +117,12 @@ const AdminLayout = () => {
             <Link to="/" className="flex items-center gap-3 group">
               <div className="w-10 h-10 rounded-2xl overflow-hidden bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-0.5 shadow-md group-hover:scale-105 transition-transform">
                 <div className="w-full h-full bg-white rounded-2xl flex items-center justify-center">
-                  <img src="/Logo.webp" alt="Logo" className="w-8 h-8 object-contain" />
+                  <img
+                    src={logoUrl || '/Logo.webp'}
+                    alt="Logo"
+                    className="w-8 h-8 object-contain"
+                    onError={(e) => { e.currentTarget.src = '/Logo.webp'; }}
+                  />
                 </div>
               </div>
               <div>

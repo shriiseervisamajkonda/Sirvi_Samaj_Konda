@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FiSearch, FiChevronUp, FiChevronDown, FiDownload } from 'react-icons/fi';
 import Pagination from './Pagination';
 import EmptyState from './EmptyState';
@@ -13,7 +13,7 @@ const DataTable = ({
   currentPage = 1,
   onPageChange,
   searchable = true,
-  downloadable = true,
+  downloadable = false, // Default false to protect sensitive community table datasets
   title,
   actions,
   emptyIcon,
@@ -21,19 +21,37 @@ const DataTable = ({
   emptyDescription,
   serverSide = false,
   onSearchChange,
+  onSortChange,
+  searchValue,
+  initialSortField = null,
+  initialSortDir = 'asc',
 }) => {
-  const [localSearch, setLocalSearch] = useState('');
-  const [sortField, setSortField] = useState(null);
-  const [sortDir, setSortDir] = useState('asc');
+  const [localSearch, setLocalSearch] = useState(searchValue !== undefined ? searchValue : '');
+  const [sortField, setSortField] = useState(initialSortField);
+  const [sortDir, setSortDir] = useState(initialSortDir);
   
   const { isAdmin } = useAuth();
 
+  useEffect(() => {
+    if (searchValue !== undefined) {
+      setLocalSearch(searchValue);
+    }
+  }, [searchValue]);
+
+  useEffect(() => {
+    setSortField(initialSortField);
+  }, [initialSortField]);
+
+  useEffect(() => {
+    setSortDir(initialSortDir);
+  }, [initialSortDir]);
+
   const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortDir('asc');
+    const newDir = sortField === field ? (sortDir === 'asc' ? 'desc' : 'asc') : 'asc';
+    setSortField(field);
+    setSortDir(newDir);
+    if (onSortChange) {
+      onSortChange(field, newDir);
     }
   };
 
@@ -81,6 +99,7 @@ const DataTable = ({
   }, [data, localSearch, columns, serverSide]);
 
   const sorted = useMemo(() => {
+    if (serverSide) return filtered;
     if (!sortField) return filtered;
     return [...filtered].sort((a, b) => {
       const aVal = getCellValue(a, sortField);
@@ -99,13 +118,13 @@ const DataTable = ({
         ? String(aVal).localeCompare(String(bVal), undefined, { numeric: true, sensitivity: 'base' })
         : String(bVal).localeCompare(String(aVal), undefined, { numeric: true, sensitivity: 'base' });
     });
-  }, [filtered, sortField, sortDir]);
+  }, [filtered, sortField, sortDir, serverSide]);
 
   const exportToCSV = () => {
-    if (!sorted || sorted.length === 0) return;
+    if (!isAdmin || !sorted || sorted.length === 0) return;
     
     // Get headers from columns
-    const exportColumns = columns.filter(col => col.key && col.label !== 'Actions');
+    const exportColumns = columns.filter(col => col.key && !col.key.startsWith('_') && col.label !== 'Actions');
     const headers = exportColumns.map(col => col.label);
     const keys = exportColumns.map(col => col.key);
 
@@ -121,20 +140,22 @@ const DataTable = ({
       )
     ].join('\n');
 
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' }); // Added BOM for UTF-8 Excel support
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `${title ? title.replace(/\s+/g, '_') : 'export'}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `${title ? title.replace(/\s+/g, '_') : 'konda_export'}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  const showHeader = Boolean(title || searchable || (downloadable && isAdmin && sorted.length > 0) || actions);
+
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-[#E8DCC8] overflow-hidden">
       {/* Header */}
-      {(title || searchable || downloadable || actions) && (
+      {showHeader && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 sm:p-6 border-b border-[#E8DCC8] bg-gradient-to-r from-[#FFF8EC]/60 to-white">
           {title && <h3 className="font-extrabold text-[#2B211B] text-base sm:text-lg">{title}</h3>}
           <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -150,11 +171,12 @@ const DataTable = ({
                 />
               </div>
             )}
+            {/* Strictly Admin-only CSV/Excel table export */}
             {downloadable && isAdmin && sorted.length > 0 && (
               <button
                 onClick={exportToCSV}
-                className="p-2.5 bg-white border border-[#E8DCC8] rounded-2xl text-[#C85A17] hover:bg-[#FFF8EC] hover:border-[#C85A17] transition-all shadow-sm flex items-center gap-2 shrink-0"
-                title="CSV डाउनलोड करें (Download CSV)"
+                className="p-2.5 bg-white border border-[#E8DCC8] rounded-2xl text-[#C85A17] hover:bg-[#FFF8EC] hover:border-[#C85A17] transition-all shadow-sm flex items-center gap-2 shrink-0 cursor-pointer"
+                title="CSV डाउनलोड करें (Admin Only)"
               >
                 <FiDownload className="w-4 h-4" />
                 <span className="hidden sm:inline text-sm font-bold">CSV</span>

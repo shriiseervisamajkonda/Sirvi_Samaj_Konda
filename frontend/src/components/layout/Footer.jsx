@@ -1,11 +1,37 @@
 import { Link } from 'react-router-dom';
-import { FiFacebook, FiInstagram, FiYoutube, FiMail, FiPhone, FiMapPin } from 'react-icons/fi';
-import { FaWhatsapp } from 'react-icons/fa';
+import { FiMail, FiPhone, FiMapPin } from 'react-icons/fi';
+import { FaWhatsapp, FaFacebook, FaInstagram, FaYoutube, FaTwitter } from 'react-icons/fa';
 import { useLanguage } from '../../context/LanguageContext';
+import { useSiteSettings } from '../../context/SiteSettingsContext';
+
+const formatWhatsAppUrl = (val) => {
+  if (!val) return 'https://wa.me/919981644585';
+  if (val.startsWith('http://') || val.startsWith('https://')) return val;
+  const digits = val.replace(/\D/g, '');
+  return `https://wa.me/${digits || '919981644585'}`;
+};
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   const { t } = useLanguage();
+  const {
+    logoUrl,
+    contactPhone,
+    contactEmail,
+    facebookUrl,
+    instagramUrl,
+    youtubeUrl,
+    whatsappNumber,
+    twitterUrl,
+  } = useSiteSettings();
+
+  const socialLinks = [
+    { Icon: FaFacebook, href: facebookUrl || 'https://facebook.com/', label: 'Facebook' },
+    { Icon: FaInstagram, href: instagramUrl || 'https://instagram.com/', label: 'Instagram' },
+    { Icon: FaYoutube, href: youtubeUrl || 'https://youtube.com/', label: 'YouTube' },
+    { Icon: FaWhatsapp, href: formatWhatsAppUrl(whatsappNumber), label: 'WhatsApp' },
+    ...(twitterUrl ? [{ Icon: FaTwitter, href: twitterUrl, label: 'Twitter / X' }] : []),
+  ];
 
   return (
     <footer className="bg-[#3B0A0A] text-[#FDE68A]/90 border-t border-[#F59E0B]/20">
@@ -14,7 +40,14 @@ const Footer = () => {
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md bg-white border border-[#D4AF37]/30">
-                <img src="/Logo.webp" alt="श्री सिर्वी समाज कोणदा लोगो" width="40" height="40" className="w-full h-full object-cover" />
+                <img
+                  src={logoUrl || '/Logo.webp'}
+                  alt="श्री सिर्वी समाज कोणदा लोगो"
+                  width="40"
+                  height="40"
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.src = '/Logo.webp'; }}
+                />
               </div>
               <div>
                 <p className="font-bold text-[#FFF3DD] leading-tight">{t('hero_title_1')} {t('hero_title_2')}</p>
@@ -45,6 +78,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               {[
                 [t('nav_students'), '/students'],
+                ['आय-व्यय लेखा-जोखा', '/lekha-jokha'],
                 ['गोपनीयता नीति', '/privacy-policy'],
                 ['नियम एवं शर्तें', '/terms'],
               ].map(([label, path]) => (
@@ -64,26 +98,26 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-2">
                 <FiPhone className="w-4 h-4 text-amber-400 shrink-0" />
-                <a href="tel:+919981644585" className="text-[#E2D9CF] hover:text-white transition-colors">+91-9981644585</a>
+                <a href={`tel:${(contactPhone || '+919981644585').replace(/\s+/g, '')}`} className="text-[#E2D9CF] hover:text-white transition-colors">
+                  {contactPhone || '+91-9981644585'}
+                </a>
               </li>
               <li className="flex items-center gap-2">
                 <FiMail className="w-4 h-4 text-amber-400 shrink-0" />
-                <a href="mailto:shriseervisamajkonda@gmail.com" className="text-[#E2D9CF] hover:text-white transition-colors">shriseervisamajkonda@gmail.com</a>
+                <a href={`mailto:${contactEmail || 'shriseervisamajkonda@gmail.com'}`} className="text-[#E2D9CF] hover:text-white transition-colors">
+                  {contactEmail || 'shriseervisamajkonda@gmail.com'}
+                </a>
               </li>
             </ul>
-            <div className="flex gap-2.5 mt-5">
-              {[
-                { Icon: FiFacebook, href: '#', label: 'Visit our Facebook page' },
-                { Icon: FiInstagram, href: '#', label: 'Visit our Instagram page' },
-                { Icon: FiYoutube, href: '#', label: 'Visit our YouTube channel' },
-                { Icon: FaWhatsapp, href: 'https://wa.me/919981644585', label: 'Contact us on WhatsApp' },
-              ].map(({ Icon, href, label }, i) => (
+            <div className="flex flex-wrap gap-2.5 mt-5">
+              {socialLinks.map(({ Icon, href, label }, i) => (
                 <a
                   key={i}
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
+                  title={label}
                   className="w-9 h-9 rounded-xl bg-[#351313] border border-[#D4AF37]/10 flex items-center justify-center hover:bg-[#7A2525] hover:text-white transition-all text-[#D1C7BC]"
                 >
                   <Icon className="w-4.5 h-4.5" />

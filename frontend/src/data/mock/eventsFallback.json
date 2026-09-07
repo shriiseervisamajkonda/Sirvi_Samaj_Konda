@@ -1,0 +1,50 @@
+[
+  {
+    "id": "event-1",
+    "title": "श्री आई माताजी पाटोत्सव एवं अखंड ज्योति महोत्सव",
+    "description": "श्री आई माताजी बडेर कोणदा में वार्षिक पाटोत्सव, महाआरती, धर्मसभा एवं विशाल महाप्रसादी का भव्य आयोजन।",
+    "event_type": "upcoming",
+    "start_date": "2026-10-15T09:00:00.000Z",
+    "end_date": "2026-10-15T18:00:00.000Z",
+    "location": "श्री आई जी बडेर प्रांगण, ग्राम कोणदा (कुक्षी)",
+    "images": ["/aai_mata_temple.webp"],
+    "image_url": "/aai_mata_temple.webp",
+    "status": "published"
+  },
+  {
+    "id": "event-2",
+    "title": "प्रतिभा सम्मान एवं विद्यार्थी प्रोत्साहन समारोह 2026",
+    "description": "कक्षा 10वीं, 12वीं एवं उच्च शिक्षा में उत्कृष्ट प्रदर्शन करने वाले समाज के होनहार विद्यार्थियों का विशेष सम्मान।",
+    "event_type": "upcoming",
+    "start_date": "2026-11-20T10:00:00.000Z",
+    "end_date": "2026-11-20T16:00:00.000Z",
+    "location": "माँ अन्नपूर्णा भवन, कोणदा",
+    "images": ["https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop&q=60"],
+    "image_url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop&q=60",
+    "status": "published"
+  },
+  {
+    "id": "event-3",
+    "title": "अखिल भारतीय सिर्वी समाज वार्षिक स्नेह मिलन एवं आमसभा",
+    "description": "सकल पंच, ग्राम इकाई एवं समाजजनों की संयुक्त बैठक; सामाजिक विकास, छात्रावास निर्माण एवं आगामी योजनाओं पर विचार-विमर्श।",
+    "event_type": "upcoming",
+    "start_date": "2026-12-25T11:00:00.000Z",
+    "end_date": "2026-12-25T17:00:00.000Z",
+    "location": "सामुदायिक भवन परिसर, कोणदा",
+    "images": ["https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=60"],
+    "image_url": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=60",
+    "status": "published"
+  },
+  {
+    "id": "event-4",
+    "title": "भव्य निःशुल्क रक्तदान एवं स्वास्थ्य परीक्षण शिविर",
+    "description": "सिर्वी समाज युवा संगठन एवं रेड क्रॉस के संयुक्त तत्वावधान में विशाल रक्तदान एवं अनुभवी डॉक्टरों द्वारा स्वास्थ्य जांच।",
+    "event_type": "past",
+    "start_date": "2026-02-14T09:00:00.000Z",
+    "end_date": "2026-02-14T15:00:00.000Z",
+    "location": "शासकीय प्राथमिक स्वास्थ्य केंद्र परिसर, कोणदा",
+    "images": ["https://images.unsplash.com/photo-1615461066841-6116e61058f4?w=800&auto=format&fit=crop&q=60"],
+    "image_url": "https://images.unsplash.com/photo-1615461066841-6116e61058f4?w=800&auto=format&fit=crop&q=60",
+    "status": "published"
+  }
+]
