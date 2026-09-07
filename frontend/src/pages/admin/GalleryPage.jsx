@@ -52,15 +52,11 @@ const GalleryPage = () => {
     const photoUrl = data.url || data.photo_url || data.image_url;
     const payload = {
       ...data,
-<<<<<<< HEAD
       title: data.title || 'फ़ोटो',
-      photo_url: data.url || data.image_url || data.photo_url,
-      album_id: data.album || data.album_id || null,
-      caption: data.caption || '',
-=======
       photo_url: photoUrl,
       image_url: photoUrl,
->>>>>>> chirag-development
+      album_id: data.album || data.album_id || null,
+      caption: data.caption || '',
     };
     try {
       if (editItem && targetId) {
