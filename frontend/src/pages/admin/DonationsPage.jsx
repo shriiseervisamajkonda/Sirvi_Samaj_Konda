@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FiDollarSign, FiPlus, FiSearch, FiCheckCircle, FiFileText, FiPrinter, FiDownload, FiUser, FiCalendar, FiCreditCard } from 'react-icons/fi';
+import { FiDollarSign, FiPlus, FiSearch, FiCheckCircle, FiFileText, FiPrinter, FiDownload, FiUser, FiCalendar, FiCreditCard, FiTrash2 } from 'react-icons/fi';
 import { useForm } from 'react-hook-form';
 import { donationAPI, familyAPI } from '../../services/api';
 import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
 import Badge from '../../components/common/Badge';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import SearchableSelect from '../../components/common/SearchableSelect';
 import PaymentReceiptModal from '../../components/common/PaymentReceiptModal';
 import { FormSection, FormField, FormActions } from '../../components/common/FormComponents';
@@ -42,6 +43,8 @@ const AdminDonationsPage = () => {
   const [saving, setSaving] = useState(false);
   const [receiptDonation, setReceiptDonation] = useState(null);
   const [selectedFamilyHeadId, setSelectedFamilyHeadId] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const { register, handleSubmit, reset, setValue } = useForm();
 
@@ -165,6 +168,21 @@ const AdminDonationsPage = () => {
     }
   };
 
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await donationAPI.delete(deleteTarget.id);
+      toast.success('दान प्रविष्टि सफलतापूर्वक हटाई गई!');
+      setDeleteTarget(null);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'प्रविष्टि हटाने में विफलता');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const columns = [
     {
       key: 'receipt_number',
@@ -226,16 +244,26 @@ const AdminDonationsPage = () => {
     },
     {
       key: '_actions',
-      label: 'रसीद / इनवॉइस',
+      label: 'कार्रवाई (Actions)',
       render: (_, r) => (
-        <button
-          onClick={() => setReceiptDonation(r)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] hover:border-[#C85A17] hover:bg-[#FAF1E0] text-[#7A2525] hover:text-[#C85A17] text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
-          title="रसीद / इनवॉइस देखें व प्रिंट करें"
-        >
-          <FiFileText className="w-3.5 h-3.5 text-[#C85A17]" />
-          <span>रसीद</span>
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setReceiptDonation(r)}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] hover:border-[#C85A17] hover:bg-[#FAF1E0] text-[#7A2525] hover:text-[#C85A17] text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
+            title="रसीद / इनवॉइस देखें व प्रिंट करें"
+          >
+            <FiFileText className="w-3.5 h-3.5 text-[#C85A17]" />
+            <span>रसीद</span>
+          </button>
+          <button
+            onClick={() => setDeleteTarget(r)}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
+            title="दान प्रविष्टि हटाएं (Delete)"
+          >
+            <FiTrash2 className="w-3.5 h-3.5" />
+            <span>हटाएं</span>
+          </button>
+        </div>
       ),
     },
   ];
@@ -477,6 +505,19 @@ const AdminDonationsPage = () => {
         isOpen={!!receiptDonation}
         onClose={() => setReceiptDonation(null)}
         donation={receiptDonation}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+        loading={deleting}
+        title="दान प्रविष्टि हटाएं (Delete Donation)"
+        message={`क्या आप रसीद क्र. "${deleteTarget?.receipt_number || '—'}" (राशि: ₹${Number(deleteTarget?.amount || 0).toLocaleString('en-IN')}, नाम: ${deleteTarget?.donor_name || '—'}) को स्थायी रूप से हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।`}
+        confirmText="हाँ, हटाएं"
+        cancelText="रद्द करें"
+        variant="danger"
       />
     </div>
   );
