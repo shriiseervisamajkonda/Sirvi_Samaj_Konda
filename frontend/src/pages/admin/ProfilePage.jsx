@@ -309,18 +309,14 @@ const ProfilePage = () => {
                   id="profile-new-password"
                   {...regPwd('newPassword', {
                     required: 'नया पासवर्ड आवश्यक है',
-                    minLength: { value: 8, message: 'न्यूनतम 8 अक्षर आवश्यक हैं' },
-                    pattern: {
-                      value: PASSWORD_PATTERN,
-                      message: 'कम से कम 1 बड़ा अक्षर (A-Z), 1 छोटा अक्षर (a-z), 1 अंक (0-9) और 1 विशेष चिह्न (!@#$) आवश्यक है',
-                    },
+                    minLength: { value: 4, message: 'न्यूनतम 4 अक्षर आवश्यक हैं' },
                     validate: {
                       notSameAsCurrent: (v) => v !== currentPassword || 'नया पासवर्ड वर्तमान पासवर्ड से अलग होना चाहिए',
                     },
                   })}
                   type={showNewPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="न्यूनतम 8 अक्षर (उदा. Konda@2026)"
+                  placeholder="कम से कम 4 अक्षर का पासवर्ड"
                   className="input-field pr-10"
                 />
                 <button
@@ -334,7 +330,7 @@ const ProfilePage = () => {
                 </button>
               </div>
               <p className="text-[11px] text-gray-500 mt-1">
-                नियम: न्यूनतम 8 अक्षर, बड़ा व छोटा अक्षर, एक संख्या और विशेष चिह्न (!@#$)
+                नियम: न्यूनतम 4 अक्षर
               </p>
               {pwdErrors.newPassword && <p className="text-red-500 text-xs mt-1">{pwdErrors.newPassword.message}</p>}
             </div>

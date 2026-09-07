@@ -3,15 +3,13 @@ import jwt from 'jsonwebtoken';
 import { supabase, isSupabaseConfigured } from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
 
-// Password Security Policy: Minimum 8 characters, at least 1 uppercase, 1 lowercase, 1 digit, 1 special character
-export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
-
+// Password Policy: Minimum 4 characters (allows default format and custom user passwords)
 export const validatePasswordPolicy = (pwd) => {
   if (!pwd || typeof pwd !== 'string') {
     return 'पासवर्ड आवश्यक है (Password is required)';
   }
-  if (!PASSWORD_REGEX.test(pwd)) {
-    return 'पासवर्ड कम से कम 8 अक्षर का होना चाहिए जिसमें कम से कम 1 बड़ा अक्षर (A-Z), 1 छोटा अक्षर (a-z), 1 अंक (0-9) और 1 विशेष चिह्न (!@#$%^&* आदि) होना आवश्यक है';
+  if (pwd.trim().length < 4) {
+    return 'पासवर्ड कम से कम 4 अक्षर का होना चाहिए (Password must be at least 4 characters)';
   }
   return null;
 };

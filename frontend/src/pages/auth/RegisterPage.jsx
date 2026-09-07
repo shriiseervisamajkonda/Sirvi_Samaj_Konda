@@ -129,15 +129,11 @@ const RegisterPage = () => {
                   id="reg-password"
                   {...register('password', {
                     required: 'पासवर्ड आवश्यक है',
-                    minLength: { value: 8, message: 'कम से कम 8 अक्षर आवश्यक हैं' },
-                    pattern: {
-                      value: PASSWORD_PATTERN,
-                      message: 'कम से कम 1 बड़ा अक्षर, 1 छोटा अक्षर, 1 संख्या और 1 विशेष चिह्न (!@#$)'
-                    }
+                    minLength: { value: 4, message: 'कम से कम 4 अक्षर आवश्यक हैं' },
                   })}
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="न्यूनतम 8 अक्षर (उदा. Konda@2026)"
+                  placeholder="न्यूनतम 4 अक्षर का पासवर्ड"
                   className="w-full pl-10 pr-10 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 transition-all"
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 p-1 cursor-pointer">
@@ -145,7 +141,7 @@ const RegisterPage = () => {
                 </button>
               </div>
               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
-                नियम: न्यूनतम 8 अक्षर, बड़ा व छोटा अक्षर, एक संख्या और विशेष चिह्न (!@#$)
+                नियम: न्यूनतम 4 अक्षर
               </p>
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
             </div>

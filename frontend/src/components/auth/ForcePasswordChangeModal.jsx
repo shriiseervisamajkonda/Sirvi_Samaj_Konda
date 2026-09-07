@@ -121,11 +121,7 @@ const ForcePasswordChangeModal = () => {
                   id="force-new-password"
                   {...register('newPassword', {
                     required: 'नया पासवर्ड आवश्यक है',
-                    minLength: { value: 8, message: 'कम से कम 8 अक्षर आवश्यक हैं' },
-                    pattern: {
-                      value: PASSWORD_PATTERN,
-                      message: 'कम से कम 1 बड़ा अक्षर (A-Z), 1 छोटा अक्षर (a-z), 1 अंक (0-9) और 1 विशेष चिह्न (!@#$) होना आवश्यक है',
-                    },
+                    minLength: { value: 4, message: 'कम से कम 4 अक्षर आवश्यक हैं' },
                     validate: {
                       notSameAsCurrent: (v) =>
                         v !== currentPassword || 'नया पासवर्ड वर्तमान पासवर्ड से अलग होना चाहिए',
@@ -133,7 +129,7 @@ const ForcePasswordChangeModal = () => {
                   })}
                   type={showNewPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="कम से कम 8 अक्षर (उदा. Konda@2026)"
+                  placeholder="कम से कम 4 अक्षर का पासवर्ड"
                   className="w-full pl-3.5 pr-10 py-2.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-xl text-sm text-[#2B211B] focus:outline-none focus:border-[#C85A17] font-medium"
                 />
                 <button
@@ -146,7 +142,7 @@ const ForcePasswordChangeModal = () => {
                 </button>
               </div>
               <p className="text-[11px] text-gray-500 mt-1">
-                नियम: न्यूनतम 8 अक्षर, बड़ा व छोटा अक्षर, एक संख्या और विशेष चिह्न (!@#$)
+                नियम: न्यूनतम 4 अक्षर
               </p>
               {errors.newPassword && (
                 <p className="text-red-600 text-xs mt-1 font-semibold">{errors.newPassword.message}</p>
