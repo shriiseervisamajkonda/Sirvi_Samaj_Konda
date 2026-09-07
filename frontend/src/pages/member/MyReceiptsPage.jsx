@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FiFileText, FiPrinter, FiShare2, FiDollarSign, FiSearch, FiCalendar, FiCheckCircle, FiInbox, FiUser, FiHome, FiLogOut } from 'react-icons/fi';
+import { FiFileText, FiPrinter, FiShare2, FiDollarSign, FiSearch, FiCalendar, FiCheckCircle, FiInbox, FiUser, FiHome, FiLogOut, FiDownload, FiShield } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { donationAPI } from '../../services/api';
@@ -28,8 +28,9 @@ const paymentModeMap = {
 };
 
 const MyReceiptsPage = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const [receipts, setReceipts] = useState([]);
+  const [familyInfo, setFamilyInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedReceipt, setSelectedReceipt] = useState(null);
@@ -39,6 +40,9 @@ const MyReceiptsPage = () => {
     try {
       const res = await donationAPI.getMyReceipts();
       setReceipts(res.data?.data || []);
+      if (res.data?.family) {
+        setFamilyInfo(res.data.family);
+      }
     } catch {
       toast.error('रसीदें लोड करने में विफल');
     } finally {
@@ -86,15 +90,18 @@ const MyReceiptsPage = () => {
     const purposeName = purposeMap[receipt.purpose] || receipt.purpose || 'वार्षिक सामाजिक चंदा';
     const mode = paymentModeMap[receipt.payment_mode] || receipt.payment_mode || 'नकद';
     const amt = Number(receipt.amount || 0).toLocaleString('en-IN');
+    const famId = receipt.panchayat_family_id || familyInfo?.panchayat_family_id || user?.panchayat_family_id || '—';
+    const headName = receipt.head_name || familyInfo?.head_name || receipt.donor_name || user?.name;
 
     const text = `🚩 *श्री सिर्वी समाज कोणदा* 🚩
 ━━━━━━━━━━━━━━━━━━━━
-📄 *आधिकारिक भुगतान रसीद*
+📄 *आधिकारिक परिवार भुगतान रसीद*
 ━━━━━━━━━━━━━━━━━━━━
 ▪ *रसीद क्र.*: ${receiptNo}
 ▪ *दिनांक*: ${dateStr}
-▪ *नाम*: ${receipt.donor_name || user?.name}
-▪ *परिवार क्र.*: #${receipt.panchayat_family_id || user?.panchayat_family_id || '—'}
+▪ *परिवार क्र.*: #${famId}
+▪ *परिवार मुखिया*: ${headName}
+▪ *भुगतानकर्ता*: ${receipt.donor_name || user?.name}
 ▪ *मद*: ${purposeName} (${receipt.financial_year || new Date().getFullYear()})
 ▪ *राशि*: ₹${amt}
 ▪ *माध्यम*: ${mode}
@@ -124,7 +131,7 @@ const MyReceiptsPage = () => {
     },
     {
       key: 'donor_name',
-      label: 'सदस्य / परिवार मुखिया (Member Name)',
+      label: 'सदस्य / परिवार मुखिया (Paid By)',
       sortable: true,
       render: (v, r) => (
         <div>
@@ -148,7 +155,7 @@ const MyReceiptsPage = () => {
     },
     {
       key: 'purpose',
-      label: 'मद / उद्देश्य (Purpose)',
+      label: 'मद / विवरण (Purpose)',
       sortable: true,
       render: (v, r) => (
         <div>
@@ -182,8 +189,8 @@ const MyReceiptsPage = () => {
       key: 'payment_status',
       label: 'स्थिति (Status)',
       render: (v) => (
-        <Badge variant={v === 'confirmed' ? 'success' : 'warning'}>
-          {v === 'confirmed' ? 'सत्यापित (Confirmed)' : 'प्रतीक्षारत'}
+        <Badge variant={v === 'confirmed' ? 'success' : v === 'failed' ? 'danger' : 'warning'}>
+          {v === 'confirmed' ? 'सत्यापित (Paid)' : v === 'failed' ? 'असफल (Failed)' : 'प्रतीक्षारत'}
         </Badge>
       ),
     },
@@ -191,14 +198,22 @@ const MyReceiptsPage = () => {
       key: '_actions',
       label: 'रसीद / पावती',
       render: (_, r) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => setSelectedReceipt(r)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-[#7A2525] to-[#C85A17] hover:shadow-md text-white text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-[#7A2525] to-[#C85A17] hover:shadow-md text-white text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
             title="रसीद देखें व प्रिंट करें"
           >
             <FiPrinter className="w-3.5 h-3.5" />
-            <span>रसीद देखें</span>
+            <span>देखें / प्रिंट</span>
+          </button>
+          <button
+            onClick={() => setSelectedReceipt(r)}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-xl transition-all cursor-pointer"
+            title="PDF डाउनलोड करें"
+          >
+            <FiDownload className="w-3.5 h-3.5 text-emerald-700" />
+            <span className="hidden sm:inline">PDF</span>
           </button>
           <button
             onClick={() => handleWhatsAppShare(r)}
@@ -212,6 +227,8 @@ const MyReceiptsPage = () => {
     },
   ];
 
+  const resolvedFamilyDisplayId = familyInfo?.panchayat_family_id || user?.panchayat_family_id;
+
   return (
     <div className="bg-[#FFF8EC] min-h-screen text-[#2B211B] pb-16">
       {/* Header Banner */}
@@ -224,29 +241,41 @@ const MyReceiptsPage = () => {
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 z-10 text-center">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="inline-block px-4 py-1.5 bg-white/10 border border-[#D4AF37]/35 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
-              व्यक्तिगत एवं पारिवारिक रसीदें • My Receipts
+              पारिवारिक भुगतान रसीदें • Family Receipts
             </span>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-2 text-white">
-              मेरी रसीदें एवं लेनदेन (My Receipts)
+              मेरी पारिवारिक रसीदें (Family Receipts)
             </h1>
             <p className="text-orange-100 text-sm sm:text-base font-medium max-w-2xl mx-auto">
-              श्री सिर्वी समाज कोणदा में जमा किए गए आपके चंदा, दान एवं धार्मिक सहयोग की प्रमाणित डिजिटल रसीदें
+              आपके पूरे परिवार द्वारा श्री सिर्वी समाज कोणदा में जमा किए गए चंदा, दान एवं धार्मिक सहयोग की प्रमाणित डिजिटल रसीदें
             </p>
           </motion.div>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-20 space-y-6">
-        {/* Member Profile Quick Badge */}
+        {/* Member & Family Info Quick Badge */}
         <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#E8DCC8] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] text-white flex items-center justify-center font-bold text-lg shadow-sm">
               <FiUser className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-extrabold text-[#2B211B] text-base sm:text-lg">{user?.name || 'सदस्य'}</h3>
-              <p className="text-xs text-[#766A60] font-medium">
-                मोबाइल: {user?.phone || '—'} {user?.panchayat_family_id ? `• पंचायत परिवार क्र. #${user.panchayat_family_id}` : ''}
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-[#2B211B] text-base sm:text-lg">{user?.name || 'सदस्य'}</h3>
+                {resolvedFamilyDisplayId && (
+                  <span className="text-[11px] font-black font-mono bg-[#7A2525] text-white px-2 py-0.5 rounded-full">
+                    परिवार #{resolvedFamilyDisplayId}
+                  </span>
+                )}
+                {isAdmin && (
+                  <span className="text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full">
+                    व्यवस्थापक दृश्य
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-[#766A60] font-medium mt-0.5">
+                मोबाइल: {user?.phone || '—'} {familyInfo?.head_name ? `• परिवार मुखिया: ${familyInfo.head_name}` : ''} {familyInfo?.gotra ? `• गोत्र: ${familyInfo.gotra}` : ''}
               </p>
             </div>
           </div>
@@ -277,7 +306,7 @@ const MyReceiptsPage = () => {
         {/* Summary KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white p-5 rounded-3xl border border-[#E8DCC8] shadow-sm">
-            <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider">कुल जमा राशि (Total Contributed)</p>
+            <p className="text-xs font-bold text-emerald-800 uppercase tracking-wider">कुल पारिवारिक जमा राशि (Total Contributed)</p>
             <h3 className="text-2xl font-black text-emerald-700 font-mono mt-1">
               ₹{summary.totalAmount.toLocaleString('en-IN')}
             </h3>
@@ -289,39 +318,40 @@ const MyReceiptsPage = () => {
             <h3 className="text-2xl font-black text-[#7A2525] font-mono mt-1">
               {summary.confirmedCount}
             </h3>
-            <p className="text-[11px] text-[#766A60] mt-0.5">समाज बहीखाते में दर्ज डिजिटल रसीदें</p>
+            <p className="text-[11px] text-[#766A60] mt-0.5">समाज बहीखाते में दर्ज आधिकारिक रसीदें</p>
           </div>
 
           <div className="bg-white p-5 rounded-3xl border border-[#E8DCC8] shadow-sm">
-            <p className="text-xs font-bold text-[#C85A17] uppercase tracking-wider">पंचायत परिवार खाता (Family ID)</p>
-            <h3 className="text-2xl font-black text-[#C85A17] font-mono mt-1">
-              #{user?.panchayat_family_id || '—'}
+            <p className="text-xs font-bold text-[#C85A17] uppercase tracking-wider">परिवार पहुँच (Family Access)</p>
+            <h3 className="text-lg font-black text-[#7A2525] mt-1 flex items-center gap-1.5">
+              <FiCheckCircle className="w-5 h-5 text-emerald-600" />
+              <span>सभी सदस्य अधिकृत</span>
             </h3>
-            <p className="text-[11px] text-[#766A60] mt-0.5">ग्राम कोणदा जनगणना अभिलेख</p>
+            <p className="text-[11px] text-[#766A60] mt-0.5">परिवार का कोई भी सदस्य रसीद देख व PDF डाउनलोड कर सकता है</p>
           </div>
         </div>
 
-        {/* Search & Receipts Table */}
-        <div className="bg-white rounded-3xl border border-[#E8DCC8] shadow-sm p-6 sm:p-8 space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#E8DCC8]">
+        {/* Receipts Table Card */}
+        <div className="bg-white rounded-3xl border border-[#E8DCC8] shadow-sm overflow-hidden p-5 sm:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg sm:text-xl font-black text-[#2B211B] flex items-center gap-2">
-                <FiFileText className="w-5 h-5 text-[#C85A17]" />
-                भुगतान एवं रसीद विवरण (Payment History)
+              <h2 className="text-xl font-extrabold text-[#7A2525]">
+                पारिवारिक रसीदें सूची ({filteredReceipts.length})
               </h2>
-              <p className="text-xs sm:text-sm text-[#766A60] mt-0.5">
-                सभी रसीदें 1-क्लिक में देखें, प्रिंट करें अथवा व्हाट्सएप पर साझा करें
+              <p className="text-xs text-[#766A60] mt-0.5">
+                प्रत्येक भुगतान की एक ही प्रमाणित रसीद उत्पन्न होती है जो पूरे परिवार के सभी सदस्यों के लिए उपलब्ध है।
               </p>
             </div>
 
+            {/* Search Input */}
             <div className="relative w-full sm:w-80">
-              <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#766A60] w-4 h-4" />
+              <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="रसीद क्रमांक या मद से खोजें..."
-                className="w-full pl-10 pr-4 py-2.5 bg-[#FFF8EC] border border-[#E8DCC8] rounded-2xl text-xs sm:text-sm text-[#2B211B] placeholder-[#766A60]/70 focus:outline-none focus:ring-2 focus:ring-[#C85A17]/30 focus:border-[#C85A17] font-medium transition-all"
+                placeholder="रसीद क्र., सदस्य नाम, मद, राशि..."
+                className="w-full pl-10 pr-4 py-2 bg-[#FFF8EC] border border-[#E8DCC8] rounded-2xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#7A2525]/30 focus:border-[#7A2525]"
               />
             </div>
           </div>
@@ -330,25 +360,20 @@ const MyReceiptsPage = () => {
             columns={columns}
             data={filteredReceipts}
             loading={loading}
-            searchable={false}
-            downloadable={false}
-            emptyIcon={FiInbox}
-            emptyText="कोई रसीद उपलब्ध नहीं है"
-            emptyDescription={
-              search
-                ? `"${search}" के लिए कोई रसीद नहीं मिली।`
-                : 'आपके मोबाइल नंबर अथवा परिवार खाते से जुड़ी कोई रसीद अभी दर्ज नहीं है। यदि आपने हाल ही में चंदा जमा किया है, तो कृपया कोषाध्यक्ष से संपर्क करें।'
-            }
+            emptyMessage="आपके परिवार से संबंधित कोई रसीद रिकॉर्ड में दर्ज नहीं है।"
+            pageSize={10}
           />
         </div>
       </div>
 
-      {/* Official Payment Receipt Modal */}
-      <PaymentReceiptModal
-        isOpen={!!selectedReceipt}
-        onClose={() => setSelectedReceipt(null)}
-        donation={selectedReceipt}
-      />
+      {/* Official Receipt Modal with PDF export */}
+      {selectedReceipt && (
+        <PaymentReceiptModal
+          isOpen={!!selectedReceipt}
+          onClose={() => setSelectedReceipt(null)}
+          donation={selectedReceipt}
+        />
+      )}
     </div>
   );
 };

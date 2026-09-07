@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
-import { FiPrinter, FiX, FiShare2, FiCheckCircle } from 'react-icons/fi';
+import React, { useRef, useState } from 'react';
+import { FiPrinter, FiX, FiShare2, FiCheckCircle, FiDownload } from 'react-icons/fi';
 import { numberToHindiWords } from '../../utils/numberToHindiWords';
+import { downloadReceiptAsPDF } from '../../utils/receiptDownloader';
 
 const purposeMap = {
   annual_chanda: 'वार्षिक सामाजिक चंदा',
@@ -22,6 +23,7 @@ const paymentModeMap = {
 
 const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
   const printRef = useRef(null);
+  const [downloading, setDownloading] = useState(false);
 
   if (!isOpen || !donation) return null;
 
@@ -33,9 +35,10 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
       : new Date().toLocaleDateString('hi-IN');
   
   const donorName = donation.donor_name || donation.head_name || '—';
-  const familyId = donation.panchayat_family_id || donation.family_id || '—';
-  const gotra = donation.gotra || '—';
-  const mobile = donation.mobile_number || donation.head_mobile || '';
+  const headName = donation.families?.head_name || donation.head_name || donorName;
+  const familyId = donation.panchayat_family_id || donation.families?.panchayat_family_id || donation.family_id || '—';
+  const gotra = donation.gotra || donation.families?.gotra || '—';
+  const mobile = donation.mobile_number || donation.head_mobile || donation.families?.head_mobile || '';
   const amount = Number(donation.amount || 0);
   const hindiAmount = numberToHindiWords(amount);
   const purposeName = purposeMap[donation.purpose] || donation.purpose || 'वार्षिक सामाजिक चंदा';
@@ -46,15 +49,26 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
     window.print();
   };
 
+  const handleDownload = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      await downloadReceiptAsPDF(printRef.current, donation);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const handleWhatsAppShare = () => {
     const text = `🚩 *श्री सिर्वी समाज कोणदा* 🚩
 ━━━━━━━━━━━━━━━━━━━━
-📄 *आधिकारिक भुगतान रसीद (Official Receipt)*
+📄 *आधिकारिक परिवार भुगतान रसीद*
 ━━━━━━━━━━━━━━━━━━━━
 ▪ *रसीद क्र.*: ${receiptNo}
 ▪ *दिनांक*: ${dateStr}
-▪ *परिवार मुखिया*: ${donorName}
-▪ *पंचायत परिवार क्र.*: ${familyId}
+▪ *परिवार क्र.*: #${familyId}
+▪ *परिवार मुखिया*: ${headName}
+▪ *भुगतानकर्ता / सदस्य*: ${donorName}
 ▪ *गोत्र*: ${gotra}
 ▪ *मद / विवरण*: ${purposeName} (${financialYear})
 ▪ *प्राप्त राशि*: ₹${amount.toLocaleString('en-IN')} (${hindiAmount})
@@ -106,21 +120,31 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
             <h3 className="font-extrabold text-[#7A2525] text-base sm:text-lg">
-              भुगतान रसीद / इनवॉइस (Payment Invoice)
+              परिवार भुगतान रसीद (Family Payment Receipt)
             </h3>
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#7A2525] hover:bg-[#5E1B1B] text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+              onClick={handleDownload}
+              disabled={downloading}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              title="PDF डाउनलोड करें"
             >
-              <FiPrinter className="w-4 h-4" /> प्रिंट / PDF
+              <FiDownload className="w-4 h-4" /> {downloading ? 'डाउनलोड हो रहा...' : 'PDF डाउनलोड'}
+            </button>
+            <button
+              onClick={handlePrint}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#7A2525] hover:bg-[#5E1B1B] text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+              title="प्रिंट करें"
+            >
+              <FiPrinter className="w-4 h-4" /> प्रिंट
             </button>
             <button
               onClick={handleWhatsAppShare}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+              title="व्हाट्सएप पर भेजें"
             >
-              <FiShare2 className="w-4 h-4" /> व्हाट्सएप पर भेजें
+              <FiShare2 className="w-4 h-4" />
             </button>
             <button
               onClick={onClose}
@@ -149,11 +173,11 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                 ग्राम कोणदा, तहसील बदनावर, जिला धार (मध्य प्रदेश)
               </p>
               <div className="inline-block px-4 py-1 mt-2 bg-[#7A2525] text-white text-xs sm:text-sm font-bold rounded-full uppercase tracking-wider">
-                दान एवं सहयोग राशि रसीद (Payment Receipt)
+                दान एवं सहयोग राशि रसीद (Family Payment Receipt)
               </div>
             </div>
 
-            {/* Receipt Meta & Family Head Section */}
+            {/* Receipt Meta Section */}
             <div className="grid grid-cols-2 gap-4 py-4 border-b border-[#E8DCC8] text-xs sm:text-sm">
               <div>
                 <p className="text-[#766A60] font-medium">रसीद क्रमांक (Receipt No.):</p>
@@ -165,26 +189,29 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
               </div>
             </div>
 
-            {/* Family Head Box (Highlighted prominently) */}
+            {/* Family & Member Box (Prominent display) */}
             <div className="my-4 p-4 rounded-xl bg-[#FFF8EC] border border-[#E8DCC8]">
-              <div className="text-xs font-bold uppercase tracking-wider text-[#7A2525] mb-2">
-                परिवार मुखिया विवरण (Family Head Details)
+              <div className="text-xs font-bold uppercase tracking-wider text-[#7A2525] mb-2 flex justify-between items-center">
+                <span>परिवार एवं सदस्य विवरण (Family & Member Details)</span>
+                <span className="font-mono font-bold text-xs bg-[#7A2525] text-white px-2 py-0.5 rounded">
+                  परिवार क्र. #{familyId}
+                </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
                 <div>
-                  <span className="text-[#766A60]">परिवार मुखिया का नाम:</span>
-                  <span className="block font-black text-base text-[#2B211B]">{donorName}</span>
+                  <span className="text-[#766A60]">परिवार मुखिया का नाम (Head of Family):</span>
+                  <span className="block font-black text-base text-[#2B211B]">{headName}</span>
                 </div>
                 <div>
-                  <span className="text-[#766A60]">पंचायत परिवार क्रमांक (Family ID):</span>
-                  <span className="block font-mono font-black text-base text-[#7A2525]">#{familyId}</span>
+                  <span className="text-[#766A60]">भुगतानकर्ता / सदस्य (Paid By Member):</span>
+                  <span className="block font-black text-base text-[#7A2525]">{donorName}</span>
                 </div>
                 <div>
                   <span className="text-[#766A60]">गोत्र (Gotra):</span>
                   <span className="block font-bold text-[#2B211B]">{gotra}</span>
                 </div>
                 <div>
-                  <span className="text-[#766A60]">मोबाइल नंबर (Mobile):</span>
+                  <span className="text-[#766A60]">संपर्क मोबाइल (Mobile):</span>
                   <span className="block font-mono font-bold text-[#2B211B]">{mobile || '—'}</span>
                 </div>
               </div>
@@ -248,19 +275,28 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
         </div>
 
         {/* Modal Action Footer */}
-        <div className="no-print px-6 py-4 bg-[#FFF8EC] border-t border-[#E8DCC8] flex justify-end gap-3">
+        <div className="no-print px-6 py-4 bg-[#FFF8EC] border-t border-[#E8DCC8] flex flex-wrap justify-between items-center gap-3">
           <button
             onClick={onClose}
             className="px-5 py-2.5 bg-white border border-[#E8DCC8] hover:bg-[#FAF1E0] text-[#2B211B] font-bold text-xs sm:text-sm rounded-2xl transition-all cursor-pointer"
           >
             बंद करें (Close)
           </button>
-          <button
-            onClick={handlePrint}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#7A2525] to-[#C85A17] hover:shadow-lg text-white font-bold text-xs sm:text-sm rounded-2xl transition-all cursor-pointer"
-          >
-            <FiPrinter className="w-4 h-4" /> रसीद प्रिंट करें (Print / Download)
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownload}
+              disabled={downloading}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-2xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
+            >
+              <FiDownload className="w-4 h-4" /> {downloading ? 'डाउनलोड हो रहा...' : 'रसीद PDF डाउनलोड करें'}
+            </button>
+            <button
+              onClick={handlePrint}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#7A2525] to-[#C85A17] hover:shadow-lg text-white font-bold text-xs sm:text-sm rounded-2xl transition-all cursor-pointer"
+            >
+              <FiPrinter className="w-4 h-4" /> प्रिंट करें (Print)
+            </button>
+          </div>
         </div>
       </div>
     </div>

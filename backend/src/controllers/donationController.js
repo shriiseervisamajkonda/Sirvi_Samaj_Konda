@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
 import { clearCacheByPattern } from '../middleware/cache.js';
+import { resolveUserFamily, syncExistingDonationsWithFamilies } from '../utils/familyHelper.js';
 
 // GET /api/donations (With rich filtering: year, purpose, family, payment_mode)
 export const getDonations = asyncHandler(async (req, res) => {
@@ -110,57 +111,13 @@ export const getMyReceipts = asyncHandler(async (req, res) => {
     return res.json({ success: true, data: [] });
   }
 
-  const cleanPhone = (user.phone || '').trim().replace(/\D/g, '').slice(-10);
-  let resolvedFamilyIds = [];
-  let resolvedPanchayatIds = [];
-
-  if (user.panchayat_family_id) {
-    resolvedPanchayatIds.push(String(user.panchayat_family_id));
-  }
-  if (user.family_id) {
-    resolvedFamilyIds.push(user.family_id);
-  }
-
-  // 1. Lookup in families table by phone
-  if (cleanPhone) {
-    const { data: headFamilies } = await supabase
-      .from('families')
-      .select('id, panchayat_family_id')
-      .ilike('head_mobile', `%${cleanPhone}%`);
-    if (headFamilies && headFamilies.length > 0) {
-      headFamilies.forEach((f) => {
-        if (f.id) resolvedFamilyIds.push(f.id);
-        if (f.panchayat_family_id) resolvedPanchayatIds.push(String(f.panchayat_family_id));
-      });
-    }
-
-    // 2. Lookup in family_members table by phone
-    const { data: memberRecords } = await supabase
-      .from('family_members')
-      .select('family_id, families(id, panchayat_family_id)')
-      .ilike('mobile_number', `%${cleanPhone}%`);
-    if (memberRecords && memberRecords.length > 0) {
-      memberRecords.forEach((m) => {
-        if (m.family_id) resolvedFamilyIds.push(m.family_id);
-        if (m.families?.panchayat_family_id) resolvedPanchayatIds.push(String(m.families.panchayat_family_id));
-      });
-    }
-  }
-
-  resolvedFamilyIds = [...new Set(resolvedFamilyIds.filter(Boolean))];
-  resolvedPanchayatIds = [...new Set(resolvedPanchayatIds.filter(Boolean))];
-
-  const isStaff = ['developer', 'super_admin', 'admin', 'treasurer'].includes(user.role);
+  const { familyUuids, panchayatFamilyIds, cleanPhone, isStaff, primaryFamily } = await resolveUserFamily(user);
 
   // If user is regular member or has identified family
-  if (resolvedPanchayatIds.length > 0 || resolvedFamilyIds.length > 0 || cleanPhone) {
+  if (panchayatFamilyIds.length > 0 || familyUuids.length > 0 || cleanPhone) {
     const filterClauses = [];
-    if (resolvedPanchayatIds.length > 0) {
-      resolvedPanchayatIds.forEach((pid) => filterClauses.push(`panchayat_family_id.eq.${pid}`));
-    }
-    if (resolvedFamilyIds.length > 0) {
-      resolvedFamilyIds.forEach((fid) => filterClauses.push(`family_id.eq.${fid}`));
-    }
+    panchayatFamilyIds.forEach((pid) => filterClauses.push(`panchayat_family_id.eq.${pid}`));
+    familyUuids.forEach((fid) => filterClauses.push(`family_id.eq.${fid}`));
     if (cleanPhone) {
       filterClauses.push(`mobile_number.ilike.%${cleanPhone}%`);
     }
@@ -173,34 +130,44 @@ export const getMyReceipts = asyncHandler(async (req, res) => {
         .order('payment_date', { ascending: false });
 
       if (!matchError && matchedData && matchedData.length > 0) {
-        return res.json({ success: true, data: matchedData });
+        return res.json({
+          success: true,
+          data: matchedData,
+          family: primaryFamily,
+          panchayatFamilyIds,
+        });
       }
     }
   }
 
-  // If staff/admin and no specific personal records found, return all donations
+  // If staff/admin and no specific personal records found, return all donations for admin view
   if (isStaff) {
     const { data: allData, error: allError } = await supabase
       .from('donations')
       .select('*')
       .order('payment_date', { ascending: false });
     if (!allError) {
-      return res.json({ success: true, data: allData || [] });
+      return res.json({
+        success: true,
+        data: allData || [],
+        isStaffView: true,
+      });
     }
   }
 
   res.json({
     success: true,
     data: [],
+    family: primaryFamily,
   });
 });
 
-// GET /api/donations/receipt/:receiptNumber
+// GET /api/donations/receipt/:receiptNumber (Strict family verification)
 export const getReceiptByNumber = asyncHandler(async (req, res) => {
   const { receiptNumber } = req.params;
   const { data, error } = await supabase
     .from('donations')
-    .select('*, families(head_name, gotra, village, faliya_or_ward, head_mobile)')
+    .select('*, families(id, panchayat_family_id, head_name, gotra, village, faliya_or_ward, head_mobile)')
     .eq('receipt_number', receiptNumber)
     .maybeSingle();
 
@@ -208,10 +175,29 @@ export const getReceiptByNumber = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: 'Receipt not found' });
   }
 
+  // Strict Family Authorization Check:
+  // If user is authenticated and not staff, ensure this receipt belongs to their family
+  if (req.user) {
+    const { familyUuids, panchayatFamilyIds, cleanPhone, isStaff } = await resolveUserFamily(req.user);
+    if (!isStaff) {
+      const isFamilyMatch =
+        (data.family_id && familyUuids.includes(data.family_id)) ||
+        (data.panchayat_family_id && panchayatFamilyIds.includes(String(data.panchayat_family_id))) ||
+        (cleanPhone && data.mobile_number && data.mobile_number.includes(cleanPhone));
+
+      if (!isFamilyMatch) {
+        return res.status(403).json({
+          success: false,
+          message: 'इस परिवार की रसीद देखने अथवा डाउनलोड करने की अनुमति नहीं है (You are not authorized to view receipts of another family)',
+        });
+      }
+    }
+  }
+
   res.json({ success: true, data });
 });
 
-// POST /api/donations (Record Donation / Cashier Entry)
+// POST /api/donations (Record Donation / Cashier Entry with Family Mapping)
 export const createDonation = asyncHandler(async (req, res) => {
   const {
     family_id,
@@ -231,17 +217,59 @@ export const createDonation = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Donor name and a valid amount are required' });
   }
 
-  // Generate clean, collision-safe receipt number
+  let resolvedFamilyId = family_id || null;
+  let resolvedPanchayatId = panchayat_family_id ? String(panchayat_family_id) : null;
+  let resolvedGotra = gotra || null;
+
+  // Auto-resolve family UUID or Panchayat ID from families table
+  if (resolvedPanchayatId && !resolvedFamilyId) {
+    const { data: fam } = await supabase
+      .from('families')
+      .select('id, panchayat_family_id, gotra')
+      .eq('panchayat_family_id', resolvedPanchayatId)
+      .maybeSingle();
+    if (fam) {
+      resolvedFamilyId = fam.id;
+      if (!resolvedGotra) resolvedGotra = fam.gotra;
+    }
+  } else if (resolvedFamilyId && !resolvedPanchayatId) {
+    const { data: fam } = await supabase
+      .from('families')
+      .select('id, panchayat_family_id, gotra')
+      .eq('id', resolvedFamilyId)
+      .maybeSingle();
+    if (fam) {
+      resolvedPanchayatId = String(fam.panchayat_family_id);
+      if (!resolvedGotra) resolvedGotra = fam.gotra;
+    }
+  } else if (!resolvedFamilyId && !resolvedPanchayatId && mobile_number) {
+    const clean = mobile_number.trim().replace(/\D/g, '').slice(-10);
+    if (clean) {
+      const { data: fam } = await supabase
+        .from('families')
+        .select('id, panchayat_family_id, gotra')
+        .ilike('head_mobile', `%${clean}%`)
+        .maybeSingle();
+      if (fam) {
+        resolvedFamilyId = fam.id;
+        resolvedPanchayatId = String(fam.panchayat_family_id);
+        if (!resolvedGotra) resolvedGotra = fam.gotra;
+      }
+    }
+  }
+
+  // Generate clean, collision-safe receipt number with family code
   const randHex = crypto.randomBytes(2).toString('hex').toUpperCase();
-  const receipt_number = `KONDA-${financial_year}-${Date.now().toString().slice(-4)}-${randHex}`;
+  const famCode = resolvedPanchayatId ? `F${resolvedPanchayatId}` : 'KONDA';
+  const receipt_number = `KONDA-${financial_year}-${famCode}-${randHex}`;
 
   const { data: donation, error } = await supabase
     .from('donations')
     .insert({
-      family_id: family_id || null,
-      panchayat_family_id: panchayat_family_id ? String(panchayat_family_id) : null,
+      family_id: resolvedFamilyId,
+      panchayat_family_id: resolvedPanchayatId,
       donor_name,
-      gotra: gotra || null,
+      gotra: resolvedGotra,
       mobile_number: mobile_number || null,
       financial_year: Number(financial_year),
       amount: Number(amount),
@@ -265,7 +293,7 @@ export const createDonation = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: 'Donation recorded successfully',
+    message: 'Donation recorded and family receipt generated successfully',
     data: donation,
   });
 });
