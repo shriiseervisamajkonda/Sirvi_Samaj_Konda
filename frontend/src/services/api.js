@@ -141,6 +141,7 @@ export const panchSettlementAPI = {
 export const donationAPI = {
   getStats: () => api.get('/donations/stats'),
   getReceipt: (receiptNumber) => api.get(`/donations/receipt/${receiptNumber}`),
+  getMyReceipts: () => api.get('/donations/my-receipts'),
   getAll: (params) => api.get('/donations', { params }),
   create: (data) => api.post('/donations', data),
   update: (id, data) => api.put(`/donations/${id}`, data),

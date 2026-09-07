@@ -103,6 +103,41 @@ export const getDonationById = asyncHandler(async (req, res) => {
   res.json({ success: true, data });
 });
 
+// GET /api/donations/my-receipts (For logged-in member to view personal / family receipts)
+export const getMyReceipts = asyncHandler(async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(401).json({ success: false, message: 'लॉगिन आवश्यक है' });
+  }
+
+  const cleanPhone = (user.phone || '').trim().replace(/\D/g, '');
+  const familyId = user.panchayat_family_id || user.family_id;
+
+  let query = supabase.from('donations').select('*');
+
+  if (familyId && cleanPhone) {
+    query = query.or(`panchayat_family_id.eq.${familyId},mobile_number.ilike.%${cleanPhone}%,donor_name.ilike.%${user.name}%`);
+  } else if (familyId) {
+    query = query.eq('panchayat_family_id', String(familyId));
+  } else if (cleanPhone) {
+    query = query.or(`mobile_number.ilike.%${cleanPhone}%,donor_name.ilike.%${user.name}%`);
+  } else {
+    query = query.eq('donor_name', user.name);
+  }
+
+  query = query.order('payment_date', { ascending: false });
+
+  const { data, error } = await query;
+  if (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+
+  res.json({
+    success: true,
+    data: data || [],
+  });
+});
+
 // GET /api/donations/receipt/:receiptNumber
 export const getReceiptByNumber = asyncHandler(async (req, res) => {
   const { receiptNumber } = req.params;

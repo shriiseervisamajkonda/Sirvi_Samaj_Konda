@@ -57,6 +57,7 @@ const SocialInfoPage = lazy(() => import('./pages/public/SocialInfoPage'));
 const KondaGramUnitPage = lazy(() => import('./pages/public/KondaGramUnitPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/public/PrivacyPolicyPage'));
 const TermsPage = lazy(() => import('./pages/public/TermsPage'));
+const MyReceiptsPage = lazy(() => import('./pages/member/MyReceiptsPage'));
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage'));
 
 // Admin Pages (Lazy - Isolated in separate bundles)
@@ -152,6 +153,30 @@ createRoot(document.getElementById('root')).render(
                     <Route path="/gram-unit" element={<KondaGramUnitPage />} />
                     <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                     <Route path="/terms" element={<TermsPage />} />
+                    <Route
+                      path="/my-receipts"
+                      element={
+                        <ProtectedRoute>
+                          <MyReceiptsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/member/receipts"
+                      element={
+                        <ProtectedRoute>
+                          <MyReceiptsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/my-transactions"
+                      element={
+                        <ProtectedRoute>
+                          <MyReceiptsPage />
+                        </ProtectedRoute>
+                      }
+                    />
                     <Route
                       path="/profile"
                       element={

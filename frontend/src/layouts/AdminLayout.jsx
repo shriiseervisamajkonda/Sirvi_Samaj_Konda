@@ -67,6 +67,7 @@ const navigationGroups = [
   {
     groupTitle: 'लेखा-जोखा एवं समाज कार्य',
     items: [
+      { label: 'दान एवं चंदा रसीदें (Donations)', path: '/admin/donations', icon: FiDollarSign },
       { label: 'आय-व्यय लेखा-जोखा', path: '/admin/lekha-jokha', icon: FiDollarSign },
       { label: 'पंच निर्णय (Settlements)', path: '/admin/panch-settlements', icon: FiBook },
       { label: 'सामाजिक नियम (Social Info)', path: '/admin/social-info', icon: FiCompass },

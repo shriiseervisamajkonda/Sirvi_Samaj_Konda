@@ -143,13 +143,23 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {user && (
+              <Link
+                to="/my-receipts"
+                className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white rounded-xl text-xs sm:text-sm font-bold transition shadow-xs"
+                title="मेरी रसीदें एवं लेनदेन (My Receipts)"
+              >
+                <FiFileText className="w-4 h-4 text-amber-300" />
+                <span>मेरी रसीदें</span>
+              </Link>
+            )}
             {isAdmin ? (
-              <Link to="/admin" className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-sm font-bold hover:shadow-lg transition shadow-md">
+              <Link to="/admin" className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-sm font-bold hover:shadow-lg transition shadow-md">
                 <FiUser className="w-4 h-4" /> एडमिन पैनल
               </Link>
             ) : user ? (
-              <Link to="/profile" className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-white/15 border border-white/30 text-white rounded-xl text-sm font-bold hover:bg-white/25 transition">
-                <FiUser className="w-4 h-4 text-amber-300" /> मेरी प्रोफ़ाइल
+              <Link to="/profile" className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/15 border border-white/30 text-white rounded-xl text-sm font-bold hover:bg-white/25 transition">
+                <FiUser className="w-4 h-4 text-amber-300" /> प्रोफ़ाइल
               </Link>
             ) : (
               <Link to="/login" className="hidden sm:flex px-4 py-2.5 bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-sm font-bold hover:shadow-lg transition shadow-md">
@@ -207,6 +217,13 @@ const Navbar = () => {
               {user ? (
                 <div className="pt-2 border-t border-white/20 space-y-2">
                   <Link
+                    to="/my-receipts"
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-4 py-2.5 text-sm font-bold bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white rounded-xl text-center shadow-md"
+                  >
+                    📄 मेरी रसीदें एवं लेनदेन (My Receipts)
+                  </Link>
+                  <Link
                     to={isAdmin ? '/admin' : '/profile'}
                     onClick={() => setMobileOpen(false)}
                     className="block px-4 py-2.5 text-sm font-bold bg-white/20 text-white rounded-xl text-center"
@@ -218,7 +235,7 @@ const Navbar = () => {
                       setMobileOpen(false);
                       logout();
                     }}
-                    className="w-full px-4 py-2.5 text-sm font-bold bg-red-600/80 text-white rounded-xl text-center"
+                    className="w-full px-4 py-2.5 text-sm font-bold bg-red-600/80 text-white rounded-xl text-center cursor-pointer"
                   >
                     लॉगआउट (Logout)
                   </button>
