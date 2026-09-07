@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMenu, FiX, FiUser } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiFileText } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { useSiteSettings } from '../../context/SiteSettingsContext';
 
