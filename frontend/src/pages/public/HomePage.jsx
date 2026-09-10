@@ -27,13 +27,18 @@ const Counter = ({ target, suffix = '' }) => {
 
   useEffect(() => {
     if (!inView) return;
+    const numTarget = Number(target) || 0;
+    if (numTarget <= 0) {
+      setCount(0);
+      return;
+    }
     let start = 0;
-    const duration = 1500;
-    const step = Math.ceil(target / (duration / 16));
+    const duration = 1200;
+    const step = Math.max(1, Math.ceil(numTarget / (duration / 16)));
     const timer = setInterval(() => {
       start += step;
-      if (start >= target) {
-        setCount(target);
+      if (start >= numTarget) {
+        setCount(numTarget);
         clearInterval(timer);
       } else {
         setCount(start);
@@ -74,6 +79,7 @@ const defaultStats = {
 
 const HomePage = () => {
   const [stats, setStats] = useState(defaultStats);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [news, setNews] = useState([]);
   const [events, setEvents] = useState([]);
   const [committee, setCommittee] = useState([]);
@@ -129,7 +135,10 @@ const HomePage = () => {
       } catch (err) {
         console.warn('Home background data fetch warning:', err);
       } finally {
-        if (isMounted) setDataLoaded(true);
+        if (isMounted) {
+          setDataLoaded(true);
+          setStatsLoading(false);
+        }
       }
     };
 
@@ -278,15 +287,27 @@ const HomePage = () => {
                 <div className="bg-white/15 backdrop-blur-xl border border-white/30 rounded-3xl p-8 shadow-2xl">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {[
-                      { label: t('stats_families'), value: stats?.families || 500, icon: '👨‍👩‍👧‍👦' },
-                      { label: t('stats_members'), value: stats?.members || 2000, icon: '👥' },
-                      { label: t('stats_students'), value: stats?.students || 300, icon: '🎓' },
-                      { label: t('stats_events'), value: stats?.events || 12, icon: '📅' },
+                      { label: t('stats_families'), value: stats?.families, icon: '👨‍👩‍👧‍👦' },
+                      { label: t('stats_members'), value: stats?.members, icon: '👥' },
+                      { label: t('stats_students'), value: stats?.students, icon: '🎓' },
+                      { label: t('stats_events'), value: stats?.events, icon: '📅' },
                     ].map(({ label, value, icon }) => (
-                      <div key={label} className="bg-white/20 rounded-2xl p-4 border border-white/10">
-                        <div className="text-2xl mb-2">{icon}</div>
-                        <p className="text-2xl font-extrabold text-white">{value}+</p>
-                        <p className="text-orange-100 text-xs font-semibold">{label}</p>
+                      <div key={label} className="bg-white/20 rounded-2xl p-4 border border-white/10 min-h-[105px] flex flex-col justify-center">
+                        {statsLoading ? (
+                          <div className="animate-pulse space-y-2 py-0.5" role="status" aria-label="Loading statistic">
+                            <div className="w-8 h-8 bg-white/30 rounded-lg" />
+                            <div className="w-20 h-7 bg-white/40 rounded-lg" />
+                            <div className="w-16 h-3.5 bg-white/25 rounded" />
+                          </div>
+                        ) : (
+                          <>
+                            <div className="text-2xl mb-1">{icon}</div>
+                            <p className="text-2xl font-extrabold text-white">
+                              <Counter target={value ?? 0} suffix="+" />
+                            </p>
+                            <p className="text-orange-100 text-xs font-semibold">{label}</p>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -508,53 +529,66 @@ const HomePage = () => {
           </motion.div>
 
           {/* Sakal Panch Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-10">
-            {(
-              committee.filter((m) => (m.committee_type === 'sankal_panch' || m.type === 'sankal_panch') && m.is_active !== false).length > 0
-                ? committee.filter((m) => (m.committee_type === 'sankal_panch' || m.type === 'sankal_panch') && m.is_active !== false)
-                : defaultSakalPanch
-            ).map((panch, idx) => (
-              <motion.div
-                key={panch.id || panch._id || panch.name || idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.08 }}
-                className="bg-white rounded-3xl p-6 text-center border border-[#E8DCC8] hover:border-[#C9A44C]/60 transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1 relative group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-1 mx-auto mb-4 shadow-lg group-hover:scale-105 transition-transform overflow-hidden">
-                    {panch.photo_url || panch.photo ? (
-                      <img src={panch.photo_url || panch.photo} alt={panch.name} className="w-full h-full object-cover rounded-full" />
+          {!dataLoaded ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-10">
+              {Array.from({ length: 5 }).map((_, idx) => (
+                <div key={idx} className="bg-white rounded-3xl p-6 text-center border border-[#E8DCC8] shadow-md animate-pulse">
+                  <div className="w-20 h-20 rounded-full bg-[#FAF1E0] mx-auto mb-4" />
+                  <div className="w-24 h-5 bg-[#FAF1E0] rounded-full mx-auto mb-3" />
+                  <div className="w-32 h-5 bg-[#FAF1E0] rounded mx-auto mb-2" />
+                  <div className="w-20 h-4 bg-[#FAF1E0] rounded mx-auto" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-10">
+              {(
+                committee.filter((m) => (m.committee_type === 'sankal_panch' || m.type === 'sankal_panch') && m.is_active !== false).length > 0
+                  ? committee.filter((m) => (m.committee_type === 'sankal_panch' || m.type === 'sankal_panch') && m.is_active !== false)
+                  : defaultSakalPanch
+              ).map((panch, idx) => (
+                <motion.div
+                  key={panch.id || panch._id || panch.name || idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.08 }}
+                  className="bg-white rounded-3xl p-6 text-center border border-[#E8DCC8] hover:border-[#C9A44C]/60 transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1 relative group flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-1 mx-auto mb-4 shadow-lg group-hover:scale-105 transition-transform overflow-hidden">
+                      {panch.photo_url || panch.photo ? (
+                        <img src={panch.photo_url || panch.photo} alt={panch.name} className="w-full h-full object-cover rounded-full" />
+                      ) : (
+                        <div className="w-full h-full bg-[#FFF8EC] rounded-full flex items-center justify-center text-[#7A2525] text-2xl font-black">
+                          {panch.name?.charAt(0) || '👑'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="inline-block px-3 py-1 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-xs font-extrabold text-[#7A2525] mb-3">
+                      {panch.designation || panch.पद || 'सकल पंच / वरिष्ठ मार्गदर्शक'}
+                    </div>
+                    <h3 className="font-bold text-[#2B211B] text-base leading-snug mb-1.5">
+                      {panch.name}
+                    </h3>
+                    {panch.phone ? (
+                      <a href={`tel:${panch.phone}`} className="text-xs text-[#766A60] font-semibold flex items-center justify-center gap-1 hover:text-[#C85A17]">
+                        <FiPhone className="w-3 h-3 text-[#C85A17]" /> {panch.phone}
+                      </a>
                     ) : (
-                      <div className="w-full h-full bg-[#FFF8EC] rounded-full flex items-center justify-center text-[#7A2525] text-2xl font-black">
-                        {panch.name?.charAt(0) || '👑'}
-                      </div>
+                      <p className="text-xs text-[#766A60] font-semibold flex items-center justify-center gap-1">
+                        <FiMapPin className="w-3 h-3 text-[#C85A17]" /> ग्राम {panch.village || 'कोणदा'} (कुक्षी)
+                      </p>
                     )}
                   </div>
-                  <div className="inline-block px-3 py-1 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-xs font-extrabold text-[#7A2525] mb-3">
-                    {panch.designation || panch.पद || 'सकल पंच / वरिष्ठ मार्गदर्शक'}
-                  </div>
-                  <h3 className="font-bold text-[#2B211B] text-base leading-snug mb-1.5">
-                    {panch.name}
-                  </h3>
-                  {panch.phone ? (
-                    <a href={`tel:${panch.phone}`} className="text-xs text-[#766A60] font-semibold flex items-center justify-center gap-1 hover:text-[#C85A17]">
-                      <FiPhone className="w-3 h-3 text-[#C85A17]" /> {panch.phone}
-                    </a>
-                  ) : (
-                    <p className="text-xs text-[#766A60] font-semibold flex items-center justify-center gap-1">
-                      <FiMapPin className="w-3 h-3 text-[#C85A17]" /> ग्राम {panch.village || 'कोणदा'} (कुक्षी)
-                    </p>
-                  )}
-                </div>
 
-                <div className="mt-4 pt-3 border-t border-[#E8DCC8] text-xs text-[#C85A17] font-bold">
-                  सिर्वी समाज सकल पंच
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                  <div className="mt-4 pt-3 border-t border-[#E8DCC8] text-xs text-[#C85A17] font-bold">
+                    सिर्वी समाज सकल पंच
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
 
           {/* Action Button to Sakal Panch & Organization Page */}
           <div className="text-center">
@@ -985,16 +1019,26 @@ const HomePage = () => {
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl mx-auto gap-4">
-            {statCards.map((card) => (
-              <StatCard
-                key={card.key}
-                icon={card.icon}
-                value={stats?.[card.key] || 0}
-                label={card.label}
-                color={card.color}
-                delay={card.delay}
-              />
-            ))}
+            {statsLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-3xl p-6 border border-[#E8DCC8] shadow-md animate-pulse">
+                  <div className="w-12 h-12 bg-amber-100/70 rounded-2xl mb-4" />
+                  <div className="w-24 h-8 bg-amber-200/60 rounded-lg mb-2" />
+                  <div className="w-20 h-4 bg-amber-100/70 rounded" />
+                </div>
+              ))
+            ) : (
+              statCards.map((card) => (
+                <StatCard
+                  key={card.key}
+                  icon={card.icon}
+                  value={stats?.[card.key] ?? 0}
+                  label={card.label}
+                  color={card.color}
+                  delay={card.delay}
+                />
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -1059,31 +1103,44 @@ const HomePage = () => {
               </div>
 
               <div className="space-y-4">
-                {news.length > 0 ? news.map((item, i) => (
-                  <motion.div
-                    key={item.id || item._id || i}
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex gap-4 p-5 bg-white rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/50 hover:shadow-lg transition-all group"
-                  >
-                    <div className="w-14 h-14 bg-gradient-to-br from-[#FFF8EC] to-[#FAF1E0] border border-[#E8DCC8] rounded-2xl flex items-center justify-center shrink-0 text-2xl shadow-sm">
-                      📰
+                {!dataLoaded ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex gap-4 p-5 bg-white rounded-3xl border border-[#E8DCC8] animate-pulse">
+                      <div className="w-14 h-14 bg-[#FAF1E0] border border-[#E8DCC8] rounded-2xl shrink-0" />
+                      <div className="flex-1 min-w-0 space-y-2 py-1">
+                        <div className="h-4 bg-[#FAF1E0] rounded w-3/4" />
+                        <div className="h-3 bg-[#FAF1E0] rounded w-full" />
+                        <div className="h-3 bg-[#FAF1E0] rounded w-1/3" />
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-[#2B211B] text-base mb-1 truncate group-hover:text-[#C85A17] transition-colors">
-                        {item.title}
-                      </h3>
-                      <p className="text-[#766A60] text-xs line-clamp-2 leading-relaxed font-medium">
-                        {item.content?.replace(/<[^>]*>/g, '') || item.excerpt}
-                      </p>
-                      <p className="text-[#C85A17] text-xs mt-2 font-bold">
-                        {new Date(item.created_at || item.createdAt || Date.now()).toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </p>
-                    </div>
-                  </motion.div>
-                )) : (
+                  ))
+                ) : news.length > 0 ? (
+                  news.map((item, i) => (
+                    <motion.div
+                      key={item.id || item._id || i}
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1 }}
+                      className="flex gap-4 p-5 bg-white rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/50 hover:shadow-lg transition-all group"
+                    >
+                      <div className="w-14 h-14 bg-gradient-to-br from-[#FFF8EC] to-[#FAF1E0] border border-[#E8DCC8] rounded-2xl flex items-center justify-center shrink-0 text-2xl shadow-sm">
+                        📰
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-[#2B211B] text-base mb-1 truncate group-hover:text-[#C85A17] transition-colors">
+                          {item.title}
+                        </h3>
+                        <p className="text-[#766A60] text-xs line-clamp-2 leading-relaxed font-medium">
+                          {item.content?.replace(/<[^>]*>/g, '') || item.excerpt}
+                        </p>
+                        <p className="text-[#C85A17] text-xs mt-2 font-bold">
+                          {new Date(item.created_at || item.createdAt || Date.now()).toLocaleDateString('hi-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
                   <div className="text-center py-12 text-[#766A60] bg-white border border-dashed border-[#E8DCC8] rounded-3xl">
                     <div className="text-4xl mb-3">📭</div>
                     <p className="text-sm font-semibold">{t('news_empty')}</p>
@@ -1107,33 +1164,45 @@ const HomePage = () => {
               </div>
 
               <div className="space-y-4">
-                {events.length > 0 ? events.map((event, i) => (
-                  <motion.div
-                    key={event.id || event._id || i}
-                    initial={{ opacity: 0, x: 20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex gap-4 p-5 bg-white border border-[#E8DCC8] rounded-3xl hover:border-[#C9A44C]/50 hover:shadow-lg transition-all"
-                  >
-                    <div className="w-14 h-14 bg-gradient-to-br from-[#7A2525] to-[#C85A17] rounded-2xl flex items-center justify-center shrink-0 shadow-md">
-                      <div className="text-center text-white">
-                        <p className="text-lg font-black leading-none">
-                          {new Date(event.start_date || event.startDate || event.date || Date.now()).getDate()}
-                        </p>
-                        <p className="text-[10px] text-orange-200 font-bold uppercase mt-0.5">
-                          {new Date(event.start_date || event.startDate || event.date || Date.now()).toLocaleString('hi-IN', { month: 'short' })}
-                        </p>
+                {!dataLoaded ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex gap-4 p-5 bg-white border border-[#E8DCC8] rounded-3xl animate-pulse">
+                      <div className="w-14 h-14 bg-[#FAF1E0] rounded-2xl shrink-0" />
+                      <div className="flex-1 min-w-0 space-y-2 py-1">
+                        <div className="h-4 bg-[#FAF1E0] rounded w-3/4" />
+                        <div className="h-3 bg-[#FAF1E0] rounded w-1/2" />
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-[#2B211B] text-base mb-1 truncate">{event.title}</h3>
-                      <p className="text-[#766A60] text-xs flex items-center gap-1 font-semibold mt-1">
-                        <FiMapPin className="w-3.5 h-3.5 text-[#C85A17] shrink-0" /> {event.location || 'कोणदा'}
-                      </p>
-                    </div>
-                  </motion.div>
-                )) : (
+                  ))
+                ) : events.length > 0 ? (
+                  events.map((event, i) => (
+                    <motion.div
+                      key={event.id || event._id || i}
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1 }}
+                      className="flex gap-4 p-5 bg-white border border-[#E8DCC8] rounded-3xl hover:border-[#C9A44C]/50 hover:shadow-lg transition-all"
+                    >
+                      <div className="w-14 h-14 bg-gradient-to-br from-[#7A2525] to-[#C85A17] rounded-2xl flex items-center justify-center shrink-0 shadow-md">
+                        <div className="text-center text-white">
+                          <p className="text-lg font-black leading-none">
+                            {new Date(event.start_date || event.startDate || event.date || Date.now()).getDate()}
+                          </p>
+                          <p className="text-[10px] text-orange-200 font-bold uppercase mt-0.5">
+                            {new Date(event.start_date || event.startDate || event.date || Date.now()).toLocaleString('hi-IN', { month: 'short' })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-bold text-[#2B211B] text-base mb-1 truncate">{event.title}</h3>
+                        <p className="text-[#766A60] text-xs flex items-center gap-1 font-semibold mt-1">
+                          <FiMapPin className="w-3.5 h-3.5 text-[#C85A17] shrink-0" /> {event.location || 'कोणदा'}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
                   <div className="text-center py-12 text-[#766A60] bg-white border border-dashed border-[#E8DCC8] rounded-3xl">
                     <div className="text-4xl mb-3">📅</div>
                     <p className="text-sm font-semibold">{t('events_empty')}</p>
