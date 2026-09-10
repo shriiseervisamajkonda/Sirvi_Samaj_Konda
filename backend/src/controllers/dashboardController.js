@@ -55,7 +55,7 @@ export const getDashboardStats = asyncHandler(async (_req, res) => {
     supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published'),
     supabase.from('donations').select('amount').eq('payment_status', 'confirmed'),
     supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(8),
-    supabase.from('families').select('gotra').not('gotra', 'is', null),
+    supabase.from('families').select('gotra, total_members').not('gotra', 'is', null),
   ]);
 
   const totalDonationAmount = (donations || []).reduce((sum, d) => sum + Number(d.amount || 0), 0);
@@ -79,7 +79,8 @@ export const getDashboardStats = asyncHandler(async (_req, res) => {
 
   const mCount = maleCount || 0;
   const fCount = femaleCount || 0;
-  const tMembers = totalMembers || mCount + fCount;
+  const familiesMemberSum = (familiesGotra || []).reduce((sum, f) => sum + (Number(f.total_members) || 1), 0);
+  const tMembers = (totalMembers && totalMembers > 0) ? totalMembers : (familiesMemberSum > 0 ? familiesMemberSum : (mCount + fCount));
 
   res.json({
     success: true,
@@ -100,8 +101,9 @@ export const getDashboardStats = asyncHandler(async (_req, res) => {
         { name: 'पुरुष (Male)', value: mCount },
         { name: 'महिला (Female)', value: fCount },
       ],
-      gotraDistribution,
+      recentLogs: recentLogs || [],
       recentActivities: recentLogs || [],
+      gotraDistribution,
     },
   });
 });
@@ -115,6 +117,7 @@ export const getPublicStats = asyncHandler(async (_req, res) => {
     { count: bloodDonorCount },
     { count: eventCount },
     { count: newsCount },
+    { data: activeFamiliesData },
   ] = await Promise.all([
     supabase.from('families').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active'),
@@ -122,10 +125,12 @@ export const getPublicStats = asyncHandler(async (_req, res) => {
     supabase.from('blood_donors').select('*', { count: 'exact', head: true }).eq('is_available', true),
     supabase.from('events').select('*', { count: 'exact', head: true }).eq('status', 'published'),
     supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published'),
+    supabase.from('families').select('total_members').eq('status', 'active'),
   ]);
 
   const fCount = totalFamilies || 0;
-  const mCount = totalMembers || 0;
+  const familiesMemberSum = (activeFamiliesData || []).reduce((sum, f) => sum + (Number(f.total_members) || 1), 0);
+  const mCount = (totalMembers && totalMembers > 0) ? totalMembers : familiesMemberSum;
   const sCount = studentCount || 0;
   const bCount = bloodDonorCount || 0;
   const eCount = eventCount || 0;
