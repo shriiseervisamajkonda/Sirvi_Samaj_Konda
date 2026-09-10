@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion } from 'framer-motion';
 import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiMapPin, FiPhone, FiInfo, FiFilter, FiRotateCcw } from 'react-icons/fi';
 import { familyAPI } from '../../services/api';
 import { useForm } from 'react-hook-form';
@@ -8,6 +7,7 @@ import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Badge from '../../components/common/Badge';
 import { FormSection, FormField, FormActions } from '../../components/common/FormComponents';
+import FamilyMembersModal from '../../components/common/FamilyMembersModal';
 import toast from 'react-hot-toast';
 
 const GOTRA_OPTIONS = [
@@ -26,6 +26,7 @@ const FamiliesPage = () => {
   const [sortBy, setSortBy] = useState('panchayat_family_id');
   const [sortOrder, setSortOrder] = useState('asc');
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedFamilyForMembers, setSelectedFamilyForMembers] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -332,16 +333,31 @@ const FamiliesPage = () => {
       label: 'S.No.',
       sortable: true,
       render: (_, row, idx) => (
-        <span className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] px-2.5 py-1 rounded-lg border border-[#E8DCC8]">
-          {row.panchayat_family_id || row.familyId || ((page - 1) * itemsPerPage + idx + 1)}
-        </span>
+        <button
+          type="button"
+          onClick={() => setSelectedFamilyForMembers(row)}
+          className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] hover:bg-[#7A2525] hover:text-white px-2.5 py-1 rounded-lg border border-[#E8DCC8] hover:border-[#7A2525] transition cursor-pointer shadow-2xs"
+          title="परिवार के सभी सदस्य देखें"
+        >
+          #{row.panchayat_family_id || row.familyId || ((page - 1) * itemsPerPage + idx + 1)}
+        </button>
       ),
     },
     {
       key: 'head_name',
       label: 'मुखिया का नाम (Head)',
       sortable: true,
-      render: (_, row) => <span className="font-bold text-[#2B211B]">{row.head_name || row.headOfFamily || '—'}</span>,
+      render: (_, row) => (
+        <button
+          type="button"
+          onClick={() => setSelectedFamilyForMembers(row)}
+          className="text-left font-bold text-[#2B211B] hover:text-[#7A2525] hover:underline transition cursor-pointer flex items-center gap-1.5 group"
+          title="परिवार के सभी सदस्य देखें"
+        >
+          <span>{row.head_name || row.headOfFamily || '—'}</span>
+          <FiUsers className="w-3.5 h-3.5 text-[#C85A17] opacity-0 group-hover:opacity-100 transition-opacity" />
+        </button>
+      ),
     },
     {
       key: 'gotra',
@@ -361,9 +377,17 @@ const FamiliesPage = () => {
       label: 'कुल सदस्य',
       sortable: true,
       render: (_, row) => (
-        <span className="font-bold">
-          {row.total_members || (Array.isArray(row.family_members) ? row.family_members.length : 0) || row.memberCount || row.numberOfMembers || 0} सदस्य
-        </span>
+        <button
+          type="button"
+          onClick={() => setSelectedFamilyForMembers(row)}
+          className="font-bold text-[#7A2525] hover:text-[#C85A17] hover:underline cursor-pointer flex items-center gap-1.5"
+          title="परिवार के सभी सदस्य देखें"
+        >
+          <FiUsers className="w-3.5 h-3.5 text-[#C85A17]" />
+          <span>
+            {row.total_members || (Array.isArray(row.family_members) ? row.family_members.length : 0) || row.memberCount || row.numberOfMembers || 0} सदस्य
+          </span>
+        </button>
       ),
     },
     { key: 'status', label: 'स्थिति', sortable: true, render: (v) => <Badge variant={v === 'inactive' ? 'danger' : 'success'}>{v === 'inactive' ? 'निष्क्रिय' : 'सक्रिय'}</Badge> },
@@ -619,6 +643,12 @@ const FamiliesPage = () => {
         title="परिवार रिकॉर्ड हटाएँ"
         message={`क्या आप "${deleteItem?.headOfFamily}" का परिवार रिकॉर्ड हटाना चाहते हैं? इससे संबंधित सदस्यों का डेटा भी प्रभावित हो सकता है।`}
         isLoading={deleting}
+      />
+
+      <FamilyMembersModal
+        isOpen={Boolean(selectedFamilyForMembers)}
+        onClose={() => setSelectedFamilyForMembers(null)}
+        family={selectedFamilyForMembers}
       />
     </div>
   );

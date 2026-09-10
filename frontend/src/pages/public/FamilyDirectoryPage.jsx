@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FiSearch, FiInbox } from 'react-icons/fi';
+import { FiSearch, FiInbox, FiUsers } from 'react-icons/fi';
 import { familyAPI } from '../../services/api';
 import DataTable from '../../components/common/DataTable';
+import FamilyMembersModal from '../../components/common/FamilyMembersModal';
 
 const FamilyDirectoryPage = () => {
   const [families, setFamilies] = useState([]);
@@ -11,6 +12,7 @@ const FamilyDirectoryPage = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [selectedFamilyForMembers, setSelectedFamilyForMembers] = useState(null);
 
   const fetchFamilies = useCallback(async () => {
     setLoading(true);
@@ -44,9 +46,14 @@ const FamilyDirectoryPage = () => {
       label: 'S.No.',
       sortable: false,
       render: (_, row, idx) => (
-        <span className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] px-2.5 py-1 rounded-lg border border-[#E8DCC8]">
-          {row.panchayat_family_id || row.familyId || ((page - 1) * 10 + idx + 1)}
-        </span>
+        <button
+          type="button"
+          onClick={() => setSelectedFamilyForMembers(row)}
+          className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] hover:bg-[#7A2525] hover:text-white px-2.5 py-1 rounded-lg border border-[#E8DCC8] hover:border-[#7A2525] transition cursor-pointer shadow-2xs"
+          title="परिवार के सभी सदस्य देखें"
+        >
+          #{row.panchayat_family_id || row.familyId || ((page - 1) * 10 + idx + 1)}
+        </button>
       ),
     },
     { 
@@ -57,7 +64,12 @@ const FamilyDirectoryPage = () => {
         const headName = row.head_name || row.headOfFamily || '—';
         const gotra = row.gotra || row.surname || '';
         return (
-          <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setSelectedFamilyForMembers(row)}
+            className="flex items-center gap-3 text-left group cursor-pointer"
+            title="परिवार के सभी सदस्य देखें"
+          >
             <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#C85A17] to-[#C9A44C] text-white text-sm font-bold shrink-0">
               {row.familyPhoto || row.family_photo ? (
                 <img src={row.familyPhoto || row.family_photo} alt="Family" className="w-full h-full object-cover" />
@@ -65,8 +77,13 @@ const FamilyDirectoryPage = () => {
                 gotra.charAt(0) || headName.charAt(0) || 'F'
               )}
             </div>
-            <span className="font-bold text-[#2B211B]">{headName}</span>
-          </div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-[#2B211B] group-hover:text-[#7A2525] group-hover:underline transition">
+                {headName}
+              </span>
+              <FiUsers className="w-3.5 h-3.5 text-[#C85A17] opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+          </button>
         );
       },
     },
@@ -77,9 +94,17 @@ const FamilyDirectoryPage = () => {
       key: 'numberOfMembers',
       label: 'सदस्य (Members)',
       render: (_, row) => (
-        <span className="font-bold">
-          {row.total_members || (Array.isArray(row.family_members) ? row.family_members.length : 0) || row.numberOfMembers || row.memberCount || 0}
-        </span>
+        <button
+          type="button"
+          onClick={() => setSelectedFamilyForMembers(row)}
+          className="font-bold text-[#7A2525] hover:text-[#C85A17] hover:underline cursor-pointer flex items-center gap-1"
+          title="परिवार के सभी सदस्य देखें"
+        >
+          <FiUsers className="w-3.5 h-3.5 text-[#C85A17]" />
+          <span>
+            {row.total_members || (Array.isArray(row.family_members) ? row.family_members.length : 0) || row.numberOfMembers || row.memberCount || 0}
+          </span>
+        </button>
       ),
     },
     { 
@@ -150,6 +175,12 @@ const FamilyDirectoryPage = () => {
           />
         </div>
       </div>
+
+      <FamilyMembersModal
+        isOpen={Boolean(selectedFamilyForMembers)}
+        onClose={() => setSelectedFamilyForMembers(null)}
+        family={selectedFamilyForMembers}
+      />
     </div>
   );
 };
