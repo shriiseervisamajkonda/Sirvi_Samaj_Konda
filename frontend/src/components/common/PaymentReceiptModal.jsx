@@ -27,6 +27,16 @@ const paymentModeMap = {
   online_gateway: 'ऑनलाइन गेटवे',
 };
 
+const extractGotra = (name) => {
+  if (!name || name === '—') return '';
+  const clean = String(name).replace(/^(श्री|श्रीमती|श्रीमान|डॉ|प्रो)\s+/i, '').trim();
+  const words = clean.split(/\s+/);
+  if (words.length >= 2) {
+    return words[words.length - 1].replace(/[()]/g, '');
+  }
+  return '';
+};
+
 const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
   const printRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
@@ -56,12 +66,19 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
 
   const donorName = donation.donor_name || donation.head_name || '—';
   const headName = donation.families?.head_name || donation.head_name || donorName;
-  const rawFamilyId = donation.panchayat_family_id || donation.families?.panchayat_family_id || donation.family_id || '026';
-  const paddedFamilyId = !isNaN(Number(rawFamilyId)) 
-    ? String(rawFamilyId).padStart(3, '0') 
-    : rawFamilyId;
+  
+  const rawFamilyId = donation.panchayat_family_id || donation.families?.panchayat_family_id || donation.family_id || '';
+  const paddedFamilyId = rawFamilyId && !isNaN(Number(rawFamilyId))
+    ? String(rawFamilyId).padStart(3, '0')
+    : rawFamilyId || '—';
 
-  const gotra = donation.gotra || donation.families?.gotra || 'काग';
+  const rawGotra = donation.gotra && donation.gotra !== '—'
+    ? donation.gotra
+    : donation.families?.gotra && donation.families.gotra !== '—'
+      ? donation.families.gotra
+      : extractGotra(headName) || extractGotra(donorName) || 'काग';
+
+  const gotra = rawGotra || '—';
   const village = donation.village || donation.families?.village || 'कोणदा';
   const mobile = donation.mobile_number || donation.head_mobile || donation.families?.head_mobile || '';
   const amount = Number(donation.amount || 0);
@@ -75,7 +92,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
   const remarks = donation.notes || donation.remarks || `${rawPurpose} हेतु सहयोग राशि`;
   const generatedBy = donation.created_by_name || 'चिराग भायल';
 
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&margin=0&data=${encodeURIComponent(`https://www.seervisamajkonda.com/verify?receipt=${receiptNo}`)}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&margin=0&data=${encodeURIComponent(`https://www.seervisamajkonda.com/verify?receipt=${receiptNo}`)}`;
 
   const handlePrint = () => {
     window.print();
@@ -123,7 +140,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-xs">
       {/* Print Specific CSS */}
       <style>{`
         @media print {
@@ -153,9 +170,11 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
         }
       `}</style>
 
-      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-[#E8DCC8] overflow-hidden my-4 sm:my-8 animate-fadeIn">
-        {/* Modal Top Controls */}
-        <div className="no-print flex items-center justify-between px-5 py-3.5 bg-[#FFF8EC] border-b border-[#E8DCC8]">
+      {/* Main Modal Shell (Max height with internal scroll so it never clips!) */}
+      <div className="relative w-full max-w-[800px] max-h-[96vh] flex flex-col bg-white rounded-3xl shadow-2xl border border-[#E8DCC8] overflow-hidden my-auto animate-fadeIn">
+        
+        {/* Sticky Top Controls */}
+        <div className="no-print shrink-0 flex items-center justify-between px-5 py-3 bg-[#FFF8EC] border-b border-[#E8DCC8]">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <h3 className="font-extrabold text-[#7A1C1C] text-sm sm:text-base">
@@ -194,12 +213,12 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
           </div>
         </div>
 
-        {/* Printable Receipt Card Body */}
-        <div className="p-2 sm:p-4 bg-[#F2EDE4] overflow-x-auto">
+        {/* Scrollable Receipt Body */}
+        <div className="flex-1 overflow-y-auto p-3 sm:p-5 bg-[#EFE8DC]">
           <div
             id="printable-receipt-card"
             ref={printRef}
-            className="w-full max-w-[620px] mx-auto bg-[#FFFDF8] rounded-2xl shadow-xl overflow-hidden border border-[#D4A373] text-[#1E293B]"
+            className="w-full max-w-[740px] mx-auto bg-[#FFFDF8] rounded-2xl shadow-xl overflow-hidden border-2 border-[#8E211A] text-[#1E293B]"
             style={{
               boxSizing: 'border-box',
               fontFamily: "'Inter', 'Segoe UI', sans-serif",
@@ -207,7 +226,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
           >
             {/* 1. Header Section */}
             <div
-              className="relative px-4 sm:px-6 pt-3 pb-2 text-white"
+              className="relative px-5 sm:px-6 pt-3 pb-2 text-white"
               style={{
                 background: 'linear-gradient(135deg, #7A1C1C 0%, #9B241B 50%, #7A1C1C 100%)',
               }}
@@ -218,27 +237,27 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                 <span>॥ ॐ श्री कुलदेवी माता नमः ॥</span>
               </div>
 
-              {/* Main Header Row: Logo | Title & Location | Quote Card */}
-              <div className="flex items-center justify-between gap-2 sm:gap-3 py-1">
+              {/* Main Header Row */}
+              <div className="flex items-center justify-between gap-3 py-1">
                 {/* Left Logo / Emblem */}
-                <div className="shrink-0 flex flex-col items-center">
+                <div className="shrink-0">
                   <img
                     src="/Logo.webp"
                     alt="श्री सीरवी समाज कोणदा"
                     crossOrigin="anonymous"
-                    className="w-18 h-18 sm:w-22 sm:h-22 object-contain drop-shadow-md"
+                    className="w-20 h-20 sm:w-24 sm:h-24 object-contain drop-shadow-md"
                     onError={(e) => {
                       e.currentTarget.src = '/Logo.webp';
                     }}
                   />
                 </div>
 
-                {/* Center Organization Title & Info */}
+                {/* Center Title & Info */}
                 <div className="flex-1 text-center px-1">
-                  <h1 className="text-xl sm:text-2xl lg:text-[26px] font-black tracking-tight text-white leading-tight drop-shadow-sm">
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight drop-shadow-sm">
                     श्री सीरवी समाज कोणदा
                   </h1>
-                  <p className="text-[11px] sm:text-xs font-semibold text-amber-200 mt-1 flex items-center justify-center gap-1">
+                  <p className="text-xs sm:text-[13px] font-bold text-amber-200 mt-1 flex items-center justify-center gap-1">
                     <span>📍</span> ग्राम कोणदा, तहसील कुक्षी, जिला धार (मध्य प्रदेश)
                   </p>
                   <p className="text-[10px] sm:text-[11px] font-bold text-orange-100 tracking-widest mt-1 uppercase">
@@ -247,19 +266,19 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                 </div>
 
                 {/* Right Quote Badge */}
-                <div className="shrink-0 bg-white rounded-2xl p-2 sm:p-2.5 text-center shadow-md w-24 sm:w-28 border border-amber-200">
+                <div className="shrink-0 bg-white rounded-2xl p-2.5 text-center shadow-md w-28 sm:w-32 border border-amber-200">
                   <span className="text-[#C85A17] font-serif text-lg leading-none font-black block">“</span>
-                  <p className="text-[10px] sm:text-[11px] font-black text-[#7A1C1C] leading-snug">
+                  <p className="text-[11px] font-black text-[#7A1C1C] leading-snug">
                     समाज सेवा ही सच्ची सेवा
                   </p>
                   <span className="text-[#C85A17] font-serif text-lg leading-none font-black block text-right -mt-1">”</span>
                 </div>
               </div>
 
-              {/* Header Bottom Banner (Maroon Ribbon with Tagline) */}
-              <div className="mt-2 pt-2 border-t border-white/20 flex items-center justify-between text-[9px] sm:text-[10px] font-bold text-amber-100">
+              {/* Header Bottom Banner */}
+              <div className="mt-2.5 pt-2 border-t border-white/20 flex items-center justify-between text-[10px] sm:text-[11px] font-bold text-amber-100">
                 <span className="leading-tight text-left">समाज से<br />समाज के लिए</span>
-                <div className="bg-[#4D0D0D] border border-amber-400/40 rounded-full px-4 sm:px-6 py-1 text-center shadow-inner">
+                <div className="bg-[#4D0D0D] border border-amber-400/40 rounded-full px-6 sm:px-8 py-1 text-center shadow-inner">
                   <span className="text-xs sm:text-sm font-black text-[#FDE68A] block leading-tight">
                     दान एवं सहयोग राशि रसीद
                   </span>
@@ -271,16 +290,16 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
               </div>
             </div>
 
-            {/* 2. Metadata Ribbon (3 Rounded Cards) */}
-            <div className="bg-[#FAF2E6] px-3.5 sm:px-4 py-2.5 border-b border-[#E8DCC8]">
-              <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
+            {/* 2. Metadata Ribbon (3 Balanced Cards) */}
+            <div className="bg-[#FAF2E6] px-4 py-2.5 border-b border-[#E8DCC8]">
+              <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
                 {/* Card 1: Receipt Number */}
-                <div className="bg-white rounded-xl p-2 sm:p-2.5 border border-[#E8DCC8] shadow-2xs flex items-center gap-2 sm:gap-2.5">
+                <div className="bg-white rounded-xl p-2.5 border border-[#E8DCC8] shadow-2xs flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-[#7A1C1C] flex items-center justify-center text-white shrink-0 shadow-xs">
                     <FiFileText className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[9px] text-[#64748B] font-bold leading-tight">रसीद क्रमांक (Receipt No.)</p>
+                    <p className="text-[9px] text-[#64748B] font-bold uppercase leading-tight">रसीद क्रमांक (Receipt No.)</p>
                     <p className="text-xs sm:text-[13px] font-black text-[#7A1C1C] font-mono truncate leading-tight mt-0.5">
                       {receiptNo}
                     </p>
@@ -288,12 +307,12 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                 </div>
 
                 {/* Card 2: Date & Time */}
-                <div className="bg-white rounded-xl p-2 sm:p-2.5 border border-[#E8DCC8] shadow-2xs flex items-center gap-2 sm:gap-2.5">
+                <div className="bg-white rounded-xl p-2.5 border border-[#E8DCC8] shadow-2xs flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-[#7A1C1C] flex items-center justify-center text-white shrink-0 shadow-xs">
                     <FiCalendar className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[9px] text-[#64748B] font-bold leading-tight">दिनांक (Date)</p>
+                    <p className="text-[9px] text-[#64748B] font-bold uppercase leading-tight">दिनांक (Date)</p>
                     <p className="text-xs sm:text-[13px] font-black text-[#1E293B] truncate leading-tight mt-0.5">
                       {dateStr}
                     </p>
@@ -302,12 +321,12 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                 </div>
 
                 {/* Card 3: Fund / Branch */}
-                <div className="bg-white rounded-xl p-2 sm:p-2.5 border border-[#E8DCC8] shadow-2xs flex items-center gap-2 sm:gap-2.5">
+                <div className="bg-white rounded-xl p-2.5 border border-[#E8DCC8] shadow-2xs flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-[#7A1C1C] flex items-center justify-center text-white shrink-0 shadow-xs">
                     <FiTag className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[9px] text-[#64748B] font-bold leading-tight">कोष / शाखा (Fund / Branch)</p>
+                    <p className="text-[9px] text-[#64748B] font-bold uppercase leading-tight">कोष / शाखा (Fund / Branch)</p>
                     <p className="text-xs sm:text-[13px] font-black text-[#7A1C1C] truncate leading-tight mt-0.5">
                       {purposeName}
                     </p>
@@ -316,12 +335,12 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
               </div>
             </div>
 
-            {/* 3. Main Content: Two Balanced Columns */}
-            <div className="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
+            {/* 3. Main Content: Two Perfectly Aligned Columns */}
+            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               
               {/* Left Column: Family Details + Amount Highlight */}
-              <div className="flex flex-col justify-between space-y-3">
-                {/* Family & Member Box */}
+              <div className="flex flex-col justify-between space-y-3.5">
+                {/* Family Details Card */}
                 <div className="rounded-xl overflow-hidden border border-[#E8DCC8] shadow-2xs bg-white">
                   {/* Column Header */}
                   <div className="bg-[#7A1C1C] text-white px-3 py-1.5 flex items-center justify-center gap-2">
@@ -336,96 +355,107 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                     </span>
                   </div>
 
-                  {/* Rows */}
-                  <div className="p-2.5 sm:p-3 space-y-2 text-xs">
-                    <div className="flex items-start gap-2">
-                      <span className="w-5 h-5 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-xs">
-                        <FiUser className="w-3 h-3" />
-                      </span>
-                      <div className="min-w-0 flex-1 flex justify-between gap-1">
-                        <span className="text-[#64748B] font-medium text-[11px]">
+                  {/* Rows with Perfect Column Alignment */}
+                  <div className="p-3 space-y-2.5 text-xs">
+                    {/* Head of Family */}
+                    <div className="grid grid-cols-[130px_10px_1fr] items-baseline gap-x-1">
+                      <div className="flex items-center gap-1.5 text-[#64748B] font-semibold leading-tight">
+                        <span className="w-4 h-4 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-[10px]">
+                          <FiUser className="w-2.5 h-2.5" />
+                        </span>
+                        <span>
                           परिवार मुखिया का नाम <br />
-                          <span className="text-[9px] text-gray-400 font-normal">(Head of Family)</span>
-                        </span>
-                        <span className="font-black text-[#1E293B] text-right truncate text-xs sm:text-[13px]">
-                          : {headName}
+                          <span className="text-[9px] text-[#94A3B8] font-normal">(Head of Family)</span>
                         </span>
                       </div>
+                      <span className="text-[#64748B] font-black text-center">:</span>
+                      <span className="font-extrabold text-[#1E293B] text-xs sm:text-[13px] break-words">
+                        {headName}
+                      </span>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-1 border-t border-[#F1E8DC]">
-                      <span className="w-5 h-5 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-xs">
-                        <FiUsers className="w-3 h-3" />
-                      </span>
-                      <div className="min-w-0 flex-1 flex justify-between gap-1">
-                        <span className="text-[#64748B] font-medium text-[11px]">
-                          परिवार क्र. # <span className="text-[9px] text-gray-400 font-normal">(Family No.)</span>
+                    {/* Family No. */}
+                    <div className="grid grid-cols-[130px_10px_1fr] items-baseline gap-x-1 pt-1.5 border-t border-[#F1E8DC]">
+                      <div className="flex items-center gap-1.5 text-[#64748B] font-semibold leading-tight">
+                        <span className="w-4 h-4 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-[10px]">
+                          <FiUsers className="w-2.5 h-2.5" />
                         </span>
-                        <span className="font-black text-[#1E293B] font-mono text-right text-xs sm:text-[13px]">
-                          : {paddedFamilyId}
+                        <span>
+                          परिवार क्र. # <br />
+                          <span className="text-[9px] text-[#94A3B8] font-normal">(Family No.)</span>
                         </span>
                       </div>
+                      <span className="text-[#64748B] font-black text-center">:</span>
+                      <span className="font-extrabold text-[#1E293B] text-xs sm:text-[13px] font-mono">
+                        {paddedFamilyId}
+                      </span>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-1 border-t border-[#F1E8DC]">
-                      <span className="w-5 h-5 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-xs">
-                        <FiBookmark className="w-3 h-3" />
-                      </span>
-                      <div className="min-w-0 flex-1 flex justify-between gap-1">
-                        <span className="text-[#64748B] font-medium text-[11px]">
-                          गोत्र <span className="text-[9px] text-gray-400 font-normal">(Gotra)</span>
+                    {/* Gotra */}
+                    <div className="grid grid-cols-[130px_10px_1fr] items-baseline gap-x-1 pt-1.5 border-t border-[#F1E8DC]">
+                      <div className="flex items-center gap-1.5 text-[#64748B] font-semibold leading-tight">
+                        <span className="w-4 h-4 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-[10px]">
+                          <FiBookmark className="w-2.5 h-2.5" />
                         </span>
-                        <span className="font-black text-[#1E293B] text-right text-xs sm:text-[13px]">
-                          : {gotra}
+                        <span>
+                          गोत्र <br />
+                          <span className="text-[9px] text-[#94A3B8] font-normal">(Gotra)</span>
                         </span>
                       </div>
+                      <span className="text-[#64748B] font-black text-center">:</span>
+                      <span className="font-extrabold text-[#1E293B] text-xs sm:text-[13px]">
+                        {gotra}
+                      </span>
                     </div>
 
-                    <div className="flex items-center gap-2 pt-1 border-t border-[#F1E8DC]">
-                      <span className="w-5 h-5 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-xs">
-                        <FiHome className="w-3 h-3" />
-                      </span>
-                      <div className="min-w-0 flex-1 flex justify-between gap-1">
-                        <span className="text-[#64748B] font-medium text-[11px]">
-                          ग्राम / क्षेत्र <span className="text-[9px] text-gray-400 font-normal">(Village)</span>
+                    {/* Village */}
+                    <div className="grid grid-cols-[130px_10px_1fr] items-baseline gap-x-1 pt-1.5 border-t border-[#F1E8DC]">
+                      <div className="flex items-center gap-1.5 text-[#64748B] font-semibold leading-tight">
+                        <span className="w-4 h-4 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-[10px]">
+                          <FiHome className="w-2.5 h-2.5" />
                         </span>
-                        <span className="font-black text-[#1E293B] text-right text-xs sm:text-[13px]">
-                          : {village}
+                        <span>
+                          ग्राम / क्षेत्र <br />
+                          <span className="text-[9px] text-[#94A3B8] font-normal">(Village)</span>
                         </span>
                       </div>
+                      <span className="text-[#64748B] font-black text-center">:</span>
+                      <span className="font-extrabold text-[#1E293B] text-xs sm:text-[13px]">
+                        {village}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Amount Received Highlight Box */}
                 <div
-                  className="rounded-xl p-2.5 sm:p-3 text-white flex items-center justify-between shadow-md"
+                  className="rounded-xl p-3 text-white flex items-center justify-between shadow-md"
                   style={{
                     background: 'linear-gradient(135deg, #C85A17 0%, #D9681E 50%, #B8470E 100%)',
                   }}
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-full bg-white/20 border border-white/40 flex items-center justify-center font-bold text-base shadow-xs">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-full bg-white/20 border border-white/40 flex items-center justify-center font-black text-lg shadow-xs">
                       ₹
                     </div>
                     <div>
-                      <p className="font-extrabold text-xs sm:text-[13px] text-white leading-tight">
+                      <p className="font-black text-xs sm:text-sm text-white leading-tight">
                         प्राप्त कुल राशि
                       </p>
-                      <p className="text-[9px] text-orange-200 leading-none">
+                      <p className="text-[9px] text-orange-100 font-semibold leading-none">
                         (Amount Received)
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="font-black text-xl sm:text-2xl font-mono text-white tracking-tight drop-shadow-xs">
+                    <span className="font-black text-2xl font-mono text-white tracking-tight drop-shadow-xs">
                       ₹ {amount.toLocaleString('en-IN')} /-
                     </span>
                   </div>
                 </div>
 
                 {/* Amount in Words Box */}
-                <div className="bg-[#FFF9F0] rounded-xl p-2 border border-[#E8DCC8] text-[11px] leading-relaxed">
+                <div className="bg-[#FFF9F0] rounded-xl p-2.5 border border-[#E8DCC8] text-[11px] leading-relaxed">
                   <p className="text-[#1E293B] font-bold">
                     <span className="text-[#64748B] font-medium">राशि शब्दों में : </span>
                     <span className="text-[#7A1C1C] font-black">{hindiAmount}</span>
@@ -451,111 +481,117 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                   </span>
                 </div>
 
-                {/* Rows */}
-                <div className="p-2.5 sm:p-3 space-y-2.5 text-xs flex-1 flex flex-col justify-around">
-                  {/* Purpose */}
-                  <div className="flex items-start gap-2">
-                    <span className="w-5 h-5 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-xs">
-                      <FiTag className="w-3 h-3" />
-                    </span>
-                    <div className="min-w-0 flex-1 flex justify-between gap-1">
-                      <span className="text-[#64748B] font-medium text-[11px]">
-                        मद / विवरण <br />
-                        <span className="text-[9px] text-gray-400 font-normal">(Purpose / Ledger)</span>
+                {/* Rows with Perfect Column Alignment */}
+                <div className="p-3 space-y-2.5 text-xs flex-1 flex flex-col justify-around">
+                  {/* Purpose / Ledger */}
+                  <div className="grid grid-cols-[130px_10px_1fr] items-baseline gap-x-1">
+                    <div className="flex items-center gap-1.5 text-[#64748B] font-semibold leading-tight">
+                      <span className="w-4 h-4 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-[10px]">
+                        <FiTag className="w-2.5 h-2.5" />
                       </span>
-                      <span className="font-black text-[#7A1C1C] text-right truncate text-xs sm:text-[13px]">
-                        : {purposeName}
+                      <span>
+                        मद / विवरण <br />
+                        <span className="text-[9px] text-[#94A3B8] font-normal">(Purpose / Ledger)</span>
                       </span>
                     </div>
+                    <span className="text-[#64748B] font-black text-center">:</span>
+                    <span className="font-extrabold text-[#7A1C1C] text-xs sm:text-[13px] break-words">
+                      {purposeName}
+                    </span>
                   </div>
 
                   {/* Paid By Member */}
-                  <div className="flex items-start gap-2 pt-1 border-t border-[#F1E8DC]">
-                    <span className="w-5 h-5 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-xs">
-                      <FiUser className="w-3 h-3" />
-                    </span>
-                    <div className="min-w-0 flex-1 flex justify-between gap-1">
-                      <span className="text-[#64748B] font-medium text-[11px]">
-                        भुगतानकर्ता / सदस्य <br />
-                        <span className="text-[9px] text-gray-400 font-normal">(Paid By Member)</span>
+                  <div className="grid grid-cols-[130px_10px_1fr] items-baseline gap-x-1 pt-1.5 border-t border-[#F1E8DC]">
+                    <div className="flex items-center gap-1.5 text-[#64748B] font-semibold leading-tight">
+                      <span className="w-4 h-4 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-[10px]">
+                        <FiUser className="w-2.5 h-2.5" />
                       </span>
-                      <span className="font-black text-[#1E293B] text-right truncate text-xs sm:text-[13px]">
-                        : {donorName}
+                      <span>
+                        भुगतानकर्ता / सदस्य <br />
+                        <span className="text-[9px] text-[#94A3B8] font-normal">(Paid By Member)</span>
                       </span>
                     </div>
+                    <span className="text-[#64748B] font-black text-center">:</span>
+                    <span className="font-extrabold text-[#1E293B] text-xs sm:text-[13px] break-words">
+                      {donorName}
+                    </span>
                   </div>
 
                   {/* Payment Mode */}
-                  <div className="flex items-center gap-2 pt-1 border-t border-[#F1E8DC]">
-                    <span className="w-5 h-5 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-xs font-bold">
-                      ₹
-                    </span>
-                    <div className="min-w-0 flex-1 flex justify-between gap-1">
-                      <span className="text-[#64748B] font-medium text-[11px]">
-                        भुगतान माध्यम <span className="text-[9px] text-gray-400 font-normal">(Payment Mode)</span>
+                  <div className="grid grid-cols-[130px_10px_1fr] items-baseline gap-x-1 pt-1.5 border-t border-[#F1E8DC]">
+                    <div className="flex items-center gap-1.5 text-[#64748B] font-semibold leading-tight">
+                      <span className="w-4 h-4 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-[10px] font-bold">
+                        ₹
                       </span>
-                      <span className="font-black text-[#1E293B] text-right text-xs sm:text-[13px]">
-                        : {paymentMode}
+                      <span>
+                        भुगतान माध्यम <br />
+                        <span className="text-[9px] text-[#94A3B8] font-normal">(Payment Mode)</span>
                       </span>
                     </div>
+                    <span className="text-[#64748B] font-black text-center">:</span>
+                    <span className="font-extrabold text-[#1E293B] text-xs sm:text-[13px]">
+                      {paymentMode}
+                    </span>
                   </div>
 
-                  {/* UTR / Reference */}
-                  <div className="flex items-start gap-2 pt-1 border-t border-[#F1E8DC]">
-                    <span className="w-5 h-5 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-xs">
-                      <FiLink className="w-3 h-3" />
-                    </span>
-                    <div className="min-w-0 flex-1 flex justify-between gap-1">
-                      <span className="text-[#64748B] font-medium text-[11px]">
-                        लेनदेन संदर्भ (UTR) <br />
-                        <span className="text-[9px] text-gray-400 font-normal">(Transaction ID / UTR)</span>
+                  {/* UTR / Transaction ID */}
+                  <div className="grid grid-cols-[130px_10px_1fr] items-baseline gap-x-1 pt-1.5 border-t border-[#F1E8DC]">
+                    <div className="flex items-center gap-1.5 text-[#64748B] font-semibold leading-tight">
+                      <span className="w-4 h-4 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-[10px]">
+                        <FiLink className="w-2.5 h-2.5" />
                       </span>
-                      <span className="font-black text-[#1E293B] font-mono text-right truncate text-xs sm:text-[13px]">
-                        : {utrNumber}
+                      <span>
+                        लेनदेन संदर्भ (UTR) <br />
+                        <span className="text-[9px] text-[#94A3B8] font-normal">(Transaction ID / UTR)</span>
                       </span>
                     </div>
+                    <span className="text-[#64748B] font-black text-center">:</span>
+                    <span className="font-extrabold text-[#1E293B] font-mono text-xs sm:text-[13px] break-all">
+                      {utrNumber}
+                    </span>
                   </div>
 
                   {/* Remarks */}
-                  <div className="flex items-start gap-2 pt-1 border-t border-[#F1E8DC]">
-                    <span className="w-5 h-5 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-xs">
-                      <FiMessageSquare className="w-3 h-3" />
-                    </span>
-                    <div className="min-w-0 flex-1 flex justify-between gap-1">
-                      <span className="text-[#64748B] font-medium text-[11px]">
-                        टिप्पणी / विवरण <br />
-                        <span className="text-[9px] text-gray-400 font-normal">(Remarks)</span>
+                  <div className="grid grid-cols-[130px_10px_1fr] items-baseline gap-x-1 pt-1.5 border-t border-[#F1E8DC]">
+                    <div className="flex items-center gap-1.5 text-[#64748B] font-semibold leading-tight">
+                      <span className="w-4 h-4 rounded-full bg-[#FAF2E6] flex items-center justify-center text-[#7A1C1C] shrink-0 text-[10px]">
+                        <FiMessageSquare className="w-2.5 h-2.5" />
                       </span>
-                      <span className="font-semibold text-[#1E293B] text-right text-xs leading-tight">
-                        : {remarks}
+                      <span>
+                        टिप्पणी / विवरण <br />
+                        <span className="text-[9px] text-[#94A3B8] font-normal">(Remarks)</span>
                       </span>
                     </div>
+                    <span className="text-[#64748B] font-black text-center">:</span>
+                    <span className="font-bold text-[#1E293B] text-xs leading-snug break-words">
+                      {remarks}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* 4. Verification, Samaj Quote & Sign-Off Section */}
-            <div className="px-3.5 sm:px-4 py-3 border-t border-[#E8DCC8] bg-[#FFFBF5]">
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 items-center text-center">
-                {/* Left: QR Code Verification */}
-                <div className="flex items-center gap-2 text-left">
+            <div className="px-5 py-3 border-t border-[#E8DCC8] bg-[#FFFBF5]">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center text-center">
+                {/* Left: QR Code Verification (Non-truncated URL!) */}
+                <div className="flex items-center gap-2.5 text-left">
                   <div className="bg-white p-1 rounded-lg border border-[#E8DCC8] shadow-2xs shrink-0">
                     <img
                       src={qrUrl}
                       alt="Verify QR"
                       crossOrigin="anonymous"
-                      className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
+                      className="w-16 h-16 object-contain"
                     />
                     <p className="text-[8px] font-mono font-bold text-[#7A1C1C] text-center mt-0.5 leading-none">
                       {receiptNo}
                     </p>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] sm:text-[11px] font-black text-[#1E293B] leading-tight">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-black text-[#1E293B] leading-tight">
                       रसीद की सत्यता जाँचें
                     </p>
-                    <p className="text-[8px] sm:text-[9px] text-[#64748B] font-medium leading-tight">
+                    <p className="text-[9px] text-[#64748B] font-medium leading-tight">
                       (Verify Receipt)
                     </p>
                     <p className="text-[8px] text-[#64748B] mt-0.5 leading-tight">
@@ -565,7 +601,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                       href="https://www.seervisamajkonda.com/verify"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[8px] sm:text-[9px] text-[#C85A17] font-bold underline truncate block"
+                      className="text-[9px] text-[#C85A17] font-bold underline break-all block"
                     >
                       www.seervisamajkonda.com/verify
                     </a>
@@ -573,32 +609,32 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                 </div>
 
                 {/* Center: Inspirational Samaj Quote */}
-                <div className="px-1 py-1 text-center">
-                  <span className="text-[#C85A17] font-serif text-base leading-none block font-black">“</span>
-                  <p className="text-[11px] sm:text-xs font-black text-[#7A1C1C] leading-tight">
+                <div className="px-2 py-1 text-center">
+                  <span className="text-[#C85A17] font-serif text-lg leading-none block font-black">“</span>
+                  <p className="text-xs font-black text-[#7A1C1C] leading-tight">
                     आपका सहयोग<br />
                     समाज के उज्जवल<br />
                     भविष्य की नींव है।
                   </p>
-                  <span className="text-[#C85A17] font-serif text-base leading-none block font-black text-right -mt-1">”</span>
+                  <span className="text-[#C85A17] font-serif text-lg leading-none block font-black text-right -mt-1">”</span>
                 </div>
 
                 {/* Right: Signatory / Generated By */}
                 <div className="flex flex-col items-center justify-center text-center">
-                  <div className="w-7 h-7 rounded-full bg-[#7A1C1C] flex items-center justify-center text-white mb-1 shadow-2xs">
-                    <FiUser className="w-3.5 h-3.5" />
+                  <div className="w-8 h-8 rounded-full bg-[#7A1C1C] flex items-center justify-center text-white mb-1 shadow-2xs">
+                    <FiUser className="w-4 h-4" />
                   </div>
                   <p className="text-[9px] text-[#64748B] font-semibold leading-tight">
                     रसीद जारीकर्ता <br />
                     <span className="text-[8px] text-gray-400 font-normal">(Generated By)</span>
                   </p>
-                  <p className="text-xs sm:text-sm font-black text-[#1E293B] leading-tight mt-0.5">
+                  <p className="text-sm font-black text-[#1E293B] leading-tight mt-0.5">
                     {generatedBy}
                   </p>
                   <p className="text-[10px] text-[#64748B] font-bold leading-tight">
                     (Admin)
                   </p>
-                  <p className="text-[9px] text-[#7A1C1C] font-black leading-tight mt-0.5">
+                  <p className="text-[10px] text-[#7A1C1C] font-black leading-tight mt-0.5">
                     श्री सीरवी समाज कोणदा
                   </p>
                 </div>
@@ -608,29 +644,29 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
             {/* 5. Footer Ribbon with Contacts & Silhouette Graphic */}
             <div className="p-2 sm:p-2.5 bg-[#FFFDF8]">
               <div
-                className="rounded-xl px-3 py-2 text-white shadow-md text-center"
+                className="rounded-xl px-4 py-2.5 text-white shadow-md text-center"
                 style={{
                   background: 'linear-gradient(135deg, #7A1C1C 0%, #8E211A 100%)',
                 }}
               >
-                {/* 3 Contact Pills */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 text-[9px] sm:text-[10px] font-bold">
-                  <div className="bg-white/10 border border-white/20 rounded-full py-0.5 px-2 truncate flex items-center justify-center gap-1">
-                    <span>📍</span> ग्राम कोणदा, तहसील कुक्षी, जिला धार (म.प्र.)
+                {/* 3 Contact Pills (No cutoffs!) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] sm:text-[11px] font-bold">
+                  <div className="bg-white/10 border border-white/20 rounded-full py-1 px-2.5 flex items-center justify-center gap-1 leading-tight">
+                    <span>📍</span> ग्राम कोणदा, तहसील कुक्षी, जिला धार (मध्य प्रदेश)
                   </div>
-                  <div className="bg-white/10 border border-white/20 rounded-full py-0.5 px-2 truncate flex items-center justify-center gap-1">
+                  <div className="bg-white/10 border border-white/20 rounded-full py-1 px-2.5 flex items-center justify-center gap-1 leading-tight">
                     <span>📞</span> 74705 18252, 96918 40096
                   </div>
-                  <div className="bg-white/10 border border-white/20 rounded-full py-0.5 px-2 truncate flex items-center justify-center gap-1">
+                  <div className="bg-white/10 border border-white/20 rounded-full py-1 px-2.5 flex items-center justify-center gap-1 leading-tight">
                     <span>🌐</span> www.seervisamajkonda.com
                   </div>
                 </div>
 
                 {/* Bottom Graphic & Samaj Motto */}
-                <div className="mt-2 pt-1.5 border-t border-white/20 flex items-center justify-between text-[8px] sm:text-[9px] text-amber-200 font-bold">
+                <div className="mt-2 pt-2 border-t border-white/20 flex items-center justify-between text-[9px] sm:text-[10px] text-amber-200 font-bold px-1">
                   <span>| समाज की उन्नति में ही हमारी उन्नति है ||</span>
 
-                  {/* Traditional Mandir & Silhouette Graphic */}
+                  {/* Traditional Mandir & Camel Silhouette Graphic */}
                   <div className="flex items-center justify-center opacity-90 px-2">
                     <svg viewBox="0 0 100 22" className="h-5 w-auto fill-amber-300" aria-hidden="true">
                       {/* Mandir Kalash & Dome */}
@@ -639,7 +675,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                       <circle cx="50" cy="8" r="7" fill="#FDE68A" opacity="0.4" />
                       {/* Desert Camel Silhouette */}
                       <path d="M68 22 L69 17 L72 15 Q75 14 77 15 L79 17 L81 16 Q83 14 84 11 L86 10 L87 12 L85 14 L83 18 L83 22 L81 22 L81 19 L77 19 L77 22 L75 22 L75 18 L70 18 L69 22 Z" />
-                      {/* Small Fort / Temple Turret */}
+                      {/* Fort / Temple Turret */}
                       <path d="M25 22 L25 14 L27 12 L29 14 L29 22 Z M20 22 L20 16 L22 15 L23 16 L23 22 Z" />
                     </svg>
                   </div>
@@ -652,8 +688,8 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
           </div>
         </div>
 
-        {/* Modal Action Bottom Bar */}
-        <div className="no-print px-5 py-3.5 bg-[#FFF8EC] border-t border-[#E8DCC8] flex flex-wrap justify-between items-center gap-3">
+        {/* Sticky Bottom Controls */}
+        <div className="no-print shrink-0 px-5 py-3 bg-[#FFF8EC] border-t border-[#E8DCC8] flex flex-wrap justify-between items-center gap-3">
           <button
             onClick={onClose}
             className="px-4 py-2 bg-white border border-[#E8DCC8] hover:bg-[#FAF1E0] text-[#2B211B] font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer shadow-2xs"
@@ -676,6 +712,7 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );
