@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { FiPlus, FiEdit2, FiTrash2, FiUser, FiBriefcase, FiUsers, FiPhone, FiImage } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiUser, FiBriefcase, FiUsers, FiPhone } from 'react-icons/fi';
 import { memberAPI, familyAPI } from '../../services/api';
 import { useForm } from 'react-hook-form';
 import DataTable from '../../components/common/DataTable';
@@ -199,6 +198,19 @@ const MembersPage = () => {
         const bg = r.blood_group || r.bloodGroup;
         return bg && bg !== 'Unknown' ? (
           <span className="px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-md font-mono text-xs font-bold">{bg}</span>
+        ) : '—';
+      },
+    },
+    {
+      key: 'education',
+      label: 'शैक्षणिक योग्यता (Education)',
+      sortable: true,
+      render: (v, r) => {
+        const edu = v || r.qualification || r.education;
+        return edu ? (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-[#FFF8EC] text-[#7A2525] border border-[#E8DCC8]">
+            {edu}
+          </span>
         ) : '—';
       },
     },
