@@ -42,7 +42,6 @@ const VillagePage = lazy(() => import('./pages/public/VillagePage'));
 const FamilyDirectoryPage = lazy(() => import('./pages/public/FamilyDirectoryPage'));
 const StudentPage = lazy(() => import('./pages/public/StudentPage'));
 const BusinessDirectoryPage = lazy(() => import('./pages/public/BusinessDirectoryPage'));
-const BloodDonorPage = lazy(() => import('./pages/public/BloodDonorPage'));
 const EventsPage = lazy(() => import('./pages/public/EventsPage'));
 const NewsPage = lazy(() => import('./pages/public/NewsPage'));
 const GalleryPage = lazy(() => import('./pages/public/GalleryPage'));
@@ -129,7 +128,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path="/members" element={<Navigate to="/families" replace />} />
                     <Route path="/students" element={<StudentPage />} />
                     <Route path="/businesses" element={<BusinessDirectoryPage />} />
-                    <Route path="/blood-donors" element={<BloodDonorPage />} />
+                    <Route path="/blood-donors" element={<Navigate to="/" replace />} />
                     <Route path="/marriage" element={<Navigate to="/" replace />} />
                     <Route path="/events" element={<EventsPage />} />
                     <Route path="/news" element={<NewsPage />} />

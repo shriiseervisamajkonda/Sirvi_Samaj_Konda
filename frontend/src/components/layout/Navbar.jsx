@@ -43,7 +43,6 @@ const Navbar = () => {
         { label: 'परिवार निर्देशिका', path: '/families' },
         { label: 'विद्यार्थी प्रतिभा', path: '/students' },
         { label: 'व्यापार निर्देशिका', path: '/businesses' },
-        { label: 'रक्तदाता सूची', path: '/blood-donors' },
       ],
     },
     {
