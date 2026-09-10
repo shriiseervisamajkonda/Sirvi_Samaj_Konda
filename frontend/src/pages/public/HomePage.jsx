@@ -530,9 +530,9 @@ const HomePage = () => {
 
           {/* Sakal Panch Cards Grid */}
           {!dataLoaded ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-10">
-              {Array.from({ length: 5 }).map((_, idx) => (
-                <div key={idx} className="bg-white rounded-3xl p-6 text-center border border-[#E8DCC8] shadow-md animate-pulse">
+            <div className="flex flex-wrap justify-center gap-6 max-w-5xl mx-auto mb-10">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-16px)] max-w-[320px] min-w-[240px] bg-white rounded-3xl p-6 text-center border border-[#E8DCC8] shadow-md animate-pulse">
                   <div className="w-20 h-20 rounded-full bg-[#FAF1E0] mx-auto mb-4" />
                   <div className="w-24 h-5 bg-[#FAF1E0] rounded-full mx-auto mb-3" />
                   <div className="w-32 h-5 bg-[#FAF1E0] rounded mx-auto mb-2" />
@@ -541,7 +541,7 @@ const HomePage = () => {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-10">
+            <div className="flex flex-wrap justify-center gap-6 max-w-5xl mx-auto mb-10">
               {(
                 committee.filter((m) => (m.committee_type === 'sankal_panch' || m.type === 'sankal_panch') && m.is_active !== false).length > 0
                   ? committee.filter((m) => (m.committee_type === 'sankal_panch' || m.type === 'sankal_panch') && m.is_active !== false)
@@ -553,7 +553,7 @@ const HomePage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.08 }}
-                  className="bg-white rounded-3xl p-6 text-center border border-[#E8DCC8] hover:border-[#C9A44C]/60 transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1 relative group flex flex-col justify-between"
+                  className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-16px)] max-w-[320px] min-w-[240px] bg-white rounded-3xl p-6 text-center border border-[#E8DCC8] hover:border-[#C9A44C]/60 transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1 relative group flex flex-col justify-between"
                 >
                   <div>
                     <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-1 mx-auto mb-4 shadow-lg group-hover:scale-105 transition-transform overflow-hidden">
@@ -1060,7 +1060,7 @@ const HomePage = () => {
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 max-w-4xl mx-auto gap-4 sm:gap-6">
             {quickLinks.map(({ label, path, icon: Icon, color }, i) => (
               <motion.div
                 key={path}
@@ -1068,10 +1068,11 @@ const HomePage = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
+                className="flex"
               >
                 <Link
                   to={path}
-                  className="group flex flex-col items-center gap-3 p-6 bg-white rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center shadow-md"
+                  className="group w-full flex flex-col items-center justify-center gap-3 p-6 bg-white rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center shadow-md"
                 >
                   <div className="w-13 h-13 bg-gradient-to-br from-[#C85A17] to-[#C9A44C] rounded-2xl flex items-center justify-center shadow-md shadow-orange-500/10 group-hover:scale-110 transition-transform duration-200">
                     <Icon className="w-6 h-6 text-white" />
