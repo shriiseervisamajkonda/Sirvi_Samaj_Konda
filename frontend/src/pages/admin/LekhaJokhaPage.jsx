@@ -8,9 +8,11 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Badge from '../../components/common/Badge';
 import SearchableSelect from '../../components/common/SearchableSelect';
 import PaymentReceiptModal from '../../components/common/PaymentReceiptModal';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const LekhaJokhaPage = () => {
+  const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [families, setFamilies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -162,6 +164,8 @@ const LekhaJokhaPage = () => {
       payment_status: 'confirmed',
       notes: row.title,
       source: 'लेखा-जोखा (Lekha-Jokha)',
+      created_by_name: user?.name || row.recorded_by_name || 'चिराग भायल',
+      collected_by_name: user?.name || row.recorded_by_name || 'चिराग भायल',
     };
     setReceiptDonation(receiptObj);
   };
