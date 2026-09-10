@@ -54,4 +54,42 @@ export const numberToHindiWords = (num) => {
   return (words.trim() + ' रुपये मात्र');
 };
 
+export const numberToEnglishWords = (num) => {
+  const n = Math.floor(Number(num));
+  if (isNaN(n) || n <= 0) return 'Rupees Zero Only';
+
+  const a = [
+    '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+    'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'
+  ];
+  const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  const inWords = (num) => {
+    if (num < 20) return a[num];
+    const digit = num % 10;
+    return b[Math.floor(num / 10)] + (digit ? ' ' + a[digit] : '');
+  };
+
+  const crore = Math.floor(n / 10000000);
+  let rem = n % 10000000;
+  const lakh = Math.floor(rem / 100000);
+  rem = rem % 100000;
+  const thousand = Math.floor(rem / 1000);
+  rem = rem % 1000;
+  const hundred = Math.floor(rem / 100);
+  rem = rem % 100;
+
+  let str = '';
+  if (crore > 0) str += inWords(crore) + ' Crore ';
+  if (lakh > 0) str += inWords(lakh) + ' Lakh ';
+  if (thousand > 0) str += inWords(thousand) + ' Thousand ';
+  if (hundred > 0) str += inWords(hundred) + ' Hundred ';
+  if (rem > 0) {
+    if (str !== '') str += 'and ';
+    str += inWords(rem) + ' ';
+  }
+
+  return `Rupees ${str.trim()} Only`;
+};
+
 export default numberToHindiWords;
