@@ -191,7 +191,6 @@ const HomePage = () => {
 
   const quickLinks = [
     { label: t('nav_families'), path: '/families', icon: FiUsers, color: 'from-orange-400 to-orange-600' },
-    { label: t('nav_members'), path: '/members', icon: FiUsers, color: 'from-blue-400 to-blue-600' },
     { label: 'श्री आई जी महिला समिती', path: '/women-committee', icon: FiHeart, color: 'from-rose-400 to-red-600' },
     { label: t('nav_events'), path: '/events', icon: FiCalendar, color: 'from-green-400 to-green-600' },
     { label: t('nav_gallery'), path: '/gallery', icon: FiHeart, color: 'from-purple-400 to-purple-600' },
@@ -368,10 +367,10 @@ const HomePage = () => {
                   समाज के बारे में जानें
                 </Link>
                 <Link
-                  to="/members"
+                  to="/families"
                   className="px-6 py-3 bg-white border border-[#E8DCC8] text-[#2B211B] hover:border-[#C85A17] hover:bg-[#FFF8EC] font-bold rounded-2xl shadow-sm transition-all text-sm cursor-pointer"
                 >
-                  सदस्य देखें
+                  परिवार देखें
                 </Link>
               </div>
             </motion.div>

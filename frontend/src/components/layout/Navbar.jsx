@@ -41,7 +41,6 @@ const Navbar = () => {
       label: 'निर्देशिका',
       children: [
         { label: 'परिवार निर्देशिका', path: '/families' },
-        { label: 'सदस्य निर्देशिका', path: '/members' },
         { label: 'विद्यार्थी प्रतिभा', path: '/students' },
         { label: 'व्यापार निर्देशिका', path: '/businesses' },
         { label: 'रक्तदाता सूची', path: '/blood-donors' },

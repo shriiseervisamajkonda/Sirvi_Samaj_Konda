@@ -1,6 +1,6 @@
 import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import './index.css';
 
@@ -40,7 +40,6 @@ const CommitteePage = lazy(() => import('./pages/public/CommitteePage'));
 const WomenCommitteePage = lazy(() => import('./pages/public/WomenCommitteePage'));
 const VillagePage = lazy(() => import('./pages/public/VillagePage'));
 const FamilyDirectoryPage = lazy(() => import('./pages/public/FamilyDirectoryPage'));
-const MemberDirectoryPage = lazy(() => import('./pages/public/MemberDirectoryPage'));
 const StudentPage = lazy(() => import('./pages/public/StudentPage'));
 const BusinessDirectoryPage = lazy(() => import('./pages/public/BusinessDirectoryPage'));
 const BloodDonorPage = lazy(() => import('./pages/public/BloodDonorPage'));
@@ -128,7 +127,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path="/shri-ii-g-women-committee" element={<WomenCommitteePage />} />
                     <Route path="/village" element={<VillagePage />} />
                     <Route path="/families" element={<FamilyDirectoryPage />} />
-                    <Route path="/members" element={<MemberDirectoryPage />} />
+                    <Route path="/members" element={<Navigate to="/families" replace />} />
                     <Route path="/students" element={<StudentPage />} />
                     <Route path="/businesses" element={<BusinessDirectoryPage />} />
                     <Route path="/blood-donors" element={<BloodDonorPage />} />
