@@ -10,6 +10,7 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import SearchableSelect from '../../components/common/SearchableSelect';
 import PaymentReceiptModal from '../../components/common/PaymentReceiptModal';
 import { FormSection, FormField, FormActions } from '../../components/common/FormComponents';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const purposeMap = {
@@ -31,6 +32,7 @@ const paymentModeMap = {
 };
 
 const AdminDonationsPage = () => {
+  const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [families, setFamilies] = useState([]);
   const [stats, setStats] = useState(null);
@@ -151,6 +153,8 @@ const AdminDonationsPage = () => {
         payment_status: formData.payment_status || 'confirmed',
         receipt_number: (formData.receipt_number || '').trim() || undefined,
         notes: (formData.notes || '').trim() || null,
+        collected_by_name: user?.name || 'चिराग भायल',
+        created_by_name: user?.name || 'चिराग भायल',
       };
 
       const res = await donationAPI.create(payload);
@@ -248,7 +252,11 @@ const AdminDonationsPage = () => {
       render: (_, r) => (
         <div className="flex items-center gap-1.5">
           <button
-            onClick={() => setReceiptDonation(r)}
+            onClick={() => setReceiptDonation({
+              ...r,
+              created_by_name: r.collected_by_name || r.created_by_name || user?.name || 'चिराग भायल',
+              collected_by_name: r.collected_by_name || r.created_by_name || user?.name || 'चिराग भायल',
+            })}
             className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#FFF8EC] border border-[#E8DCC8] hover:border-[#C85A17] hover:bg-[#FAF1E0] text-[#7A2525] hover:text-[#C85A17] text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
             title="रसीद / इनवॉइस देखें व प्रिंट करें"
           >
