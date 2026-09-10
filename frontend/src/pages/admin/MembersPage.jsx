@@ -9,6 +9,7 @@ import Badge from '../../components/common/Badge';
 import ImageUpload from '../../components/common/ImageUpload';
 import SearchableSelect from '../../components/common/SearchableSelect';
 import { FormSection, FormField, FormActions } from '../../components/common/FormComponents';
+import FamilyMembersModal from '../../components/common/FamilyMembersModal';
 import toast from 'react-hot-toast';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -21,6 +22,7 @@ const MembersPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedFamilyForMembers, setSelectedFamilyForMembers] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -220,10 +222,33 @@ const MembersPage = () => {
       label: 'परिवार',
       sortable: true,
       render: (_, r) => {
-        if (r.families?.head_name) return `${r.families.head_name} (${r.families.panchayat_family_id || ''})`;
-        if (r.family?.headOfFamily) return `${r.family.headOfFamily} (${r.family.familyId || ''})`;
-        if (r.panchayat_family_id) return `परिवार #${r.panchayat_family_id}`;
-        return '—';
+        const headName = r.families?.head_name || r.family?.headOfFamily;
+        const famId = r.panchayat_family_id || r.families?.panchayat_family_id || r.family?.familyId || r.family_id;
+        if (!headName && !famId) return '—';
+
+        const familyObj = r.families || r.family || {
+          id: r.family_id,
+          panchayat_family_id: famId,
+          head_name: headName,
+          gotra: r.families?.gotra || r.last_name,
+        };
+
+        return (
+          <button
+            type="button"
+            onClick={() => setSelectedFamilyForMembers(familyObj)}
+            className="text-left font-bold text-[#2B211B] hover:text-[#7A2525] hover:underline transition cursor-pointer group flex items-center gap-1.5"
+            title="इस परिवार के सभी सदस्य देखें"
+          >
+            <span>{headName || `परिवार #${famId}`}</span>
+            {famId && (
+              <span className="font-mono text-[11px] text-[#7A2525] bg-[#FFF8EC] px-1.5 py-0.5 rounded border border-[#E8DCC8] group-hover:bg-[#7A2525] group-hover:text-white transition">
+                #{famId}
+              </span>
+            )}
+            <FiUsers className="w-3.5 h-3.5 text-[#C85A17] opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
+        );
       },
     },
     {
@@ -423,6 +448,12 @@ const MembersPage = () => {
         title="सदस्य रिकॉर्ड हटाएँ"
         message={`क्या आप "${deleteItem?.firstName} ${deleteItem?.lastName || ''}" का सदस्य रिकॉर्ड हटाना चाहते हैं?`}
         isLoading={deleting}
+      />
+
+      <FamilyMembersModal
+        isOpen={Boolean(selectedFamilyForMembers)}
+        onClose={() => setSelectedFamilyForMembers(null)}
+        family={selectedFamilyForMembers}
       />
     </div>
   );
