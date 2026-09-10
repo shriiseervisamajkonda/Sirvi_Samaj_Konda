@@ -139,19 +139,26 @@ const LekhaJokhaPage = () => {
   };
 
   const handleOpenReceipt = (row) => {
-    const matchedFam = families.find((f) => f.id === row.family_id || String(f.panchayat_family_id) === String(row.panchayat_family_id));
+    const pName = row.person_name || row.personName || row.title || '';
+    const matchedFam = families.find((f) => 
+      (row.family_id && f.id === row.family_id) || 
+      (row.panchayat_family_id && String(f.panchayat_family_id) === String(row.panchayat_family_id)) ||
+      (pName && f.head_name && pName.includes(f.head_name)) ||
+      (pName && f.head_name && f.head_name.includes(pName))
+    );
     const receiptObj = {
       id: row.id,
-      receipt_number: row.receipt_or_bill_no || row.receiptNumber || `REC-${new Date().getFullYear()}-${row.id?.slice(0, 4) || '001'}`,
+      receipt_number: row.receipt_or_bill_no || row.receiptNumber || `KONDA-${new Date().getFullYear()}-${row.id?.slice(0, 4) || '9983'}`,
       donor_name: row.person_name || row.personName || row.title,
       head_name: matchedFam?.head_name || row.person_name || row.title,
-      panchayat_family_id: row.panchayat_family_id || matchedFam?.panchayat_family_id || '—',
+      panchayat_family_id: row.panchayat_family_id || matchedFam?.panchayat_family_id || '',
       family_id: row.family_id || matchedFam?.id,
-      gotra: matchedFam?.gotra || '—',
+      gotra: matchedFam?.gotra || '',
+      village: matchedFam?.village || 'कोणदा',
       amount: Number(row.amount || 0),
       payment_date: row.entry_date || row.date,
-      purpose: row.category || 'annual_chanda',
-      payment_mode: row.payment_method || row.paymentMethod || 'cash',
+      purpose: row.category || 'प्रतिभा सम्मान',
+      payment_mode: row.payment_method || row.paymentMethod || 'UPI',
       payment_status: 'confirmed',
       notes: row.title,
       source: 'लेखा-जोखा (Lekha-Jokha)',
