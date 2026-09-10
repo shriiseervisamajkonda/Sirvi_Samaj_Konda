@@ -43,7 +43,6 @@ const FamilyDirectoryPage = lazy(() => import('./pages/public/FamilyDirectoryPag
 const StudentPage = lazy(() => import('./pages/public/StudentPage'));
 const BusinessDirectoryPage = lazy(() => import('./pages/public/BusinessDirectoryPage'));
 const BloodDonorPage = lazy(() => import('./pages/public/BloodDonorPage'));
-const MarriageBiodataPage = lazy(() => import('./pages/public/MarriageBiodataPage'));
 const EventsPage = lazy(() => import('./pages/public/EventsPage'));
 const NewsPage = lazy(() => import('./pages/public/NewsPage'));
 const GalleryPage = lazy(() => import('./pages/public/GalleryPage'));
@@ -131,7 +130,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path="/students" element={<StudentPage />} />
                     <Route path="/businesses" element={<BusinessDirectoryPage />} />
                     <Route path="/blood-donors" element={<BloodDonorPage />} />
-                    <Route path="/marriage" element={<MarriageBiodataPage />} />
+                    <Route path="/marriage" element={<Navigate to="/" replace />} />
                     <Route path="/events" element={<EventsPage />} />
                     <Route path="/news" element={<NewsPage />} />
                     <Route path="/gallery" element={<GalleryPage />} />
