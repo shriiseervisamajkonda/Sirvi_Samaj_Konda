@@ -1,17 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiVolume2, FiVolumeX, FiMusic, FiPlay, FiPause } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
-// Possible filenames the user might provide in public folder
-const AUDIO_SOURCES = [
-  '/song.mp3',
-  '/background_music.mp3',
-  '/aai_mataji_bhajan.mp3',
-  '/bhajan.mp3',
-  '/audio.mp3',
-  '/music.mp3',
-  '/background.mp3',
-];
+// Standard background audio filename in public folder
+const AUDIO_SRC = '/bhajan.mp3';
 
 const BackgroundAudioPlayer = () => {
   const audioRef = useRef(null);
@@ -19,66 +12,11 @@ const BackgroundAudioPlayer = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.4);
   const [showControls, setShowControls] = useState(false);
-  const [audioSrcIndex, setAudioSrcIndex] = useState(0);
-  const [hasInteracted, setHasInteracted] = useState(false);
 
-  // Attempt autoplay and register one-time user interaction fallback
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.volume = volume;
-
-    const playAudio = () => {
-      audio
-        .play()
-        .then(() => {
-          setIsPlaying(true);
-          setHasInteracted(true);
-        })
-        .catch((err) => {
-          // Autoplay was prevented by browser policy, wait for user gesture
-          setIsPlaying(false);
-        });
-    };
-
-    // Try playing immediately
-    playAudio();
-
-    // Fallback: Play on first user click or touch anywhere on the page
-    const handleFirstInteraction = () => {
-      if (!hasInteracted) {
-        audio
-          .play()
-          .then(() => {
-            setIsPlaying(true);
-            setHasInteracted(true);
-          })
-          .catch(() => {});
-        window.removeEventListener('click', handleFirstInteraction);
-        window.removeEventListener('touchstart', handleFirstInteraction);
-        window.removeEventListener('keydown', handleFirstInteraction);
-      }
-    };
-
-    window.addEventListener('click', handleFirstInteraction, { once: true });
-    window.addEventListener('touchstart', handleFirstInteraction, { once: true });
-    window.addEventListener('keydown', handleFirstInteraction, { once: true });
-
-    return () => {
-      window.removeEventListener('click', handleFirstInteraction);
-      window.removeEventListener('touchstart', handleFirstInteraction);
-      window.removeEventListener('keydown', handleFirstInteraction);
-    };
-  }, [audioSrcIndex]);
-
-  // Handle audio error gracefully if file is not found
+  // Handle audio error gracefully if file is not found (no 404 looping)
   const handleAudioError = () => {
-    if (audioSrcIndex < AUDIO_SOURCES.length - 1) {
-      setAudioSrcIndex((prev) => prev + 1);
-    } else {
-      setIsPlaying(false);
-    }
+    setIsPlaying(false);
+    toast.error('भजन ऑडियो (bhajan.mp3) उपलब्ध नहीं है', { id: 'bhajan-audio-error' });
   };
 
   const togglePlay = (e) => {
@@ -90,13 +28,16 @@ const BackgroundAudioPlayer = () => {
       audio.pause();
       setIsPlaying(false);
     } else {
+      audio.volume = isMuted ? 0 : volume;
       audio
         .play()
         .then(() => {
           setIsPlaying(true);
-          setHasInteracted(true);
         })
-        .catch(console.error);
+        .catch(() => {
+          setIsPlaying(false);
+          toast.error('भजन ऑडियो (bhajan.mp3) उपलब्ध नहीं है', { id: 'bhajan-audio-error' });
+        });
     }
   };
 
@@ -121,12 +62,12 @@ const BackgroundAudioPlayer = () => {
 
   return (
     <div className="fixed bottom-5 left-5 z-50 flex items-center">
-      {/* Hidden audio element */}
+      {/* Audio element with preload="none" so no network requests are sent on page load */}
       <audio
         ref={audioRef}
-        src={AUDIO_SOURCES[audioSrcIndex]}
+        src={AUDIO_SRC}
         loop
-        preload="auto"
+        preload="none"
         onError={handleAudioError}
       />
 

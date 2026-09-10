@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
 import { clearCacheByPattern } from '../middleware/cache.js';
-import { resolveUserFamily, syncExistingDonationsWithFamilies } from '../utils/familyHelper.js';
+import { resolveUserFamily, syncExistingDonationsWithFamilies, fetchUnifiedFamilyReceipts } from '../utils/familyHelper.js';
 
 // GET /api/donations (With rich filtering: year, purpose, family, payment_mode)
 export const getDonations = asyncHandler(async (req, res) => {
