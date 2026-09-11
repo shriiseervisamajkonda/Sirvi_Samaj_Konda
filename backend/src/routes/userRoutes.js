@@ -6,6 +6,7 @@ import {
   updateUser,
   deleteUser,
   resetDefaultPassword,
+  toggleExportPermission,
 } from '../controllers/userController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -20,6 +21,7 @@ router.post('/', createUser);
 router.put('/:id/role', updateUser);
 router.put('/:id', updateUser);
 router.post('/:id/reset-default-password', resetDefaultPassword);
+router.put('/:id/toggle-export-permission', authorize('developer', 'super_admin'), toggleExportPermission);
 router.delete('/:id', deleteUser);
 
 export default router;

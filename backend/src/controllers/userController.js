@@ -11,7 +11,7 @@ export const getUsers = asyncHandler(async (req, res) => {
 
   let query = supabase
     .from('users')
-    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id, created_at, last_login', { count: 'exact' });
+    .select('id, name, phone, email, role, permissions, photo_url, is_active, panchayat_family_id, created_at, last_login', { count: 'exact' });
 
   if (req.query.search) {
     const s = req.query.search;
@@ -54,7 +54,7 @@ export const getUserById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase
     .from('users')
-    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id, created_at, last_login')
+    .select('id, name, phone, email, role, permissions, photo_url, is_active, panchayat_family_id, created_at, last_login')
     .eq('id', id)
     .maybeSingle();
 
@@ -272,5 +272,51 @@ export const resetDefaultPassword = asyncHandler(async (req, res) => {
     success: true,
     message: `पासवर्ड डिफ़ॉल्ट (${defaultPassword}) पर रीसेट कर दिया गया है।`,
     defaultPassword,
+  });
+});
+
+// PUT /api/users/:id/toggle-export-permission
+// Only developer/super_admin can grant/revoke can_export_data permission
+export const toggleExportPermission = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  // Fetch current user permissions
+  const { data: user, error: fetchError } = await supabase
+    .from('users')
+    .select('id, name, role, permissions')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (fetchError || !user) {
+    return res.status(404).json({ success: false, message: 'User not found' });
+  }
+
+  const currentPermissions = Array.isArray(user.permissions) ? user.permissions : [];
+  const hasExport = currentPermissions.includes('can_export_data');
+
+  // Toggle: add or remove can_export_data
+  const updatedPermissions = hasExport
+    ? currentPermissions.filter((p) => p !== 'can_export_data')
+    : [...currentPermissions, 'can_export_data'];
+
+  const { error: updateError } = await supabase
+    .from('users')
+    .update({
+      permissions: updatedPermissions,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id);
+
+  if (updateError) {
+    return res.status(400).json({ success: false, message: updateError.message });
+  }
+
+  const granted = !hasExport;
+  res.json({
+    success: true,
+    message: granted
+      ? `${user.name} को डेटा एक्सपोर्ट अधिकार प्रदान किया गया (Export permission granted)`
+      : `${user.name} का डेटा एक्सपोर्ट अधिकार हटा दिया गया (Export permission revoked)`,
+    data: { permissions: updatedPermissions, can_export_data: granted },
   });
 });

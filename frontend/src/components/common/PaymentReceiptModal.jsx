@@ -40,7 +40,7 @@ const extractGotra = (name) => {
 };
 
 const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, canExportData } = useAuth();
   const printRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
   const [isEditingAdmin, setIsEditingAdmin] = useState(false);
@@ -227,8 +227,8 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                 <span className="sm:hidden">नाम</span>
               </button>
             )}
-            {/* Admin-only: PDF Download */}
-            {isAdmin && (
+            {/* Export Authority: PDF Download */}
+            {(canExportData !== undefined ? canExportData : isAdmin) && (
               <button
                 onClick={handleDownload}
                 disabled={downloading}
@@ -238,8 +238,8 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                 <FiDownload className="w-4 h-4" /> {downloading ? 'डाउनलोडिंग...' : 'PDF डाउनलोड'}
               </button>
             )}
-            {/* Admin-only: Print */}
-            {isAdmin && (
+            {/* Export Authority: Print */}
+            {(canExportData !== undefined ? canExportData : isAdmin) && (
               <button
                 onClick={handlePrint}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#7A1C1C] hover:bg-[#5E1414] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
@@ -813,8 +813,8 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
             बंद करें (Close)
           </button>
           <div className="flex items-center gap-2">
-            {/* Admin-only: PDF Download (bottom) */}
-            {isAdmin && (
+            {/* Export Authority: PDF Download (bottom) */}
+            {(canExportData !== undefined ? canExportData : isAdmin) && (
               <button
                 onClick={handleDownload}
                 disabled={downloading}
@@ -823,8 +823,8 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
                 <FiDownload className="w-4 h-4" /> {downloading ? 'डाउनलोड हो रहा...' : 'रसीद PDF डाउनलोड करें'}
               </button>
             )}
-            {/* Admin-only: Print (bottom) */}
-            {isAdmin && (
+            {/* Export Authority: Print (bottom) */}
+            {(canExportData !== undefined ? canExportData : isAdmin) && (
               <button
                 onClick={handlePrint}
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#7A1C1C] to-[#C85A17] hover:shadow-md text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer"

@@ -81,6 +81,7 @@ const AdminUsersPage = lazy(() => import('./pages/admin/UsersPage'));
 const AdminActivityLogsPage = lazy(() => import('./pages/admin/ActivityLogsPage'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
 const AdminProfilePage = lazy(() => import('./pages/admin/ProfilePage'));
+const AdminAuthorityPage = lazy(() => import('./pages/admin/AuthorityPage'));
 const AdminContactsPage = lazy(() => import('./pages/admin/ContactsPage'));
 
 createRoot(document.getElementById('root')).render(
@@ -217,6 +218,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path="social-info" element={<AdminSocialInfoPage />} />
                     <Route path="contacts" element={<AdminContactsPage />} />
                     <Route path="users" element={<AdminUsersPage />} />
+                    <Route path="authority" element={<AdminAuthorityPage />} />
                     <Route path="activity-logs" element={<AdminActivityLogsPage />} />
                     <Route path="settings" element={<AdminSettingsPage />} />
                     <Route path="profile" element={<AdminProfilePage />} />

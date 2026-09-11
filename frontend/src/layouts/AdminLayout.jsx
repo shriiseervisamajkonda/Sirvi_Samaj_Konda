@@ -78,6 +78,7 @@ const navigationGroups = [
     items: [
       { label: 'मेरी प्रोफ़ाइल (My Profile)', path: '/admin/profile', icon: FiUser },
       { label: 'उपयोगकर्ता व रोल्स (Users)', path: '/admin/users', icon: FiUsers },
+      { label: 'अधिकार प्रबंधन (Authority)', path: '/admin/authority', icon: FiShield },
       { label: 'ऑडिट लॉग्स (Activity)', path: '/admin/activity-logs', icon: FiActivity },
       { label: 'पोर्टल सेटिंग्स (Settings)', path: '/admin/settings', icon: FiSettings },
     ],
