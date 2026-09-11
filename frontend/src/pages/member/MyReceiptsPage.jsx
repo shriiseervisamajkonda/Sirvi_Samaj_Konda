@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FiFileText, FiPrinter, FiShare2, FiDollarSign, FiSearch, FiCalendar, FiCheckCircle, FiInbox, FiUser, FiHome, FiLogOut, FiDownload, FiShield } from 'react-icons/fi';
+import { FiFileText, FiPrinter, FiShare2, FiDollarSign, FiSearch, FiCalendar, FiCheckCircle, FiInbox, FiUser, FiHome, FiLogOut, FiShield } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { donationAPI } from '../../services/api';
@@ -209,18 +209,10 @@ const MyReceiptsPage = () => {
           <button
             onClick={() => setSelectedReceipt(r)}
             className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-[#7A2525] to-[#C85A17] hover:shadow-md text-white text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
-            title="रसीद देखें व प्रिंट करें"
+            title="रसीद देखें"
           >
             <FiPrinter className="w-3.5 h-3.5" />
-            <span>देखें / प्रिंट</span>
-          </button>
-          <button
-            onClick={() => setSelectedReceipt(r)}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold rounded-xl transition-all cursor-pointer"
-            title="PDF डाउनलोड करें"
-          >
-            <FiDownload className="w-3.5 h-3.5 text-emerald-700" />
-            <span className="hidden sm:inline">PDF</span>
+            <span>देखें</span>
           </button>
           <button
             onClick={() => handleWhatsAppShare(r)}
@@ -334,7 +326,7 @@ const MyReceiptsPage = () => {
               <FiCheckCircle className="w-5 h-5 text-emerald-600" />
               <span>सभी सदस्य अधिकृत</span>
             </h3>
-            <p className="text-[11px] text-[#766A60] mt-0.5">परिवार का कोई भी सदस्य रसीद देख व PDF डाउनलोड कर सकता है</p>
+            <p className="text-[11px] text-[#766A60] mt-0.5">परिवार का कोई भी सदस्य रसीद देख सकता है (PDF डाउनलोड केवल व्यवस्थापक हेतु)</p>
           </div>
         </div>
 

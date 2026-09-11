@@ -40,7 +40,7 @@ const extractGotra = (name) => {
 };
 
 const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const printRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
   const [isEditingAdmin, setIsEditingAdmin] = useState(false);
@@ -211,34 +211,43 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
             </h3>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsEditingAdmin((prev) => !prev)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer ${
-                isEditingAdmin
-                  ? 'bg-amber-600 text-white'
-                  : 'bg-white border border-[#E8DCC8] hover:bg-[#FAF1E0] text-[#7A1C1C]'
-              }`}
-              title="रसीद जारीकर्ता / एडमिन नाम बदलें"
-            >
-              <FiEdit2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{isEditingAdmin ? 'संपादन बंद करें' : 'एडमिन नाम बदलें'}</span>
-              <span className="sm:hidden">नाम</span>
-            </button>
-            <button
-              onClick={handleDownload}
-              disabled={downloading}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50"
-              title="PDF डाउनलोड करें"
-            >
-              <FiDownload className="w-4 h-4" /> {downloading ? 'डाउनलोडिंग...' : 'PDF डाउनलोड'}
-            </button>
-            <button
-              onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#7A1C1C] hover:bg-[#5E1414] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
-              title="प्रिंट करें"
-            >
-              <FiPrinter className="w-4 h-4" /> प्रिंट
-            </button>
+            {/* Admin-only: Edit receipt issuer name */}
+            {isAdmin && (
+              <button
+                onClick={() => setIsEditingAdmin((prev) => !prev)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl shadow-2xs transition-all cursor-pointer ${
+                  isEditingAdmin
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-white border border-[#E8DCC8] hover:bg-[#FAF1E0] text-[#7A1C1C]'
+                }`}
+                title="रसीद जारीकर्ता / एडमिन नाम बदलें"
+              >
+                <FiEdit2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{isEditingAdmin ? 'संपादन बंद करें' : 'एडमिन नाम बदलें'}</span>
+                <span className="sm:hidden">नाम</span>
+              </button>
+            )}
+            {/* Admin-only: PDF Download */}
+            {isAdmin && (
+              <button
+                onClick={handleDownload}
+                disabled={downloading}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                title="PDF डाउनलोड करें"
+              >
+                <FiDownload className="w-4 h-4" /> {downloading ? 'डाउनलोडिंग...' : 'PDF डाउनलोड'}
+              </button>
+            )}
+            {/* Admin-only: Print */}
+            {isAdmin && (
+              <button
+                onClick={handlePrint}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#7A1C1C] hover:bg-[#5E1414] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
+                title="प्रिंट करें"
+              >
+                <FiPrinter className="w-4 h-4" /> प्रिंट
+              </button>
+            )}
             <button
               onClick={handleWhatsAppShare}
               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer"
@@ -804,19 +813,25 @@ const PaymentReceiptModal = ({ isOpen, onClose, donation }) => {
             बंद करें (Close)
           </button>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleDownload}
-              disabled={downloading}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
-            >
-              <FiDownload className="w-4 h-4" /> {downloading ? 'डाउनलोड हो रहा...' : 'रसीद PDF डाउनलोड करें'}
-            </button>
-            <button
-              onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#7A1C1C] to-[#C85A17] hover:shadow-md text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer"
-            >
-              <FiPrinter className="w-4 h-4" /> प्रिंट करें (Print)
-            </button>
+            {/* Admin-only: PDF Download (bottom) */}
+            {isAdmin && (
+              <button
+                onClick={handleDownload}
+                disabled={downloading}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                <FiDownload className="w-4 h-4" /> {downloading ? 'डाउनलोड हो रहा...' : 'रसीद PDF डाउनलोड करें'}
+              </button>
+            )}
+            {/* Admin-only: Print (bottom) */}
+            {isAdmin && (
+              <button
+                onClick={handlePrint}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#7A1C1C] to-[#C85A17] hover:shadow-md text-white font-bold text-xs sm:text-sm rounded-xl transition-all cursor-pointer"
+              >
+                <FiPrinter className="w-4 h-4" /> प्रिंट करें (Print)
+              </button>
+            )}
           </div>
         </div>
 
