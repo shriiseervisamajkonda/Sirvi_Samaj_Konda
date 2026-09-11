@@ -1,21 +1,23 @@
 import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
 
-// GET /api/students
+// GET /api/students (Strictly returns studying students only)
 export const getStudents = asyncHandler(async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 12));
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
   const offset = (page - 1) * limit;
 
+  // Strict query for active students only
   let query = supabase
     .from('family_members')
     .select('*, families(id, panchayat_family_id, head_name, gotra, village)', { count: 'exact' })
-    .or('occupation.ilike.%student%,occupation.ilike.%विद्यार्थी%,occupation.ilike.%study%,occupation.ilike.%अध्ययन%,occupation.ilike.%School%,occupation.ilike.%College%,education.not.is.null')
+    .neq('life_status', 'deceased')
+    .or('occupation.ilike.%student%,occupation.ilike.%विद्यार्थी%,occupation.ilike.%study%,occupation.ilike.%अध्ययन%,occupation.ilike.%अध्ययनरत%,occupation.ilike.%पढ़ाई%,occupation.ilike.%School%,occupation.ilike.%College%')
     .order('created_at', { ascending: false });
 
   if (req.query.search) {
     const s = req.query.search;
-    query = query.or(`first_name.ilike.%${s}%,last_name.ilike.%${s}%,full_name.ilike.%${s}%,education.ilike.%${s}%,occupation.ilike.%${s}%`);
+    query = query.or(`first_name.ilike.%${s}%,last_name.ilike.%${s}%,full_name.ilike.%${s}%,education.ilike.%${s}%`);
   }
 
   if (req.query.sortBy) {
@@ -27,31 +29,25 @@ export const getStudents = asyncHandler(async (req, res) => {
 
   query = query.range(offset, offset + limit - 1);
 
-  let { data, count, error } = await query;
-
-  // Fallback: if no records with specific occupation filter, query general members with education
-  if (!error && (!data || data.length === 0) && !req.query.search) {
-    const fallbackQuery = await supabase
-      .from('family_members')
-      .select('*, families(id, panchayat_family_id, head_name, gotra, village)', { count: 'exact' })
-      .not('education', 'is', null)
-      .neq('education', '')
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (fallbackQuery.data && fallbackQuery.data.length > 0) {
-      data = fallbackQuery.data;
-      count = fallbackQuery.count;
-    }
-  }
+  const { data, count, error } = await query;
 
   if (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
 
-  const formatted = (data || []).map((m) => {
+  // Non-student occupation exclusion filter (strict safety check)
+  const nonStudentKeywords = ['farmer', 'कृषि', 'खेती', 'व्यापार', 'business', 'दुकान', 'गृहणी', 'housewife', 'service', 'नौकरी', 'मजदूरी', 'labor', 'driver', 'retired'];
+
+  const validStudents = (data || []).filter((m) => {
+    const occ = (m.occupation || '').toLowerCase();
+    const isNonStudent = nonStudentKeywords.some((kw) => occ.includes(kw));
+    if (isNonStudent) return false;
+    return true;
+  });
+
+  const formatted = validStudents.map((m) => {
     const gotra = m.last_name || m.families?.gotra || '';
-    const isHigherEdu = m.education?.includes('B.') || m.education?.includes('M.') || m.education?.includes('Tech') || m.education?.includes('MBBS') || m.education?.includes('Degree') || m.education?.includes('College');
+    const isHigherEdu = m.education?.includes('B.') || m.education?.includes('M.') || m.education?.includes('Tech') || m.education?.includes('MBBS') || m.education?.includes('Degree') || m.education?.includes('College') || m.education?.includes('BCA') || m.education?.includes('B.Sc') || m.education?.includes('B.Com');
     return {
       id: m.id,
       _id: m.id,
@@ -65,9 +61,9 @@ export const getStudents = asyncHandler(async (req, res) => {
       },
       studentName: m.full_name || `${m.first_name} ${m.last_name || ''}`.trim(),
       course: m.education || 'अध्ययनरत विद्यार्थी',
-      collegeName: isHigherEdu ? 'उच्च शिक्षा / कॉलेज' : 'विद्यालयीन शिक्षा (School)',
+      collegeName: isHigherEdu ? 'उच्च शिक्षा / कॉलेज' : (m.education ? 'विद्यालयीन शिक्षा (School)' : 'विद्यालय'),
       currentYear: m.education || 'नियमित',
-      status: m.life_status === 'deceased' ? 'inactive' : 'active',
+      status: 'active',
       village: m.families?.village || 'कोणदा',
       gotra: gotra,
       panchayat_family_id: m.families?.panchayat_family_id || '',
