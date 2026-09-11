@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FiX, FiUsers, FiPhone, FiPrinter, FiSearch, FiBriefcase, FiBookOpen } from 'react-icons/fi';
+import { FiX, FiUsers, FiPhone, FiSearch, FiBriefcase, FiBookOpen } from 'react-icons/fi';
 import { familyAPI, memberAPI } from '../../services/api';
 import Badge from './Badge';
 
@@ -156,38 +156,8 @@ const FamilyMembersModal = ({ isOpen, onClose, family, familyId }) => {
   const village = familyData?.village || family?.village || 'कोणदा';
   const land = familyData?.land_area_acres ? `${familyData.land_area_acres} एकड़` : (familyData?.land_details_text || family?.land_details_text || null);
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs overflow-y-auto">
-      {/* Print Specific CSS */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #printable-family-card, #printable-family-card * {
-            visibility: visible;
-          }
-          #printable-family-card {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 20px;
-            box-shadow: none !important;
-            border: 2px solid #7A2525 !important;
-            background: white !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}</style>
-
       <div className="relative w-full max-w-5xl bg-white rounded-3xl shadow-2xl border border-[#E8DCC8] overflow-hidden my-4 sm:my-8 animate-fadeIn flex flex-col max-h-[90vh]">
         {/* Top Action Bar */}
         <div className="no-print flex items-center justify-between px-6 py-4 bg-gradient-to-r from-[#FFF8EC] to-white border-b border-[#E8DCC8]">
@@ -211,13 +181,6 @@ const FamilyMembersModal = ({ isOpen, onClose, family, familyId }) => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#7A2525] hover:bg-[#5E1B1B] text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition-all cursor-pointer"
-              title="परिवार सूची प्रिंट करें"
-            >
-              <FiPrinter className="w-4 h-4" /> <span className="hidden sm:inline">प्रिंट</span>
-            </button>
             <button
               onClick={onClose}
               className="p-1.5 text-[#766A60] hover:text-[#2B211B] hover:bg-[#FAF1E0] rounded-xl transition-all cursor-pointer"
