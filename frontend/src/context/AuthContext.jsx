@@ -157,14 +157,21 @@ export const AuthProvider = ({ children }) => {
   const isDeveloper = Boolean(user && user.role === 'developer');
   const isAdmin = Boolean(user && ['developer', 'super_admin', 'admin', 'editor', 'treasurer'].includes(user.role));
   const isSuperAdmin = Boolean(user && ['developer', 'super_admin'].includes(user.role));
+  const isStaff = Boolean(user && ['developer', 'super_admin', 'admin', 'treasurer'].includes(user.role));
+
   const canExportData = Boolean(
     isDeveloper ||
     isSuperAdmin ||
     (user?.permissions && Array.isArray(user.permissions) && user.permissions.includes('can_export_data'))
   );
 
+  const canViewLekhaJokha = Boolean(
+    isStaff ||
+    (user?.permissions && Array.isArray(user.permissions) && user.permissions.includes('can_view_lekha_jokha'))
+  );
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, googleLogin, updateUser, register, logout, isAdmin, isSuperAdmin, isDeveloper, canExportData, checkAuth }}>
+    <AuthContext.Provider value={{ user, loading, login, googleLogin, updateUser, register, logout, isAdmin, isSuperAdmin, isDeveloper, canExportData, canViewLekhaJokha, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

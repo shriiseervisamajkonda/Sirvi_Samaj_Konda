@@ -12,6 +12,8 @@ import {
   FiUsers,
   FiRefreshCw,
   FiKey,
+  FiDollarSign,
+  FiFileText,
 } from 'react-icons/fi';
 import { userAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -29,18 +31,17 @@ const roleLabels = {
 };
 
 const AuthorityPage = () => {
-  const { user: currentUser, isSuperAdmin } = useAuth();
+  const { user: currentUser, isSuperAdmin, isDeveloper } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
-  const [exportFilter, setExportFilter] = useState('all');
-  const [togglingId, setTogglingId] = useState(null);
+  const [accessFilter, setAccessFilter] = useState('all');
+  const [togglingKey, setTogglingKey] = useState(null); // `${userId}_${permission}`
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch users with generous limit for authority management matrix
       const res = await userAPI.getAll({ page: 1, limit: 100, search });
       setUsers(res.data?.data || []);
     } catch {
@@ -54,9 +55,9 @@ const AuthorityPage = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  const handleToggleExport = async (userRecord) => {
+  const handleToggle = async (userRecord, permissionKey) => {
     if (!isSuperAdmin) {
-      toast.error('केवल Super Admin / Developer ही डेटा एक्सपोर्ट अधिकार बदल सकते हैं');
+      toast.error('केवल Super Admin / Developer ही अधिकार बदल सकते हैं');
       return;
     }
 
@@ -67,15 +68,16 @@ const AuthorityPage = () => {
       return;
     }
 
-    setTogglingId(userRecord.id);
+    const key = `${userRecord.id}_${permissionKey}`;
+    setTogglingKey(key);
     try {
-      const res = await userAPI.toggleExportPermission(userRecord.id);
-      toast.success(res.data?.message || 'डेटा एक्सपोर्ट अधिकार अपडेट किया गया');
+      const res = await userAPI.togglePermission(userRecord.id, permissionKey);
+      toast.success(res.data?.message || 'अधिकार सफलतापूर्वक अपडेट किया गया');
       fetchUsers();
     } catch (err) {
       toast.error(err.response?.data?.message || 'अधिकार अद्यतन में त्रुटि हुई');
     } finally {
-      setTogglingId(null);
+      setTogglingKey(null);
     }
   };
 
@@ -85,28 +87,36 @@ const AuthorityPage = () => {
       // Role filter
       if (roleFilter !== 'all' && u.role !== roleFilter) return false;
 
-      // Export status filter
       const isMaster = u.role === 'developer' || u.role === 'super_admin';
-      const hasExport = isMaster || (Array.isArray(u.permissions) && u.permissions.includes('can_export_data'));
+      const isStaff = isMaster || u.role === 'admin' || u.role === 'treasurer';
+      const perms = Array.isArray(u.permissions) ? u.permissions : [];
 
-      if (exportFilter === 'authorized' && !hasExport) return false;
-      if (exportFilter === 'restricted' && hasExport) return false;
+      const hasExport = isMaster || perms.includes('can_export_data');
+      const hasLekhaJokha = isStaff || perms.includes('can_view_lekha_jokha');
+
+      if (accessFilter === 'export_allowed' && !hasExport) return false;
+      if (accessFilter === 'export_blocked' && hasExport) return false;
+      if (accessFilter === 'lekha_jokha_allowed' && !hasLekhaJokha) return false;
+      if (accessFilter === 'lekha_jokha_blocked' && hasLekhaJokha) return false;
 
       return true;
     });
-  }, [users, roleFilter, exportFilter]);
+  }, [users, roleFilter, accessFilter]);
 
   // Statistics
   const stats = useMemo(() => {
     const total = users.length;
     const masterAdmins = users.filter((u) => u.role === 'developer' || u.role === 'super_admin').length;
-    const authorized = users.filter((u) => {
+    const exportAuthorized = users.filter((u) => {
       const isMaster = u.role === 'developer' || u.role === 'super_admin';
       return isMaster || (Array.isArray(u.permissions) && u.permissions.includes('can_export_data'));
     }).length;
-    const restricted = total - authorized;
+    const lekhaJokhaAuthorized = users.filter((u) => {
+      const isStaff = ['developer', 'super_admin', 'admin', 'treasurer'].includes(u.role);
+      return isStaff || (Array.isArray(u.permissions) && u.permissions.includes('can_view_lekha_jokha'));
+    }).length;
 
-    return { total, masterAdmins, authorized, restricted };
+    return { total, masterAdmins, exportAuthorized, lekhaJokhaAuthorized };
   }, [users]);
 
   const columns = [
@@ -156,88 +166,101 @@ const AuthorityPage = () => {
       },
     },
     {
-      key: 'export_status',
-      label: 'डेटा एक्सपोर्ट अधिकार (Data Export Status)',
+      key: 'lekha_jokha_access',
+      label: 'लेखा-जोखा पहुँच (Lekha-Jokha)',
       render: (_, r) => {
+        const isStaff = ['developer', 'super_admin', 'admin', 'treasurer'].includes(r.role);
+        const perms = Array.isArray(r.permissions) ? r.permissions : [];
+        const hasAccess = isStaff || perms.includes('can_view_lekha_jokha');
         const isMaster = r.role === 'developer' || r.role === 'super_admin';
-        const hasExport = isMaster || (Array.isArray(r.permissions) && r.permissions.includes('can_export_data'));
+        const toggleKey = `${r.id}_can_view_lekha_jokha`;
 
         if (isMaster) {
           return (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 text-purple-800 border border-purple-200 rounded-xl text-xs font-bold shadow-2xs">
-              <FiShield className="w-3.5 h-3.5 text-purple-600" />
-              <span>मास्टर एक्सेस (स्थायी पूर्ण अधिकार)</span>
-            </div>
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-800 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200" title="मास्टर व्यवस्थापक को स्थायी पूर्ण अधिकार है">
+              <FiShield className="w-3 h-3 text-purple-600" /> स्थायी पहुँच
+            </span>
           );
         }
 
         return (
           <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border ${
-                hasExport
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-rose-50 text-rose-700 border-rose-200'
-              }`}
+            <button
+              type="button"
+              disabled={!isSuperAdmin || togglingKey === toggleKey}
+              onClick={() => handleToggle(r, 'can_view_lekha_jokha')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer border ${
+                hasAccess
+                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
+                  : 'bg-gray-50 hover:bg-gray-100 text-gray-500 border-gray-200'
+              } ${!isSuperAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
+              title={
+                isSuperAdmin
+                  ? hasAccess
+                    ? 'लेखा-जोखा पहुँच अधिकार हटाने के लिए क्लिक करें'
+                    : 'लेखा-जोखा देखने की अनुमति देने के लिए क्लिक करें'
+                  : 'केवल Super Admin अधिकार बदल सकते हैं'
+              }
             >
-              {hasExport ? (
-                <>
-                  <FiUnlock className="w-3.5 h-3.5 text-emerald-600" />
-                  अनुमत (Export Allowed)
-                </>
+              {togglingKey === toggleKey ? (
+                <FiRefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : hasAccess ? (
+                <FiUnlock className="w-3.5 h-3.5 text-emerald-600" />
               ) : (
-                <>
-                  <FiLock className="w-3.5 h-3.5 text-rose-600" />
-                  प्रतिबंधित (Export Blocked)
-                </>
+                <FiLock className="w-3.5 h-3.5 text-gray-400" />
               )}
-            </span>
+              <span>{hasAccess ? 'अनुमत (Allowed)' : 'प्रतिबंधित (Blocked)'}</span>
+            </button>
           </div>
         );
       },
     },
     {
-      key: '_actions',
-      label: 'अधिकार नियंत्रण (Toggle Access)',
+      key: 'export_access',
+      label: 'डेटा एक्सपोर्ट (Data Export)',
       render: (_, r) => {
         const isMaster = r.role === 'developer' || r.role === 'super_admin';
-        const hasExport = isMaster || (Array.isArray(r.permissions) && r.permissions.includes('can_export_data'));
+        const perms = Array.isArray(r.permissions) ? r.permissions : [];
+        const hasExport = isMaster || perms.includes('can_export_data');
+        const toggleKey = `${r.id}_can_export_data`;
 
         if (isMaster) {
           return (
-            <span className="text-xs text-gray-400 font-medium italic">
-              अपरिवर्तनीय (Locked)
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-800 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200" title="मास्टर व्यवस्थापक को स्थायी पूर्ण अधिकार है">
+              <FiShield className="w-3 h-3 text-purple-600" /> पूर्ण अधिकार
             </span>
           );
         }
 
         return (
-          <button
-            type="button"
-            disabled={!isSuperAdmin || togglingId === r.id}
-            onClick={() => handleToggleExport(r)}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer border ${
-              hasExport
-                ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200'
-                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
-            } ${!isSuperAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
-            title={
-              isSuperAdmin
-                ? hasExport
-                  ? 'डेटा एक्सपोर्ट अधिकार निरस्त करें'
-                  : 'डेटा एक्सपोर्ट अधिकार प्रदान करें'
-                : 'केवल Super Admin अधिकार बदल सकते हैं'
-            }
-          >
-            {togglingId === r.id ? (
-              <FiRefreshCw className="w-3.5 h-3.5 animate-spin" />
-            ) : hasExport ? (
-              <FiUserX className="w-3.5 h-3.5" />
-            ) : (
-              <FiUserCheck className="w-3.5 h-3.5" />
-            )}
-            <span>{hasExport ? 'अधिकार हटाएं (Revoke)' : 'अधिकार दें (Grant)'}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={!isSuperAdmin || togglingKey === toggleKey}
+              onClick={() => handleToggle(r, 'can_export_data')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer border ${
+                hasExport
+                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
+                  : 'bg-gray-50 hover:bg-gray-100 text-gray-500 border-gray-200'
+              } ${!isSuperAdmin ? 'opacity-60 cursor-not-allowed' : ''}`}
+              title={
+                isSuperAdmin
+                  ? hasExport
+                    ? 'डेटा एक्सपोर्ट अधिकार हटाने के लिए क्लिक करें'
+                    : 'डेटा एक्सपोर्ट अधिकार देने के लिए क्लिक करें'
+                  : 'केवल Super Admin अधिकार बदल सकते हैं'
+              }
+            >
+              {togglingKey === toggleKey ? (
+                <FiRefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : hasExport ? (
+                <FiUnlock className="w-3.5 h-3.5 text-emerald-600" />
+              ) : (
+                <FiLock className="w-3.5 h-3.5 text-gray-400" />
+              )}
+              <span>{hasExport ? 'अनुमत (Allowed)' : 'प्रतिबंधित (Blocked)'}</span>
+            </button>
+          </div>
         );
       },
     },
@@ -258,7 +281,7 @@ const AuthorityPage = () => {
               अधिकार प्रबंधन (Authority Management)
             </h1>
             <p className="text-amber-100/90 text-xs sm:text-sm mt-1.5 max-w-2xl leading-relaxed">
-              श्री सीरवी समाज कोंडा पोर्टल की डेटा सुरक्षा हेतु संवेदनशील परिवार एवं सदस्य डेटा का CSV/PDF एक्सपोर्ट केवल अधिकृत प्रशासकों तक सीमित रखें।
+              श्री सीरवी समाज कोणदा पोर्टल की वित्तीय गोपनीयता एवं डेटा सुरक्षा हेतु लेखा-जोखा बहीखाता एवं CSV/PDF एक्सपोर्ट का नियंत्रण।
             </p>
           </div>
           <button
@@ -298,24 +321,24 @@ const AuthorityPage = () => {
 
         <div className="bg-white p-5 rounded-2xl border border-[#E8DCC8] shadow-2xs">
           <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-amber-800">लेखा-जोखा अधिकृत</span>
+            <div className="p-2 bg-amber-50 text-amber-700 rounded-xl">
+              <FiDollarSign className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 text-2xl font-black text-amber-950">{stats.lekhaJokhaAuthorized}</div>
+          <div className="mt-1 text-xs text-amber-700">बहीखाता देखने की अनुमति</div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-[#E8DCC8] shadow-2xs">
+          <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-emerald-700">एक्सपोर्ट प्राधिकृत</span>
             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
               <FiCheckCircle className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3 text-2xl font-black text-emerald-900">{stats.authorized}</div>
+          <div className="mt-3 text-2xl font-black text-emerald-900">{stats.exportAuthorized}</div>
           <div className="mt-1 text-xs text-emerald-600">CSV/PDF डाउनलोड की अनुमति</div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-[#E8DCC8] shadow-2xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-rose-700">एक्सपोर्ट प्रतिबंधित</span>
-            <div className="p-2 bg-rose-50 text-rose-600 rounded-xl">
-              <FiLock className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3 text-2xl font-black text-rose-900">{stats.restricted}</div>
-          <div className="mt-1 text-xs text-rose-600">केवल पोर्टल व्यू (No Download)</div>
         </div>
       </div>
 
@@ -349,16 +372,18 @@ const AuthorityPage = () => {
             <option value="member">Member</option>
           </select>
 
-          {/* Export Filter */}
+          {/* Access Filter */}
           <select
-            value={exportFilter}
-            onChange={(e) => setExportFilter(e.target.value)}
-            aria-label="एक्सपोर्ट स्थिति के अनुसार फ़िल्टर करें"
+            value={accessFilter}
+            onChange={(e) => setAccessFilter(e.target.value)}
+            aria-label="पहुँच स्थिति के अनुसार फ़िल्टर करें"
             className="px-3 py-2 bg-[#FFF8EC] border border-[#E8DCC8] rounded-xl text-xs sm:text-sm text-[#2B211B] font-medium focus:outline-none focus:border-[#C85A17] cursor-pointer"
           >
-            <option value="all">सभी एक्सपोर्ट स्थितियाँ (All Status)</option>
-            <option value="authorized">केवल प्राधिकृत (Allowed Only)</option>
-            <option value="restricted">केवल प्रतिबंधित (Blocked Only)</option>
+            <option value="all">सभी अनुमतियाँ (All Permissions)</option>
+            <option value="lekha_jokha_allowed">लेखा-जोखा अधिकृत (Lekha-Jokha Allowed)</option>
+            <option value="lekha_jokha_blocked">लेखा-जोखा प्रतिबंधित (Lekha-Jokha Blocked)</option>
+            <option value="export_allowed">एक्सपोर्ट अधिकृत (Export Allowed)</option>
+            <option value="export_blocked">एक्सपोर्ट प्रतिबंधित (Export Blocked)</option>
           </select>
         </div>
 
@@ -384,12 +409,12 @@ const AuthorityPage = () => {
         <div className="p-2.5 bg-amber-100 text-amber-800 rounded-xl shrink-0 mt-0.5">
           <FiInfo className="w-5 h-5" />
         </div>
-        <div className="space-y-1 text-xs sm:text-sm text-[#2B211B]">
-          <h4 className="font-bold text-[#7A1C1C]">डेटा सुरक्षा एवं गोपनीयता नियम (Community Privacy Policy)</h4>
+        <div className="space-y-1.5 text-xs sm:text-sm text-[#2B211B]">
+          <h4 className="font-bold text-[#7A1C1C]">डेटा सुरक्षा एवं वित्तीय गोपनीयता नियम (Financial Privacy Policy)</h4>
           <p className="text-[#766A60] leading-relaxed">
-            1. <strong>Super Admin एवं Developer</strong> को पोर्टल के सभी डेटा सेट्स को निर्यात करने का स्थायी अधिकार प्राप्त है।<br />
-            2. <strong>सामान्य सदस्यों एवं अन्य भूमिकाओं</strong> के लिए CSV/Excel डाउनलोड बटन तब तक छिपा रहता है जब तक Super Admin द्वारा यहाँ से <span className="text-emerald-700 font-bold">"अधिकार दें (Grant)"</span> न किया जाए।<br />
-            3. किसी भी सदस्य के मोबाइल नंबर, पारिवारिक विवरण एवं चंदा रसीदों के अनधिकृत बल्क डाउनलोड को रोकने के लिए यह सुरक्षा व्यवस्था लागू है।
+            1. <strong>लेखा-जोखा पहुँच (Lekha-Jokha Access)</strong>: सामान्य सदस्यों के लिए सार्वजनिक बहीखाता पृष्ठ (`/lekha-jokha`) डिफ़ॉल्ट रूप से प्रतिबंधित है। केवल यहाँ से अधिकृत किए गए सदस्य ही वित्तीय विवरण देख सकते हैं।<br />
+            2. <strong>डेटा एक्सपोर्ट अधिकार (Data Export Access)</strong>: संवेदनशील फोन नंबर और सदस्य सूचियों का CSV/Excel व PDF डाउनलोड केवल अधिकृत उपयोगकर्ताओं तक सीमित है।<br />
+            3. <strong>Super Admin एवं Developer</strong> को पोर्टल के सभी मॉड्यूल्स तक पूर्ण और स्थायी पहुँच प्राप्त है।
           </p>
         </div>
       </div>

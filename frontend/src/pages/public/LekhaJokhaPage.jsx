@@ -1,11 +1,27 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiDollarSign, FiSearch, FiArrowUpRight, FiArrowDownLeft, FiInbox, FiTrendingUp, FiCreditCard } from 'react-icons/fi';
+import {
+  FiDollarSign,
+  FiSearch,
+  FiArrowUpRight,
+  FiArrowDownLeft,
+  FiInbox,
+  FiTrendingUp,
+  FiCreditCard,
+  FiLock,
+  FiShield,
+  FiAlertCircle,
+  FiLogIn,
+  FiHome,
+} from 'react-icons/fi';
 import { lekhaJokhaAPI } from '../../services/api';
 import DataTable from '../../components/common/DataTable';
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 
 const LekhaJokhaPage = () => {
+  const { user, canViewLekhaJokha, loading: authLoading } = useAuth();
   const [activeCategory, setActiveCategory] = useState('all');
   const [stats, setStats] = useState({ categories: [], overall: { totalIncome: 0, totalExpense: 0, count: 0 } });
   const [items, setItems] = useState([]);
@@ -26,6 +42,7 @@ const LekhaJokhaPage = () => {
 
   // Fetch Stats (overall summary of accounts)
   const fetchStats = useCallback(async () => {
+    if (!canViewLekhaJokha) return;
     try {
       const res = await lekhaJokhaAPI.getStats();
       if (res.data?.data) {
@@ -34,10 +51,11 @@ const LekhaJokhaPage = () => {
     } catch (err) {
       console.error('Failed to load stats', err);
     }
-  }, []);
+  }, [canViewLekhaJokha]);
 
   // Fetch Page Data
   const fetchData = useCallback(async () => {
+    if (!canViewLekhaJokha) return;
     setLoading(true);
     try {
       const res = await lekhaJokhaAPI.getPublic({
@@ -53,15 +71,19 @@ const LekhaJokhaPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [activeCategory, page, search]);
+  }, [canViewLekhaJokha, activeCategory, page, search]);
 
   useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+    if (canViewLekhaJokha) {
+      fetchStats();
+    }
+  }, [canViewLekhaJokha, fetchStats]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (canViewLekhaJokha) {
+      fetchData();
+    }
+  }, [canViewLekhaJokha, fetchData]);
 
   const handleCategoryChange = (catId) => {
     setActiveCategory(catId);
@@ -201,9 +223,100 @@ const LekhaJokhaPage = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-        {/* Category Tabs */}
-        <div className="flex flex-wrap gap-2.5 justify-center bg-white p-3 rounded-3xl border border-[#E8DCC8] shadow-sm">
+      {/* Permission Gate Check */}
+      {!canViewLekhaJokha ? (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl border border-[#E8DCC8] shadow-xl p-8 sm:p-12 text-center relative overflow-hidden"
+          >
+            <div className="w-20 h-20 bg-gradient-to-br from-amber-500/10 to-orange-500/20 text-[#C85A17] rounded-3xl flex items-center justify-center mx-auto mb-6 border border-orange-200 shadow-sm">
+              <FiLock className="w-10 h-10" />
+            </div>
+
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-50 text-amber-900 border border-amber-200 rounded-full text-xs font-bold mb-4">
+              <FiShield className="w-3.5 h-3.5 text-amber-700" />
+              <span>गोपनीयता एवं वित्तीय सुरक्षा (Restricted Ledger)</span>
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-black text-[#2B211B] mb-3">
+              लेखा-जोखा पहुँच अनुमति आवश्यक
+            </h2>
+
+            <p className="text-[#766A60] text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-8">
+              श्री सीरवी समाज कोणदा के वित्तीय लेखा-जोखा, बहीखाता व निर्माण आय-व्यय की सुरक्षा हेतु यह पृष्ठ केवल व्यवस्थापकों एवं अधिकृत सदस्यों के लिए उपलब्ध है।
+            </p>
+
+            {!user ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-[#FFF8EC] border border-[#E8DCC8] rounded-2xl text-xs sm:text-sm text-[#5A4D41] font-medium max-w-md mx-auto">
+                  यदि आपके पास पहले से अधिकृत खाता है, तो कृपया आय-व्यय ब्यौरा देखने हेतु लॉगिन करें।
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#7A2525] to-[#C85A17] text-white font-bold text-sm rounded-2xl shadow-md hover:shadow-lg transition-all cursor-pointer"
+                  >
+                    <FiLogIn className="w-4 h-4" />
+                    <span>लॉगिन करें (Go to Login)</span>
+                  </Link>
+                  <Link
+                    to="/"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#FFF8EC] border border-[#E8DCC8] text-[#2B211B] font-bold text-sm rounded-2xl hover:bg-[#FAF1E0] transition-all"
+                  >
+                    <FiHome className="w-4 h-4" />
+                    <span>मुख्य पृष्ठ (Home)</span>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="p-4 bg-[#FFF8EC] border border-[#E8DCC8] rounded-2xl text-xs sm:text-sm text-left space-y-1.5 max-w-lg mx-auto">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#766A60]">लॉगिन खाता:</span>
+                    <span className="font-bold text-[#2B211B]">{user.name || 'सदस्य'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#766A60]">पंजीकृत मोबाइल:</span>
+                    <span className="font-mono font-semibold text-[#2B211B]">{user.phone || user.email || '—'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#766A60]">लेखा-जोखा स्थिति:</span>
+                    <span className="font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md text-xs">
+                      अनुमति आवश्यक (No Permission Granted)
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-[#766A60] max-w-md mx-auto">
+                  पहुँच अनुमति प्राप्त करने के लिए कृपया समाज प्रशासक से संपर्क करें। प्रशासक द्वारा एडमिन पैनल में अनुमति देने के बाद यह पृष्ठ आपके लिए सक्रिय हो जाएगा।
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <Link
+                    to="/contact"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#7A2525] to-[#C85A17] text-white font-bold text-sm rounded-2xl shadow-md hover:shadow-lg transition-all"
+                  >
+                    <FiAlertCircle className="w-4 h-4" />
+                    <span>व्यवस्थापक से संपर्क करें</span>
+                  </Link>
+                  <Link
+                    to="/"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#FFF8EC] border border-[#E8DCC8] text-[#2B211B] font-bold text-sm rounded-2xl hover:bg-[#FAF1E0] transition-all"
+                  >
+                    <FiHome className="w-4 h-4" />
+                    <span>मुख्य पृष्ठ</span>
+                  </Link>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      ) : (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+          {/* Category Tabs */}
+          <div className="flex flex-wrap gap-2.5 justify-center bg-white p-3 rounded-3xl border border-[#E8DCC8] shadow-sm">
           {categories.map((cat) => {
             const isSelected = activeCategory === cat.id;
             return (
@@ -326,6 +439,7 @@ const LekhaJokhaPage = () => {
           />
         </div>
       </div>
+      )}
     </div>
   );
 };

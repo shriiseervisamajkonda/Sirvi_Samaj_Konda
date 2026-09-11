@@ -188,6 +188,7 @@ export const userAPI = {
   update: (id, data) => api.put(`/users/${id}`, data),
   updateRole: (id, role) => api.put(`/users/${id}/role`, { role }),
   toggleExportPermission: (id) => api.put(`/users/${id}/toggle-export-permission`),
+  togglePermission: (id, permission) => api.put(`/users/${id}/toggle-permission`, { permission }),
   resetDefaultPassword: (id) => api.post(`/users/${id}/reset-default-password`),
   delete: (id) => api.delete(`/users/${id}`),
 };

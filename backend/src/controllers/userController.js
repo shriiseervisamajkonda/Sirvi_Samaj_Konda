@@ -290,10 +290,15 @@ export const resetDefaultPassword = asyncHandler(async (req, res) => {
   });
 });
 
-// PUT /api/users/:id/toggle-export-permission
-// Only developer/super_admin can grant/revoke can_export_data permission
-export const toggleExportPermission = asyncHandler(async (req, res) => {
+// PUT /api/users/:id/toggle-permission
+// Developer/super_admin/admin can toggle granular permissions (e.g. can_view_lekha_jokha, can_export_data)
+export const toggleUserPermission = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const { permission } = req.body;
+
+  if (!permission) {
+    return res.status(400).json({ success: false, message: 'Permission key is required' });
+  }
 
   // Fetch current user
   const { data: user, error: fetchError } = await supabase
@@ -307,12 +312,16 @@ export const toggleExportPermission = asyncHandler(async (req, res) => {
   }
 
   const isMaster = user.role === 'developer' || user.role === 'super_admin';
-  const currentPermissions = isMaster ? ['can_export_data', '*'] : [];
-  const hasExport = currentPermissions.includes('can_export_data');
+  const currentPermissions = Array.isArray(user.permissions)
+    ? user.permissions
+    : isMaster
+    ? ['can_export_data', 'can_view_lekha_jokha', '*']
+    : [];
 
-  const updatedPermissions = hasExport
-    ? currentPermissions.filter((p) => p !== 'can_export_data')
-    : [...currentPermissions, 'can_export_data'];
+  const hasPerm = currentPermissions.includes(permission);
+  const updatedPermissions = hasPerm
+    ? currentPermissions.filter((p) => p !== permission)
+    : [...currentPermissions, permission];
 
   try {
     await supabase
@@ -326,12 +335,25 @@ export const toggleExportPermission = asyncHandler(async (req, res) => {
     // Graceful fallback
   }
 
-  const granted = !hasExport;
+  const granted = !hasPerm;
+  const permLabel =
+    permission === 'can_view_lekha_jokha'
+      ? 'लेखा-जोखा देखने का अधिकार'
+      : permission === 'can_export_data'
+      ? 'डेटा एक्सपोर्ट अधिकार'
+      : permission;
+
   res.json({
     success: true,
     message: granted
-      ? `${user.name} को डेटा एक्सपोर्ट अधिकार प्रदान किया गया (Export permission granted)`
-      : `${user.name} का डेटा एक्सपोर्ट अधिकार हटा दिया गया (Export permission revoked)`,
-    data: { permissions: updatedPermissions, can_export_data: granted },
+      ? `${user.name} को ${permLabel} प्रदान किया गया (Permission granted)`
+      : `${user.name} का ${permLabel} हटा दिया गया (Permission revoked)`,
+    data: { permissions: updatedPermissions, [permission]: granted },
   });
+});
+
+// PUT /api/users/:id/toggle-export-permission
+export const toggleExportPermission = asyncHandler(async (req, res) => {
+  req.body.permission = 'can_export_data';
+  return toggleUserPermission(req, res);
 });
