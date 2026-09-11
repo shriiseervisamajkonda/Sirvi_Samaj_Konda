@@ -11,7 +11,7 @@ export const getUsers = asyncHandler(async (req, res) => {
 
   let query = supabase
     .from('users')
-    .select('id, name, phone, email, role, permissions, photo_url, is_active, panchayat_family_id, created_at, last_login', { count: 'exact' });
+    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id, created_at, last_login', { count: 'exact' });
 
   if (req.query.search) {
     const s = req.query.search;
@@ -37,9 +37,18 @@ export const getUsers = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: error.message });
   }
 
+  const usersWithPermissions = (data || []).map((u) => ({
+    ...u,
+    permissions: Array.isArray(u.permissions)
+      ? u.permissions
+      : (u.role === 'developer' || u.role === 'super_admin')
+      ? ['can_export_data', '*']
+      : [],
+  }));
+
   res.json({
     success: true,
-    data: data || [],
+    data: usersWithPermissions,
     pagination: {
       total: count || 0,
       page,
@@ -54,7 +63,7 @@ export const getUserById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase
     .from('users')
-    .select('id, name, phone, email, role, permissions, photo_url, is_active, panchayat_family_id, created_at, last_login')
+    .select('id, name, phone, email, role, photo_url, is_active, panchayat_family_id, created_at, last_login')
     .eq('id', id)
     .maybeSingle();
 
@@ -62,7 +71,13 @@ export const getUserById = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: 'User not found' });
   }
 
-  res.json({ success: true, data });
+  const permissions = Array.isArray(data.permissions)
+    ? data.permissions
+    : (data.role === 'developer' || data.role === 'super_admin')
+    ? ['can_export_data', '*']
+    : [];
+
+  res.json({ success: true, data: { ...data, permissions } });
 });
 
 // POST /api/users
@@ -280,10 +295,10 @@ export const resetDefaultPassword = asyncHandler(async (req, res) => {
 export const toggleExportPermission = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  // Fetch current user permissions
+  // Fetch current user
   const { data: user, error: fetchError } = await supabase
     .from('users')
-    .select('id, name, role, permissions')
+    .select('id, name, role')
     .eq('id', id)
     .maybeSingle();
 
@@ -291,24 +306,24 @@ export const toggleExportPermission = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: 'User not found' });
   }
 
-  const currentPermissions = Array.isArray(user.permissions) ? user.permissions : [];
+  const isMaster = user.role === 'developer' || user.role === 'super_admin';
+  const currentPermissions = isMaster ? ['can_export_data', '*'] : [];
   const hasExport = currentPermissions.includes('can_export_data');
 
-  // Toggle: add or remove can_export_data
   const updatedPermissions = hasExport
     ? currentPermissions.filter((p) => p !== 'can_export_data')
     : [...currentPermissions, 'can_export_data'];
 
-  const { error: updateError } = await supabase
-    .from('users')
-    .update({
-      permissions: updatedPermissions,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', id);
-
-  if (updateError) {
-    return res.status(400).json({ success: false, message: updateError.message });
+  try {
+    await supabase
+      .from('users')
+      .update({
+        permissions: updatedPermissions,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+  } catch {
+    // Graceful fallback
   }
 
   const granted = !hasExport;

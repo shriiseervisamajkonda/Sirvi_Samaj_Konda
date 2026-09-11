@@ -118,12 +118,19 @@ export const login = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Please provide mobile number/email and password' });
   }
 
-  // Query user by phone or email
-  const { data: user, error } = await supabase
+  // Query user by phone or email (supporting 10-digit clean phone or email)
+  const cleanPhone = loginId.replace(/\D/g, '').slice(-10);
+  let query = supabase
     .from('users')
-    .select('id, name, phone, email, password_hash, role, permissions, photo_url, is_active, must_change_password, panchayat_family_id')
-    .or(`phone.eq.${loginId},email.eq.${loginId.toLowerCase()}`)
-    .maybeSingle();
+    .select('id, name, phone, email, password_hash, role, photo_url, is_active, must_change_password, panchayat_family_id');
+
+  if (cleanPhone.length === 10) {
+    query = query.or(`phone.eq.${cleanPhone},phone.eq.${loginId},email.eq.${loginId.toLowerCase()}`);
+  } else {
+    query = query.or(`phone.eq.${loginId},email.eq.${loginId.toLowerCase()}`);
+  }
+
+  const { data: user, error } = await query.maybeSingle();
 
   if (error || !user) {
     return res.status(401).json({ success: false, message: 'अमान्य मोबाइल नंबर / ईमेल अथवा गलत पासवर्ड (Invalid login credentials)' });
@@ -144,8 +151,17 @@ export const login = asyncHandler(async (req, res) => {
     .update({ last_login: new Date().toISOString() })
     .eq('id', user.id);
 
-  const { password_hash, ...userProfile } = user;
-  const { accessToken, refreshToken } = generateTokens(user);
+  const userPermissions = Array.isArray(user.permissions)
+    ? user.permissions
+    : (user.role === 'developer' || user.role === 'super_admin')
+    ? ['can_export_data', '*']
+    : [];
+
+  const { password_hash, ...userProfile } = {
+    ...user,
+    permissions: userPermissions,
+  };
+  const { accessToken, refreshToken } = generateTokens(userProfile);
 
   res.json({
     success: true,
@@ -190,7 +206,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
   // Check if this Google email is linked to a registered Samaj account
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, name, phone, email, role, permissions, photo_url, is_active, must_change_password, panchayat_family_id, created_at, last_login')
+    .select('id, name, phone, email, role, photo_url, is_active, must_change_password, panchayat_family_id, created_at, last_login')
     .ilike('email', verifiedEmail)
     .maybeSingle();
 
@@ -222,13 +238,23 @@ export const googleLogin = asyncHandler(async (req, res) => {
     .update({ last_login: new Date().toISOString() })
     .eq('id', user.id);
 
-  const { accessToken, refreshToken } = generateTokens(user);
+  const userPermissions = Array.isArray(user.permissions)
+    ? user.permissions
+    : (user.role === 'developer' || user.role === 'super_admin')
+    ? ['can_export_data', '*']
+    : [];
+
+  const userObj = {
+    ...user,
+    permissions: userPermissions,
+  };
+  const { accessToken, refreshToken } = generateTokens(userObj);
 
   res.json({
     success: true,
     message: 'Google login successful',
     data: {
-      user,
+      user: userObj,
       accessToken,
       refreshToken,
     },
@@ -332,7 +358,7 @@ export const unlinkGoogle = asyncHandler(async (req, res) => {
 export const getMe = asyncHandler(async (req, res) => {
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, name, phone, email, role, permissions, photo_url, is_active, must_change_password, panchayat_family_id, created_at, last_login')
+    .select('id, name, phone, email, role, photo_url, is_active, must_change_password, panchayat_family_id, created_at, last_login')
     .eq('id', req.user.id)
     .maybeSingle();
 
@@ -340,7 +366,19 @@ export const getMe = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: 'User not found' });
   }
 
-  res.json({ success: true, data: user });
+  const userPermissions = Array.isArray(user.permissions)
+    ? user.permissions
+    : (user.role === 'developer' || user.role === 'super_admin')
+    ? ['can_export_data', '*']
+    : [];
+
+  res.json({
+    success: true,
+    data: {
+      ...user,
+      permissions: userPermissions,
+    },
+  });
 });
 
 // POST /api/auth/forgot-password (Honest Coming Soon state)
