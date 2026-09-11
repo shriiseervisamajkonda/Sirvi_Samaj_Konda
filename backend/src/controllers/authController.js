@@ -121,7 +121,7 @@ export const login = asyncHandler(async (req, res) => {
   // Query user by phone or email
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, name, phone, email, password_hash, role, photo_url, is_active, must_change_password, panchayat_family_id')
+    .select('id, name, phone, email, password_hash, role, permissions, photo_url, is_active, must_change_password, panchayat_family_id')
     .or(`phone.eq.${loginId},email.eq.${loginId.toLowerCase()}`)
     .maybeSingle();
 
@@ -190,7 +190,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
   // Check if this Google email is linked to a registered Samaj account
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, name, phone, email, role, photo_url, is_active, must_change_password, panchayat_family_id, created_at, last_login')
+    .select('id, name, phone, email, role, permissions, photo_url, is_active, must_change_password, panchayat_family_id, created_at, last_login')
     .eq('email', verifiedEmail)
     .maybeSingle();
 
@@ -332,7 +332,7 @@ export const unlinkGoogle = asyncHandler(async (req, res) => {
 export const getMe = asyncHandler(async (req, res) => {
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, name, phone, email, role, photo_url, is_active, must_change_password, panchayat_family_id, created_at, last_login')
+    .select('id, name, phone, email, role, permissions, photo_url, is_active, must_change_password, panchayat_family_id, created_at, last_login')
     .eq('id', req.user.id)
     .maybeSingle();
 

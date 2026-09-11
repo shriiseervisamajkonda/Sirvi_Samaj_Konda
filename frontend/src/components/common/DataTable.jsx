@@ -30,7 +30,7 @@ const DataTable = ({
   const [sortField, setSortField] = useState(initialSortField);
   const [sortDir, setSortDir] = useState(initialSortDir);
   
-  const { isAdmin } = useAuth();
+  const { isAdmin, canExportData } = useAuth();
 
   useEffect(() => {
     if (searchValue !== undefined) {
@@ -171,12 +171,12 @@ const DataTable = ({
                 />
               </div>
             )}
-            {/* Strictly Admin-only CSV/Excel table export */}
-            {downloadable && isAdmin && sorted.length > 0 && (
+            {/* Granular Authority: Gated behind can_export_data permission */}
+            {downloadable && (canExportData !== undefined ? canExportData : isAdmin) && sorted.length > 0 && (
               <button
                 onClick={exportToCSV}
                 className="p-2.5 bg-white border border-[#E8DCC8] rounded-2xl text-[#C85A17] hover:bg-[#FFF8EC] hover:border-[#C85A17] transition-all shadow-sm flex items-center gap-2 shrink-0 cursor-pointer"
-                title="CSV डाउनलोड करें (Admin Only)"
+                title="CSV डाउनलोड करें"
               >
                 <FiDownload className="w-4 h-4" />
                 <span className="hidden sm:inline text-sm font-bold">CSV</span>

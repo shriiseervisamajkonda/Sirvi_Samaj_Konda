@@ -7,6 +7,7 @@ import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 
 const roleOptions = [
   { value: 'developer', label: 'Developer (पूर्ण तकनीकी नियंत्रण / Full Access)' },
@@ -29,8 +30,9 @@ const UsersPage = () => {
   const [resetUser, setResetUser] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [resettingPassword, setResettingPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [togglingExportId, setTogglingExportId] = useState(null);
+  const { isSuperAdmin } = useAuth();
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   const watchPhone = watch('phone');
@@ -98,8 +100,26 @@ const UsersPage = () => {
 
   const handleFillDefaultPassword = () => {
     const defaultPwd = calculateDefaultPassword();
-    setValue('password', defaultPwd);
-    toast.success(`डिफ़ॉल्ट पासवर्ड (${defaultPwd}) फॉर्म में भर दिया गया`);
+    setValue('password', defaultPwd, { shouldValidate: true });
+    setShowPassword(true);
+    toast.success(`डिफ़ॉल्ट पासवर्ड सेट किया गया: ${defaultPwd}`);
+  };
+
+  const handleToggleExport = async (userRecord) => {
+    if (!isSuperAdmin) {
+      toast.error('डेटा एक्सपोर्ट अधिकार बदलने के लिए Super Admin अनुमति आवश्यक है');
+      return;
+    }
+    setTogglingExportId(userRecord.id);
+    try {
+      const res = await userAPI.toggleExportPermission(userRecord.id);
+      toast.success(res.data?.message || 'डेटा एक्सपोर्ट अनुमति अपडेट की गई');
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'अनुमति बदलने में त्रुटि हुई');
+    } finally {
+      setTogglingExportId(null);
+    }
   };
 
   const handleResetToDefault = async () => {
@@ -212,6 +232,39 @@ const UsersPage = () => {
       render: (_, r) => {
         const active = r.is_active !== undefined ? r.is_active : r.status !== 'inactive';
         return <Badge variant={active ? 'success' : 'danger'}>{active ? 'Active' : 'Inactive'}</Badge>;
+      },
+    },
+    {
+      key: 'permissions',
+      label: 'डेटा एक्सपोर्ट (Export Access)',
+      render: (_, r) => {
+        const isMaster = r.role === 'developer' || r.role === 'super_admin';
+        const hasExport = isMaster || (Array.isArray(r.permissions) && r.permissions.includes('can_export_data'));
+
+        if (isMaster) {
+          return (
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200" title="Super Admin / Developer को स्थायी पूर्ण अधिकार है">
+              <FiShield className="w-3 h-3 text-emerald-600" /> पूर्ण अधिकार
+            </span>
+          );
+        }
+
+        return (
+          <button
+            type="button"
+            disabled={!isSuperAdmin || togglingExportId === r.id}
+            onClick={() => handleToggleExport(r)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border shadow-2xs ${
+              hasExport
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+            } ${!isSuperAdmin ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`}
+            title={isSuperAdmin ? (hasExport ? 'एक्सपोर्ट अधिकार हटाने के लिए क्लिक करें' : 'डेटा एक्सपोर्ट अधिकार देने के लिए क्लिक करें') : 'केवल Super Admin बदल सकते हैं'}
+          >
+            <span className={`w-2 h-2 rounded-full ${hasExport ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+            {togglingExportId === r.id ? 'अपडेटिंग...' : hasExport ? 'अनुमत (Allowed)' : 'प्रतिबंधित (Blocked)'}
+          </button>
+        );
       },
     },
     {
