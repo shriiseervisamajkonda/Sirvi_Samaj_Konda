@@ -48,7 +48,6 @@ const Navbar = () => {
     {
       label: 'लेखा-जोखा',
       children: [
-        { label: 'आय-व्यय लेखा-जोखा', path: '/lekha-jokha' },
         { label: 'दान व्यवस्था व चंदा', path: '/donations' },
         { label: 'पंच फैसले व निर्णय', path: '/panch-settlements' },
       ],

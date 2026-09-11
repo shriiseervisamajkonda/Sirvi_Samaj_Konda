@@ -78,7 +78,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               {[
                 [t('nav_students'), '/students'],
-                ['आय-व्यय लेखा-जोखा', '/lekha-jokha'],
+                ['दान व्यवस्था व चंदा', '/donations'],
                 ['गोपनीयता नीति', '/privacy-policy'],
                 ['नियम एवं शर्तें', '/terms'],
               ].map(([label, path]) => (

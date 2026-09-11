@@ -285,12 +285,14 @@ const MyReceiptsPage = () => {
             >
               मेरी प्रोफ़ाइल
             </Link>
-            <Link
-              to="/lekha-jokha"
-              className="flex-1 sm:flex-none text-center px-4 py-2 bg-[#FFF8EC] border border-[#E8DCC8] hover:bg-[#FAF1E0] text-[#7A2525] font-bold text-xs rounded-xl transition-all"
-            >
-              सम्पूर्ण लेखा-जोखा
-            </Link>
+            {isAdmin && (
+              <Link
+                to="/admin/lekha-jokha"
+                className="flex-1 sm:flex-none text-center px-4 py-2 bg-[#FFF8EC] border border-[#E8DCC8] hover:bg-[#FAF1E0] text-[#7A2525] font-bold text-xs rounded-xl transition-all"
+              >
+                सम्पूर्ण लेखा-जोखा
+              </Link>
+            )}
             <button
               onClick={logout}
               className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs rounded-xl transition-all cursor-pointer shadow-xs"
