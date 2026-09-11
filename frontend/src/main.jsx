@@ -139,7 +139,7 @@ createRoot(document.getElementById('root')).render(
                     <Route
                       path="/lekha-jokha"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['developer', 'super_admin', 'admin', 'treasurer']}>
                           <LekhaJokhaPage />
                         </ProtectedRoute>
                       }
