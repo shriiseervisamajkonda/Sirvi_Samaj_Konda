@@ -12,6 +12,7 @@ import { protect, authorize } from '../middleware/auth.js';
 const router = express.Router();
 
 router.use(protect);
+router.use(authorize('developer', 'super_admin', 'admin', 'treasurer', 'can_view_lekha_jokha', 'lekha_jokha:read'));
 
 router.get('/stats', getLekhaJokhaStats);
 router.get('/public', getLekhaJokha);

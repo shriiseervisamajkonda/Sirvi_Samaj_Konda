@@ -18,14 +18,29 @@ export const protect = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const { data: user, error } = await supabase
+    // Resiliently fetch user (attempt with permissions column first)
+    let user;
+    const { data: userDataWithPerm, error: userErr1 } = await supabase
       .from('users')
-      .select('id, name, phone, email, role, role_id, is_active, panchayat_family_id')
+      .select('id, name, phone, email, role, role_id, is_active, panchayat_family_id, permissions')
       .eq('id', decoded.id)
       .maybeSingle();
 
-    if (error || !user || !user.is_active) {
-      return res.status(401).json({ success: false, message: 'User not found or account is inactive' });
+    if (userErr1 || !userDataWithPerm) {
+      const { data: userDataFallback, error: userErr2 } = await supabase
+        .from('users')
+        .select('id, name, phone, email, role, role_id, is_active, panchayat_family_id')
+        .eq('id', decoded.id)
+        .maybeSingle();
+      if (userErr2 || !userDataFallback || !userDataFallback.is_active) {
+        return res.status(401).json({ success: false, message: 'User not found or account is inactive' });
+      }
+      user = userDataFallback;
+    } else {
+      if (!userDataWithPerm.is_active) {
+        return res.status(401).json({ success: false, message: 'Account is inactive' });
+      }
+      user = userDataWithPerm;
     }
 
     // Fetch user role permissions if role_id is present
@@ -36,7 +51,16 @@ export const protect = async (req, res, next) => {
         .select('permissions')
         .eq('id', user.role_id)
         .maybeSingle();
-      if (roleData) permissions = roleData.permissions || [];
+      if (roleData && Array.isArray(roleData.permissions)) {
+        permissions = [...roleData.permissions];
+      }
+    }
+
+    // Merge with user-level permissions
+    if (Array.isArray(user.permissions)) {
+      permissions = [...new Set([...permissions, ...user.permissions])];
+    } else if (user.role === 'developer' || user.role === 'super_admin') {
+      permissions = [...new Set([...permissions, 'can_export_data', 'can_view_lekha_jokha', '*'])];
     }
 
     req.user = {

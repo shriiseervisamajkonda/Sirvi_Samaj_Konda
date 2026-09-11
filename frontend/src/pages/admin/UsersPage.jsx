@@ -33,7 +33,8 @@ const UsersPage = () => {
   const [resettingPassword, setResettingPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [togglingExportId, setTogglingExportId] = useState(null);
-  const { isSuperAdmin } = useAuth();
+  const [togglingLekhaId, setTogglingLekhaId] = useState(null);
+  const { isSuperAdmin, isAdmin } = useAuth();
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   const watchPhone = watch('phone');
@@ -106,6 +107,23 @@ const UsersPage = () => {
     toast.success(`डिफ़ॉल्ट पासवर्ड सेट किया गया: ${defaultPwd}`);
   };
 
+  const handleToggleLekhaJokha = async (userRecord) => {
+    if (!isAdmin) {
+      toast.error('अधिकार बदलने के लिए व्यवस्थापक अनुमति आवश्यक है');
+      return;
+    }
+    setTogglingLekhaId(userRecord.id);
+    try {
+      const res = await userAPI.togglePermission(userRecord.id, 'can_view_lekha_jokha');
+      toast.success(res.data?.message || 'लेखा-जोखा पहुँच अधिकार अपडेट किया गया');
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'अनुमति बदलने में त्रुटि हुई');
+    } finally {
+      setTogglingLekhaId(null);
+    }
+  };
+
   const handleToggleExport = async (userRecord) => {
     if (!isSuperAdmin) {
       toast.error('डेटा एक्सपोर्ट अधिकार बदलने के लिए Super Admin अनुमति आवश्यक है');
@@ -113,7 +131,7 @@ const UsersPage = () => {
     }
     setTogglingExportId(userRecord.id);
     try {
-      const res = await userAPI.toggleExportPermission(userRecord.id);
+      const res = await userAPI.togglePermission(userRecord.id, 'can_export_data');
       toast.success(res.data?.message || 'डेटा एक्सपोर्ट अनुमति अपडेट की गई');
       fetchData();
     } catch (err) {
@@ -236,6 +254,40 @@ const UsersPage = () => {
       },
     },
     {
+      key: 'lekha_jokha_perm',
+      label: 'लेखा-जोखा (Lekha-Jokha)',
+      render: (_, r) => {
+        const isMaster = r.role === 'developer' || r.role === 'super_admin';
+        const isStaff = isMaster || ['admin', 'treasurer'].includes(r.role);
+        const hasAccess = isStaff || (Array.isArray(r.permissions) && r.permissions.includes('can_view_lekha_jokha'));
+
+        if (isStaff) {
+          return (
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200" title="स्टाफ/व्यवस्थापक को स्थायी अधिकार है">
+              <FiShield className="w-3 h-3 text-blue-600" /> स्टाफ एक्सेस
+            </span>
+          );
+        }
+
+        return (
+          <button
+            type="button"
+            disabled={!isAdmin || togglingLekhaId === r.id}
+            onClick={() => handleToggleLekhaJokha(r)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border shadow-2xs ${
+              hasAccess
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                : 'bg-rose-50 text-rose-600 border-rose-200 hover:bg-rose-100'
+            } ${!isAdmin ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`}
+            title={hasAccess ? 'लेखा-जोखा अधिकार हटाने के लिए क्लिक करें' : 'लेखा-जोखा अधिकार देने के लिए क्लिक करें'}
+          >
+            <span className={`w-2 h-2 rounded-full ${hasAccess ? 'bg-emerald-500' : 'bg-rose-400'}`} />
+            {togglingLekhaId === r.id ? 'अपडेटिंग...' : hasAccess ? 'अनुमत (Allowed)' : 'प्रतिबंधित (Blocked)'}
+          </button>
+        );
+      },
+    },
+    {
       key: 'permissions',
       label: 'डेटा एक्सपोर्ट (Export Access)',
       render: (_, r) => {
@@ -244,8 +296,8 @@ const UsersPage = () => {
 
         if (isMaster) {
           return (
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200" title="Super Admin / Developer को स्थायी पूर्ण अधिकार है">
-              <FiShield className="w-3 h-3 text-emerald-600" /> पूर्ण अधिकार
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-800 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200" title="Super Admin / Developer को स्थायी पूर्ण अधिकार है">
+              <FiShield className="w-3 h-3 text-purple-600" /> पूर्ण अधिकार
             </span>
           );
         }
