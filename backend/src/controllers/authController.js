@@ -191,7 +191,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
   const { data: user, error } = await supabase
     .from('users')
     .select('id, name, phone, email, role, permissions, photo_url, is_active, must_change_password, panchayat_family_id, created_at, last_login')
-    .eq('email', verifiedEmail)
+    .ilike('email', verifiedEmail)
     .maybeSingle();
 
   if (error || !user) {
