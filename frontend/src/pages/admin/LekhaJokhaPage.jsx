@@ -213,7 +213,7 @@ const LekhaJokhaPage = () => {
             <FiFileText className="w-4 h-4" />
           </button>
           <button
-            onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }}
+            onClick={() => openEdit(r)}
             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
             title="संपादित करें"
           >
@@ -241,6 +241,8 @@ const LekhaJokhaPage = () => {
     setEditItem(null);
     setSelectedFamilyHeadId('');
     reset({
+      title: '',
+      amount: '',
       type: 'income',
       entry_type: 'income',
       category: 'aaiji_kosh',
@@ -248,7 +250,35 @@ const LekhaJokhaPage = () => {
       payment_method: 'cash',
       date: new Date().toISOString().split('T')[0],
       entry_date: new Date().toISOString().split('T')[0],
+      personName: '',
       receiptNumber: `KONDA-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      notes: '',
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (row) => {
+    setEditItem(row);
+    const famId = row.family_id || families.find(f => 
+      (row.panchayat_family_id && String(f.panchayat_family_id) === String(row.panchayat_family_id)) ||
+      (row.person_name && f.head_name && row.person_name.includes(f.head_name))
+    )?.id || '';
+    setSelectedFamilyHeadId(famId);
+
+    const rawDate = row.entry_date || row.date || row.created_at || '';
+    const formattedDate = rawDate ? new Date(rawDate).toISOString().split('T')[0] : '';
+
+    reset({
+      ...row,
+      title: row.title || '',
+      amount: row.amount ?? '',
+      type: row.entry_type || row.type || 'income',
+      category: row.category || 'aaiji_kosh',
+      date: formattedDate,
+      personName: row.person_name || row.personName || '',
+      paymentMethod: row.payment_method || row.paymentMethod || 'cash',
+      receiptNumber: row.receipt_or_bill_no || row.receiptNumber || '',
+      notes: row.notes || '',
     });
     setModalOpen(true);
   };

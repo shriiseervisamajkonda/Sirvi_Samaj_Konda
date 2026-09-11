@@ -115,7 +115,7 @@ const StudentsPage = () => {
       label: 'Actions',
       render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => openEdit(r)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
           <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
@@ -128,6 +128,37 @@ const StudentsPage = () => {
     }
   };
 
+  const openCreate = () => {
+    setEditItem(null);
+    reset({
+      member: '',
+      collegeName: '',
+      universityName: '',
+      course: '',
+      currentYear: '',
+      cgpa: '',
+      scholarship: false,
+      achievements: '',
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (row) => {
+    setEditItem(row);
+    reset({
+      ...row,
+      member: row.member_id || row.member?.id || row.member?._id || row.member || '',
+      collegeName: row.college_name || row.collegeName || '',
+      universityName: row.university_name || row.universityName || '',
+      course: row.course || '',
+      currentYear: row.current_year || row.currentYear || '',
+      cgpa: row.cgpa || row.percentage || '',
+      scholarship: Boolean(row.scholarship),
+      achievements: row.achievements || '',
+    });
+    setModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -135,7 +166,7 @@ const StudentsPage = () => {
           <h1 className="text-2xl font-bold text-gray-900 ">Student Directory</h1>
           <p className="text-gray-500 text-sm mt-1">Manage student records and higher education achievements</p>
         </div>
-        <button onClick={() => { setEditItem(null); reset(); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/20 transition cursor-pointer">
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/20 transition cursor-pointer">
           <FiPlus className="w-4 h-4" /> Add Student
         </button>
       </div>

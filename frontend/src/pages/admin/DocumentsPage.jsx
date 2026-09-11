@@ -103,7 +103,7 @@ const DocumentsPage = () => {
       label: 'Actions',
       render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => openEdit(r)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
           <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
@@ -116,6 +116,31 @@ const DocumentsPage = () => {
     }
   };
 
+  const openCreate = () => {
+    setEditItem(null);
+    reset({
+      title: '',
+      category: 'General',
+      status: 'active',
+      fileUrl: '',
+      description: '',
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (row) => {
+    setEditItem(row);
+    reset({
+      ...row,
+      title: row.title || '',
+      category: row.category || 'General',
+      status: row.status || 'active',
+      fileUrl: row.file_url || row.fileUrl || row.url || '',
+      description: row.description || '',
+    });
+    setModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -123,7 +148,7 @@ const DocumentsPage = () => {
           <h1 className="text-2xl font-bold text-gray-900 ">Documents & Files</h1>
           <p className="text-gray-500 text-sm mt-1">Manage downloadable forms and documents</p>
         </div>
-        <button onClick={() => { setEditItem(null); reset({ status: 'active', category: 'General' }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
           <FiPlus className="w-4 h-4" /> Add Document
         </button>
       </div>
