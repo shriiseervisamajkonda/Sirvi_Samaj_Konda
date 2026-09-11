@@ -9,13 +9,13 @@ export const getStudents = asyncHandler(async (req, res) => {
 
   let query = supabase
     .from('family_members')
-    .select('*, families(panchayat_family_id, head_name, gotra, village)', { count: 'exact' })
-    .or('occupation.ilike.%student%,occupation.ilike.%विद्यार्थी%,occupation.ilike.%study%,occupation.ilike.%अध्ययन%')
+    .select('*, families(id, panchayat_family_id, head_name, gotra, village)', { count: 'exact' })
+    .or('occupation.ilike.%student%,occupation.ilike.%विद्यार्थी%,occupation.ilike.%study%,occupation.ilike.%अध्ययन%,occupation.ilike.%School%,occupation.ilike.%College%,education.not.is.null')
     .order('created_at', { ascending: false });
 
   if (req.query.search) {
     const s = req.query.search;
-    query = query.or(`first_name.ilike.%${s}%,last_name.ilike.%${s}%,full_name.ilike.%${s}%,education.ilike.%${s}%`);
+    query = query.or(`first_name.ilike.%${s}%,last_name.ilike.%${s}%,full_name.ilike.%${s}%,education.ilike.%${s}%,occupation.ilike.%${s}%`);
   }
 
   if (req.query.sortBy) {
@@ -27,35 +27,59 @@ export const getStudents = asyncHandler(async (req, res) => {
 
   query = query.range(offset, offset + limit - 1);
 
-  const { data, count, error } = await query;
+  let { data, count, error } = await query;
+
+  // Fallback: if no records with specific occupation filter, query general members with education
+  if (!error && (!data || data.length === 0) && !req.query.search) {
+    const fallbackQuery = await supabase
+      .from('family_members')
+      .select('*, families(id, panchayat_family_id, head_name, gotra, village)', { count: 'exact' })
+      .not('education', 'is', null)
+      .neq('education', '')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (fallbackQuery.data && fallbackQuery.data.length > 0) {
+      data = fallbackQuery.data;
+      count = fallbackQuery.count;
+    }
+  }
 
   if (error) {
     return res.status(400).json({ success: false, message: error.message });
   }
 
-  const formatted = (data || []).map((m) => ({
-    id: m.id,
-    _id: m.id,
-    member: {
+  const formatted = (data || []).map((m) => {
+    const gotra = m.last_name || m.families?.gotra || '';
+    const isHigherEdu = m.education?.includes('B.') || m.education?.includes('M.') || m.education?.includes('Tech') || m.education?.includes('MBBS') || m.education?.includes('Degree') || m.education?.includes('College');
+    return {
       id: m.id,
       _id: m.id,
-      firstName: m.first_name,
-      lastName: m.last_name,
-      fullName: m.full_name,
+      member: {
+        id: m.id,
+        _id: m.id,
+        firstName: m.first_name,
+        lastName: m.last_name,
+        fullName: m.full_name,
+        photo: m.photo_url,
+      },
+      studentName: m.full_name || `${m.first_name} ${m.last_name || ''}`.trim(),
+      course: m.education || 'अध्ययनरत विद्यार्थी',
+      collegeName: isHigherEdu ? 'उच्च शिक्षा / कॉलेज' : 'विद्यालयीन शिक्षा (School)',
+      currentYear: m.education || 'नियमित',
+      status: m.life_status === 'deceased' ? 'inactive' : 'active',
+      village: m.families?.village || 'कोणदा',
+      gotra: gotra,
+      panchayat_family_id: m.families?.panchayat_family_id || '',
+      head_name: m.families?.head_name || '',
+      mobile_number: m.mobile_number || '',
+      gender: m.gender || 'male',
       photo: m.photo_url,
-    },
-    studentName: m.full_name || `${m.first_name} ${m.last_name || ''}`.trim(),
-    course: m.education || 'विद्यार्थी',
-    collegeName: m.education?.includes('B.') || m.education?.includes('M.') ? 'Higher Education' : 'School',
-    currentYear: m.education || '1st',
-    status: m.life_status === 'deceased' ? 'inactive' : 'active',
-    village: m.families?.village || 'Konda',
-    gotra: m.families?.gotra || '',
-    photo: m.photo_url,
-    createdAt: m.created_at,
-  }));
+      createdAt: m.created_at,
+    };
+  });
 
-  const total = count || 0;
+  const total = count || formatted.length || 0;
   const totalPages = Math.ceil(total / limit) || 1;
 
   res.json({
