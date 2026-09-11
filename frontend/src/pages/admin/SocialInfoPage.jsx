@@ -124,7 +124,7 @@ const SocialInfoPage = () => {
       label: 'Actions',
       render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => openEdit(r)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
           <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
@@ -137,6 +137,33 @@ const SocialInfoPage = () => {
     }
   };
 
+  const openCreate = () => {
+    setEditItem(null);
+    reset({
+      title: '',
+      category: 'general',
+      order: 1,
+      isActive: true,
+      content: '',
+      attachments: [],
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (row) => {
+    setEditItem(row);
+    reset({
+      ...row,
+      title: row.title || '',
+      category: row.category || 'general',
+      order: row.order_priority ?? row.display_order ?? row.order ?? 1,
+      isActive: row.is_active !== undefined ? Boolean(row.is_active) : (row.isActive !== false),
+      content: row.content || '',
+      attachments: row.attachments || [],
+    });
+    setModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -144,7 +171,7 @@ const SocialInfoPage = () => {
           <h1 className="text-2xl font-bold text-gray-900 ">सामाजिक जानकारी प्रबंधन (Social Info Management)</h1>
           <p className="text-gray-500 text-sm mt-1">Manage rules, history, customs, and reform resolutions for the public website</p>
         </div>
-        <button onClick={() => { setEditItem(null); reset({ isActive: true, category: 'general', order: 1, attachments: [] }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 shadow-md shadow-purple-600/30">
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 shadow-md shadow-purple-600/30">
           <FiPlus className="w-4 h-4" /> Add Social Info Entry
         </button>
       </div>

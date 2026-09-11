@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FiDollarSign, FiPlus, FiSearch, FiCheckCircle, FiFileText, FiPrinter, FiDownload, FiUser, FiCalendar, FiCreditCard, FiTrash2 } from 'react-icons/fi';
+import { FiDollarSign, FiPlus, FiSearch, FiCheckCircle, FiFileText, FiPrinter, FiDownload, FiUser, FiCalendar, FiCreditCard, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import { useForm } from 'react-hook-form';
 import { donationAPI, familyAPI } from '../../services/api';
 import DataTable from '../../components/common/DataTable';
@@ -42,6 +42,7 @@ const AdminDonationsPage = () => {
   const [search, setSearch] = useState('');
   const [selectedPurpose, setSelectedPurpose] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
+  const [editItem, setEditItem] = useState(null);
   const [saving, setSaving] = useState(false);
   const [receiptDonation, setReceiptDonation] = useState(null);
   const [selectedFamilyHeadId, setSelectedFamilyHeadId] = useState('');
@@ -119,6 +120,7 @@ const AdminDonationsPage = () => {
   }, [fetchData]);
 
   const handleOpenCreate = () => {
+    setEditItem(null);
     setSelectedFamilyHeadId('');
     reset({
       family_id: '',
@@ -133,6 +135,32 @@ const AdminDonationsPage = () => {
       payment_status: 'confirmed',
       receipt_number: `KONDA-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
       notes: '',
+    });
+    setModalOpen(true);
+  };
+
+  const handleOpenEdit = (row) => {
+    setEditItem(row);
+    const famId = row.family_id || families.find(f => 
+      (row.panchayat_family_id && String(f.panchayat_family_id) === String(row.panchayat_family_id)) ||
+      (row.donor_name && f.head_name && row.donor_name.includes(f.head_name))
+    )?.id || '';
+    setSelectedFamilyHeadId(famId);
+
+    reset({
+      ...row,
+      family_id: row.family_id || famId || '',
+      donor_name: row.donor_name || '',
+      panchayat_family_id: row.panchayat_family_id || '',
+      gotra: row.gotra || '',
+      mobile_number: row.mobile_number || '',
+      amount: row.amount ?? '',
+      financial_year: row.financial_year || new Date().getFullYear(),
+      purpose: row.purpose || 'annual_chanda',
+      payment_mode: row.payment_mode || 'cash',
+      payment_status: row.payment_status || 'confirmed',
+      receipt_number: row.receipt_number || '',
+      notes: row.notes || '',
     });
     setModalOpen(true);
   };
@@ -157,14 +185,18 @@ const AdminDonationsPage = () => {
         created_by_name: user?.name || 'चिराग भायल',
       };
 
-      const res = await donationAPI.create(payload);
-      toast.success('दान प्रविष्टि सफलतापूर्वक दर्ज की गई!');
+      if (editItem && editItem.id) {
+        await donationAPI.update(editItem.id, payload);
+        toast.success('दान प्रविष्टि सफलतापूर्वक अपडेट की गई!');
+      } else {
+        const res = await donationAPI.create(payload);
+        toast.success('दान प्रविष्टि सफलतापूर्वक दर्ज की गई!');
+        // Automatically open payment receipt invoice modal for new donations
+        const createdRecord = res.data?.data || payload;
+        setReceiptDonation(createdRecord);
+      }
       setModalOpen(false);
       fetchData();
-
-      // Automatically open payment receipt invoice modal
-      const createdRecord = res.data?.data || payload;
-      setReceiptDonation(createdRecord);
     } catch (err) {
       toast.error(err.response?.data?.message || 'प्रविष्टि दर्ज करने में विफलता');
     } finally {
@@ -264,6 +296,14 @@ const AdminDonationsPage = () => {
             <span>रसीद</span>
           </button>
           <button
+            onClick={() => handleOpenEdit(r)}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
+            title="दान प्रविष्टि संपादित करें (Edit)"
+          >
+            <FiEdit2 className="w-3.5 h-3.5" />
+            <span>संपादित करें</span>
+          </button>
+          <button
             onClick={() => setDeleteTarget(r)}
             className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
             title="दान प्रविष्टि हटाएं (Delete)"
@@ -357,11 +397,11 @@ const AdminDonationsPage = () => {
         emptyText="कोई दान रिकॉर्ड उपलब्ध नहीं है।"
       />
 
-      {/* Add Donation Modal */}
+      {/* Add / Edit Donation Modal */}
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title="नई भुगतान रसीद दर्ज करें (Record Payment / Invoice)"
+        title={editItem ? 'भुगतान रसीद संपादित करें (Edit Payment / Invoice)' : 'नई भुगतान रसीद दर्ज करें (Record Payment / Invoice)'}
         size="lg"
       >
         <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
@@ -408,54 +448,44 @@ const AdminDonationsPage = () => {
                 <input
                   id="gotra"
                   {...register('gotra')}
-                  placeholder="उदा. भायल, पंवार, चौहान"
-                  autoComplete="off"
-                  className="input-field font-medium"
+                  placeholder="उदा. चौहान, भायल, पंवार"
+                  autoComplete="family-name"
+                  className="input-field font-semibold"
                 />
               </FormField>
 
-              <FormField label="मोबाइल नंबर (Mobile)" htmlFor="mobile_number">
+              <FormField label="मोबाइल नंबर (Mobile Number)" htmlFor="mobile_number">
                 <input
                   id="mobile_number"
                   {...register('mobile_number')}
-                  placeholder="10 अंकों का नंबर"
-                  maxLength={10}
+                  placeholder="उदा. 9876543210"
                   autoComplete="tel"
                   inputMode="tel"
+                  maxLength={10}
                   className="input-field font-mono"
                 />
               </FormField>
             </div>
           </FormSection>
 
-          <FormSection title="2. राशि एवं मद विवरण (Amount & Purpose)" icon={FiCreditCard}>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <FormField label="दान / चंदा राशि (Amount in ₹)" htmlFor="amount" required>
-                <input
-                  id="amount"
-                  type="number"
-                  {...register('amount', { required: true, min: 1 })}
-                  placeholder="उदा. 1100"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  className="input-field font-mono text-lg font-black text-[#C85A17]"
-                />
+          <FormSection title="2. भुगतान व रसीद विवरण (Payment & Receipt Details)" icon={FiCreditCard}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="दान / चंदा राशि (Amount in ₹) *" htmlFor="amount" required>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-[#C85A17]">₹</span>
+                  <input
+                    id="amount"
+                    type="number"
+                    {...register('amount', { required: true, min: 1 })}
+                    placeholder="उदा. 2100"
+                    autoComplete="off"
+                    className="input-field pl-8 font-mono font-black text-lg text-[#C85A17]"
+                  />
+                </div>
               </FormField>
 
-              <FormField label="वित्तीय वर्ष (Financial Year)" htmlFor="financial_year">
-                <input
-                  id="financial_year"
-                  type="number"
-                  {...register('financial_year')}
-                  defaultValue={new Date().getFullYear()}
-                  inputMode="numeric"
-                  autoComplete="off"
-                  className="input-field font-mono"
-                />
-              </FormField>
-
-              <FormField label="मद / कोष (Purpose)" htmlFor="purpose">
-                <select id="purpose" {...register('purpose')} className="input-field font-medium">
+              <FormField label="मद / उद्देश्य (Donation Purpose) *" htmlFor="purpose" required>
+                <select id="purpose" {...register('purpose', { required: true })} className="input-field font-bold text-[#7A2525]">
                   {Object.entries(purposeMap).map(([k, v]) => (
                     <option key={k} value={k}>{v}</option>
                   ))}
@@ -502,7 +532,7 @@ const AdminDonationsPage = () => {
 
           <FormActions
             onCancel={() => setModalOpen(false)}
-            submitText="प्रविष्टि सहेजें एवं रसीद बनाएं (Save & Generate Invoice)"
+            submitText={editItem ? 'परिवर्तन सहेजें (Save Changes)' : 'प्रविष्टि सहेजें एवं रसीद बनाएं (Save & Generate Invoice)'}
             loading={saving}
           />
         </form>

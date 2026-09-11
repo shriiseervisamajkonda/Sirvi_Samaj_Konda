@@ -129,7 +129,7 @@ const MarriagePage = () => {
                 <button onClick={() => handleStatusChange(rowId, 'rejected')} title="Reject" className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiX className="w-4 h-4" /></button>
               </>
             )}
-            <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+            <button onClick={() => openEdit(r)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
             <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
           </div>
         );
@@ -143,6 +143,50 @@ const MarriagePage = () => {
     }
   };
 
+  const openCreate = () => {
+    setEditItem(null);
+    reset({
+      member: '',
+      name: '',
+      gender: 'Male',
+      dob: '',
+      education: '',
+      occupation: '',
+      annualIncome: '',
+      height: '',
+      about: '',
+      contactPerson: '',
+      contactPhone: '',
+      status: 'approved',
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (row) => {
+    setEditItem(row);
+    const rawDob = row.dob || row.date_of_birth || row.dateOfBirth || '';
+    const formattedDob = rawDob ? new Date(rawDob).toISOString().split('T')[0] : '';
+    const rawGender = (row.gender || '').toLowerCase();
+    const cleanGender = rawGender === 'female' || rawGender === 'f' ? 'Female' : 'Male';
+
+    reset({
+      ...row,
+      member: row.member_id || row.member?.id || row.member?._id || row.member || '',
+      name: row.name || row.full_name || (row.member?.firstName ? `${row.member.firstName} ${row.member.lastName || ''}`.trim() : ''),
+      gender: cleanGender,
+      dob: formattedDob,
+      education: row.education || '',
+      occupation: row.occupation || '',
+      annualIncome: row.annual_income || row.annualIncome || '',
+      height: row.height || '',
+      about: row.about || row.bio || '',
+      contactPerson: row.contact_person || row.contactPerson || '',
+      contactPhone: row.contact_phone || row.contactPhone || row.phone || '',
+      status: row.status || 'approved',
+    });
+    setModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -150,7 +194,7 @@ const MarriagePage = () => {
           <h1 className="text-2xl font-bold text-gray-900 ">Marriage Biodata Management</h1>
           <p className="text-gray-500 text-sm mt-1">Review and manage matrimonial profiles</p>
         </div>
-        <button onClick={() => { setEditItem(null); reset({ status: 'approved' }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl font-medium hover:bg-pink-600 shadow-md shadow-pink-500/30">
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-pink-500 text-white rounded-xl font-medium hover:bg-pink-600 shadow-md shadow-pink-500/30">
           <FiPlus className="w-4 h-4" /> Add Profile
         </button>
       </div>

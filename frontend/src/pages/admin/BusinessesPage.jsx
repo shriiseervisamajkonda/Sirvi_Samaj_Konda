@@ -105,7 +105,7 @@ const BusinessesPage = () => {
       label: 'Actions',
       render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => openEdit(r)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
           <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
@@ -118,6 +118,39 @@ const BusinessesPage = () => {
     }
   };
 
+  const openCreate = () => {
+    setEditItem(null);
+    reset({
+      businessName: '',
+      category: 'Retail',
+      ownerName: '',
+      phone: '',
+      email: '',
+      website: '',
+      address: '',
+      description: '',
+      status: 'active',
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (row) => {
+    setEditItem(row);
+    reset({
+      ...row,
+      businessName: row.business_name || row.businessName || row.name || '',
+      ownerName: row.owner_name || row.ownerName || '',
+      phone: row.mobile_number || row.phone || '',
+      email: row.email || '',
+      website: row.website || '',
+      address: row.address || '',
+      category: row.category || 'Retail',
+      description: row.description || '',
+      status: row.status || 'active',
+    });
+    setModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -125,7 +158,7 @@ const BusinessesPage = () => {
           <h1 className="text-2xl font-bold text-gray-900 ">Business Directory</h1>
           <p className="text-gray-500 text-sm mt-1">Manage community businesses</p>
         </div>
-        <button onClick={() => { setEditItem(null); reset({ status: 'active', category: 'Retail' }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
           <FiPlus className="w-4 h-4" /> Add Business
         </button>
       </div>
