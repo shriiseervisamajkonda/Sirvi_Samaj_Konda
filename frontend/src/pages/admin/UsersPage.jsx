@@ -30,6 +30,7 @@ const UsersPage = () => {
   const [resetUser, setResetUser] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [togglingExportId, setTogglingExportId] = useState(null);
   const { isSuperAdmin } = useAuth();
