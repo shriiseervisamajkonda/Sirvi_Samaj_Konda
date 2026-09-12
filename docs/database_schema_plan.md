@@ -277,7 +277,7 @@ CREATE TABLE IF NOT EXISTS public.news (
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     excerpt TEXT,
-    category VARCHAR(50) DEFAULT 'news' CHECK (category IN ('news', 'announcement', 'notice', 'obituary', 'social')),
+    category VARCHAR(50) DEFAULT 'news' CHECK (category IN ('news', 'announcement', 'notice', 'emergency', 'update', 'obituary', 'social', 'general')),
     image_url TEXT,
     is_featured BOOLEAN DEFAULT FALSE,
     published_at TIMESTAMPTZ DEFAULT NOW(),
