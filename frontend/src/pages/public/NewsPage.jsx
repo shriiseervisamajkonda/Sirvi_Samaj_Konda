@@ -17,6 +17,9 @@ const categoryLabels = {
   notice: 'सूचना (Notice)',
   emergency: 'महत्वपूर्ण (Alert)',
   update: 'अपडेट (Update)',
+  obituary: 'शोक संदेश (Obituary)',
+  social: 'सामाजिक (Social)',
+  general: 'सामान्य (General)',
 };
 
 const categoryBadgeVariants = {
@@ -25,6 +28,9 @@ const categoryBadgeVariants = {
   notice: 'warning',
   emergency: 'danger',
   update: 'info',
+  obituary: 'neutral',
+  social: 'secondary',
+  general: 'default',
 };
 
 const getNewsImage = (item) => {
