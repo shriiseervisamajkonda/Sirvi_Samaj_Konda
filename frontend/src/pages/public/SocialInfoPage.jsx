@@ -101,7 +101,7 @@ const SocialInfoPage = () => {
           <div className="grid md:grid-cols-2 gap-6">
             {items.map((item, i) => (
               <motion.div
-                key={item._id}
+                key={item.id || item._id || i}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}

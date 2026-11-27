@@ -3,28 +3,88 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiPhone, FiUsers, FiArrowRight, FiAward } from 'react-icons/fi';
 import { committeeAPI } from '../../services/api';
+import { supabase } from '../../config/supabase';
 import { SkeletonCardGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
+// TODO: This is mock/fallback data. Remove when actual data is filled in the database.
+import fallbackData from '../../data/mock/committeeDefaultFallback.json';
 
 const CommitteePage = () => {
   const [committee, setCommittee] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('committee'); // 'committee', 'sangathan', 'sankal_panch'
+  const [activeTab, setActiveTab] = useState('all');
+
+  const fetchCommittees = () => {
+    committeeAPI.getAll({ limit: 100 })
+      .then(res => {
+        const liveData = res.data.data;
+        if (Array.isArray(liveData) && liveData.length > 0) {
+          setCommittee(liveData);
+        } else {
+          // Build fallback list from default mock items
+          const fallbacks = [
+            ...(fallbackData.defaultSakalPanch || []),
+            ...(fallbackData.defaultWomenMembers || []),
+            ...(fallbackData.defaultAnnapurnaBhavan?.map((m, i) => ({
+              id: `ab-${i}`,
+              name: m.name,
+              designation: m.designation,
+              phone: m.phone,
+              committee_type: 'bhavan_samiti',
+              is_active: true,
+            })) || []),
+          ];
+          setCommittee(fallbacks);
+        }
+      })
+      .catch((err) => {
+        console.warn('Error fetching committees, using fallback:', err);
+        const fallbacks = [
+          ...(fallbackData.defaultSakalPanch || []),
+          ...(fallbackData.defaultWomenMembers || []),
+        ];
+        setCommittee(fallbacks);
+      })
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    committeeAPI.getAll({ limit: 100 })
-      .then(res => setCommittee(res.data.data || []))
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    fetchCommittees();
+
+    let debounceTimer = null;
+    const handleRealtimeChange = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchCommittees();
+      }, 300);
+    };
+
+    // Supabase Realtime subscription for live updates
+    const channel = supabase
+      .channel('public_committees_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, handleRealtimeChange)
+      .subscribe();
+
+    return () => {
+      clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const tabs = [
-    { id: 'committee', label: 'कार्यकारिणी समिति' },
-    { id: 'sangathan', label: 'संगठन' },
-    { id: 'sankal_panch', label: 'संकल पंच' },
+    { id: 'all', label: 'सभी (All)' },
+    { id: 'sankal_panch', label: 'सकल पंच' },
+    { id: 'executive_body', label: 'कार्यकारिणी समिति' },
+    { id: 'women_committee', label: 'महिला समिती' },
+    { id: 'konda_gram_unit', label: 'ग्राम इकाई' },
+    { id: 'yuva_sangathan', label: 'युवा संगठन' },
+    { id: 'sahayata_kosh', label: 'सहायता कोष' },
+    { id: 'bhavan_samiti', label: 'भवन समिति' },
   ];
 
-  const filteredMembers = committee.filter(m => m.type === activeTab || (!m.type && activeTab === 'committee'));
+  const filteredMembers = activeTab === 'all'
+    ? committee
+    : committee.filter(m => m.committee_type === activeTab);
 
   const designationOrder = ['President', 'Vice President', 'Secretary', 'Joint Secretary', 'Treasurer', 'अध्यक्ष', 'उपाध्यक्ष', 'सचिव', 'सह सचिव', 'कोषाध्यक्ष'];
   const main = filteredMembers.filter(m => designationOrder.some(d => m.designation?.includes(d)));
@@ -111,7 +171,7 @@ const CommitteePage = () => {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                   {main.map((m, i) => (
                     <motion.div
-                      key={m._id}
+                      key={m.id || m._id || i}
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
@@ -119,8 +179,8 @@ const CommitteePage = () => {
                       className="bg-white rounded-3xl p-6 text-center border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 shadow-md"
                     >
                       <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-1 mx-auto mb-4 overflow-hidden shadow-md">
-                        {m.photo ? (
-                          <img src={m.photo} alt={m.name} className="w-full h-full object-cover rounded-xl" />
+                        {(m.photo || m.photo_url) ? (
+                          <img src={m.photo || m.photo_url} alt={m.name} className="w-full h-full object-cover rounded-xl" />
                         ) : (
                           <div className="w-full h-full bg-[#FFF8EC] rounded-xl flex items-center justify-center text-[#7A2525] text-2xl font-black">
                             {m.name?.charAt(0)}
@@ -152,7 +212,7 @@ const CommitteePage = () => {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {others.map((m, i) => (
                     <motion.div
-                      key={m._id}
+                      key={m.id || m._id || i}
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
@@ -160,8 +220,8 @@ const CommitteePage = () => {
                       className="flex items-center gap-4 p-4 bg-white rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/60 hover:shadow-lg transition-all duration-300 shadow-md"
                     >
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] p-0.5 shrink-0 overflow-hidden shadow-sm">
-                        {m.photo ? (
-                          <img src={m.photo} alt={m.name} className="w-full h-full object-cover rounded-xl" />
+                        {(m.photo || m.photo_url) ? (
+                          <img src={m.photo || m.photo_url} alt={m.name} className="w-full h-full object-cover rounded-xl" />
                         ) : (
                           <div className="w-full h-full bg-[#FFF8EC] rounded-xl flex items-center justify-center text-[#7A2525] font-bold">
                             {m.name?.charAt(0)}

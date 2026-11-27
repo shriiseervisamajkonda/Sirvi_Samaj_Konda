@@ -277,7 +277,7 @@ CREATE TABLE IF NOT EXISTS public.news (
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
     excerpt TEXT,
-    category VARCHAR(50) DEFAULT 'news' CHECK (category IN ('news', 'announcement', 'notice', 'obituary', 'social')),
+    category VARCHAR(50) DEFAULT 'news' CHECK (category IN ('news', 'announcement', 'notice', 'emergency', 'update', 'obituary', 'social', 'general')),
     image_url TEXT,
     is_featured BOOLEAN DEFAULT FALSE,
     published_at TIMESTAMPTZ DEFAULT NOW(),
@@ -452,7 +452,94 @@ CREATE TABLE IF NOT EXISTS public.activity_logs (
 CREATE INDEX idx_activity_logs_date ON public.activity_logs(created_at DESC);
 
 -- ============================================================================
--- 17. ROW LEVEL SECURITY (RLS) POLICIES
+-- 17. GRAM UNITS & MEMBERS TABLE (ग्राम इकाइयाँ एवं सदस्य)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.gram_units (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    village VARCHAR(100) DEFAULT 'Konda',
+    tehsil VARCHAR(100) DEFAULT 'Kukshi',
+    district VARCHAR(100) DEFAULT 'Dhar',
+    state VARCHAR(100) DEFAULT 'Madhya Pradesh',
+    total_households INTEGER DEFAULT 213,
+    total_population INTEGER DEFAULT 1184,
+    established_year VARCHAR(20),
+    description TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.gram_unit_members (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    gram_unit_id UUID REFERENCES public.gram_units(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    designation VARCHAR(150) NOT NULL,
+    category VARCHAR(50) DEFAULT 'member' CHECK (category IN ('office_bearer', 'member', 'representative', 'advisor')),
+    phone VARCHAR(20),
+    village VARCHAR(100) DEFAULT 'Konda',
+    order_priority INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- 18. SOCIAL GUIDELINES & REFORMS TABLE (सामाजिक नियमावली एवं सुधार)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.social_info (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL CHECK (category IN ('rules', 'customs', 'reforms', 'history', 'general')),
+    content TEXT NOT NULL,
+    order_priority INTEGER DEFAULT 0,
+    is_published BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- 19. CONTACT INQUIRIES TABLE (संपर्क संदेश एवं पूछताछ)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.contacts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    subject VARCHAR(255) DEFAULT 'General Inquiry',
+    message TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'new' CHECK (status IN ('new', 'read', 'replied', 'archived')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================================
+-- 20. DONATIONS & ANNUAL CHANDA (दान एवं वार्षिक चंदा)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.donations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    family_id UUID REFERENCES public.families(id) ON DELETE SET NULL,
+    panchayat_family_id VARCHAR(50),
+    donor_name VARCHAR(255) NOT NULL,
+    gotra VARCHAR(100),
+    mobile_number VARCHAR(20),
+    financial_year INTEGER NOT NULL DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
+    amount NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
+    purpose VARCHAR(100) NOT NULL DEFAULT 'annual_chanda',
+    payment_mode VARCHAR(50) NOT NULL DEFAULT 'cash',
+    payment_status VARCHAR(50) NOT NULL DEFAULT 'confirmed',
+    receipt_number VARCHAR(100) UNIQUE NOT NULL,
+    collected_by_name VARCHAR(255),
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_donations_family ON public.donations(family_id);
+CREATE INDEX IF NOT EXISTS idx_donations_receipt ON public.donations(receipt_number);
+CREATE INDEX IF NOT EXISTS idx_donations_year ON public.donations(financial_year);
+
+-- ============================================================================
+-- 21. ROW LEVEL SECURITY (RLS) POLICIES
 -- ============================================================================
 
 ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
@@ -472,6 +559,10 @@ ALTER TABLE public.panch_settlements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.blood_donors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.marriage_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.activity_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gram_units ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gram_unit_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.social_info ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contacts ENABLE ROW LEVEL SECURITY;
 
 -- PUBLIC READ ACCESS (Curated active public records)
 CREATE POLICY "Public Read Village Info" ON public.village_information FOR SELECT USING (true);
@@ -487,5 +578,9 @@ CREATE POLICY "Public Read Available Blood Donors" ON public.blood_donors FOR SE
 CREATE POLICY "Public Read Active Marriage Profiles" ON public.marriage_profiles FOR SELECT USING (status = 'active');
 CREATE POLICY "Public Read Lekha Jokha" ON public.lekha_jokha FOR SELECT USING (true);
 CREATE POLICY "Public Read Panch Settlements" ON public.panch_settlements FOR SELECT USING (status = 'resolved');
+CREATE POLICY "Public Read Gram Units" ON public.gram_units FOR SELECT USING (true);
+CREATE POLICY "Public Read Gram Unit Members" ON public.gram_unit_members FOR SELECT USING (is_active = true);
+CREATE POLICY "Public Read Social Info" ON public.social_info FOR SELECT USING (is_published = true);
+CREATE POLICY "Public Read Verified Receipts" ON public.donations FOR SELECT USING (payment_status = 'confirmed');
+CREATE POLICY "Allow Public Insert Contacts" ON public.contacts FOR INSERT WITH CHECK (true);
 
--- SERVICE ROLE (Full bypass for backend Express API with service key)

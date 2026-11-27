@@ -1,5 +1,6 @@
-// In-memory cache store
+// In-memory cache store with max capacity protection
 const memoryCache = new Map();
+const MAX_CACHE_ENTRIES = 500;
 
 export const memoryCacheMiddleware = (ttlSeconds = 60) => (req, res, next) => {
   // Only cache GET requests
@@ -20,6 +21,11 @@ export const memoryCacheMiddleware = (ttlSeconds = 60) => (req, res, next) => {
   const originalJson = res.json.bind(res);
   res.json = (body) => {
     if (res.statusCode >= 200 && res.statusCode < 300) {
+      if (memoryCache.size >= MAX_CACHE_ENTRIES) {
+        // Evict oldest entry
+        const firstKey = memoryCache.keys().next().value;
+        if (firstKey) memoryCache.delete(firstKey);
+      }
       memoryCache.set(key, {
         data: body,
         status: res.statusCode,
@@ -34,6 +40,14 @@ export const memoryCacheMiddleware = (ttlSeconds = 60) => (req, res, next) => {
   next();
 };
 
+export const clearCacheByPattern = (pattern) => {
+  for (const key of memoryCache.keys()) {
+    if (key.includes(pattern)) {
+      memoryCache.delete(key);
+    }
+  }
+};
+
 export const clearMemoryCache = () => {
   memoryCache.clear();
 };
@@ -44,4 +58,5 @@ export const setCacheHeaders = (maxAge = 60, sMaxAge = 300) => (req, res, next) 
   }
   next();
 };
+
 

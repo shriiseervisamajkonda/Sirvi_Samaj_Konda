@@ -1,0 +1,72 @@
+{
+  "officialFallbackData": {
+    "organization": {
+      "name": "अखिल भारतीय सिर्वी महासभा मध्यप्रदेश",
+      "level": "state",
+      "state": "मध्यप्रदेश",
+      "country": "भारत"
+    },
+    "unit": {
+      "unitName": "कोणदा ग्राम इकाई",
+      "unitType": "ग्राम इकाई",
+      "village": "कोणदा",
+      "tehsil": "कुक्षी",
+      "district": "धार",
+      "state": "मध्यप्रदेश",
+      "country": "भारत",
+      "formationContext": "नवीन मनोनयन प्रक्रिया",
+      "supervisor": "हिरालालजी हम्मड कापसी",
+      "selectionMethod": "सर्वसम्मति से",
+      "participants": ["सिर्वी समाज सकल पंच", "समाज के नवयुवक", "समाज के वरिष्ठजन"],
+      "description": "अखिल भारतीय सिर्वी महासभा मध्यप्रदेश के नवीन मनोनयन की प्रक्रिया के तहत कुक्षी तहसील के ग्राम कोणदा में ग्राम इकाई का गठन नियुक्त पर्यवेक्षक हिरालालजी हम्मड कापसी एवं स्थानीय पंचों की उपस्थिति में किया गया। इस अवसर पर पदाधिकारियों एवं प्रतिनिधियों का सर्वसम्मति से चयन किया गया। कार्यक्रम में सिर्वी समाज सकल पंच सहित समाज के नवयुवक एवं वरिष्ठजन उपस्थित रहे।"
+    },
+    "officeBearers": [
+      { "name": "सुनिल/पन्नालाल जी भायल", "designation": "अध्यक्ष", "category": "office_bearer", "order": 1 },
+      { "name": "अजय/गोपाल जी शिनदडा", "designation": "महासचिव", "category": "office_bearer", "order": 2 },
+      { "name": "कन्हैयालाल/रत्न जी चोहान", "designation": "उपाध्यक्ष", "category": "office_bearer", "order": 3 },
+      { "name": "दिनेश/गोविंद जी लछेटा", "designation": "सचिव", "category": "office_bearer", "order": 4 },
+      { "name": "कैलाश/रत्नजी अगल्चा", "designation": "कोषाध्यक्ष", "category": "office_bearer", "order": 5 }
+    ],
+    "members": [
+      { "name": "जिवन /गोपाल जी सोलंकी", "designation": "सदस्य", "category": "member", "order": 1 },
+      { "name": "दिलीप/मोतीलाल जी चोयल", "designation": "सदस्य", "category": "member", "order": 2 },
+      { "name": "कमल/लक्ष्मण जी पड़ियार", "designation": "सदस्य", "category": "member", "order": 3 },
+      { "name": "सुनिल/शंकर जी गेहलोत", "designation": "सदस्य", "category": "member", "order": 4 },
+      { "name": "सुनील/मुन्नालाल पवार", "designation": "सदस्य", "category": "member", "order": 5 },
+      { "name": "रवि/पारस जी लछेटा", "designation": "सदस्य", "category": "member", "order": 6 }
+    ],
+    "representatives": {
+      "tehsil": [
+        { "name": "शान्तिलाल/काशिराम जी पवार", "designation": "तहसील प्रतिनिधि", "representativeLevel": "tehsil", "order": 1 },
+        { "name": "मुकेश/हिराजी पड़ियार", "designation": "तहसील प्रतिनिधि", "representativeLevel": "tehsil", "order": 2 },
+        { "name": "अनिल/हामाजी भायल", "designation": "तहसील प्रतिनिधि", "representativeLevel": "tehsil", "order": 3 },
+        { "name": "महेन्द्र/मोहनजी काग", "designation": "तहसील प्रतिनिधि", "representativeLevel": "tehsil", "order": 4 },
+        { "name": "कैलाश/मंगताजी राठौर", "designation": "तहसील प्रतिनिधि", "representativeLevel": "tehsil", "order": 5 }
+      ],
+      "district": [
+        { "name": "जगदीश /देवाजी भायल", "designation": "जिला प्रतिनिधि", "representativeLevel": "district", "order": 1 },
+        { "name": "दिलीप/हामाजी चोयल", "designation": "जिला प्रतिनिधि", "representativeLevel": "district", "order": 2 },
+        { "name": "खेमाजी/दुदाजी गेहलोत", "designation": "जिला प्रतिनिधि", "representativeLevel": "district", "order": 3 }
+      ],
+      "state": [
+        { "name": "जितेन्द्र/देवाजी शिनदडा", "designation": "प्रदेश प्रतिनिधि", "representativeLevel": "state", "order": 1 }
+      ]
+    },
+    "formationEvent": {
+      "title": "कोणदा ग्राम इकाई गठन",
+      "eventType": "ग्राम इकाई गठन / नवीन मनोनयन",
+      "location": "ग्राम कोणदा, तहसील कुक्षी, मध्यप्रदेश",
+      "supervisor": "हिरालालजी हम्मड कापसी",
+      "selectionMethod": "सर्वसम्मति से",
+      "participants": ["सिर्वी समाज सकल पंच", "समाज के नवयुवक", "समाज के वरिष्ठजन"],
+      "description": "अखिल भारतीय सिर्वी महासभा मध्यप्रदेश के नवीन मनोनयन की प्रक्रिया के तहत कुक्षी तहसील के ग्राम कोणदा में ग्राम इकाई का गठन नियुक्त पर्यवेक्षक हिरालालजी हम्मड कापसी एवं स्थानीय पंचों की उपस्थिति में किया गया। इस अवसर पर पदाधिकारियों एवं प्रतिनिधियों का सर्वसम्मति से चयन किया गया। कार्यक्रम में सिर्वी समाज सकल पंच सहित समाज के नवयुवक एवं वरिष्ठजन उपस्थित रहे।"
+    }
+  },
+  "defaultSakalPanch": [
+    { "name": "श्री शंकर जी वालाजी पवार", "designation": "सकल पंच / वरिष्ठ मार्गदर्शक", "village": "कोणदा", "tehsil": "कुक्षी", "district": "धार" },
+    { "name": "श्री खेमाजी दुदाजी गेहलोत", "designation": "सकल पंच / वरिष्ठ मार्गदर्शक", "village": "कोणदा", "tehsil": "कुक्षी", "district": "धार" },
+    { "name": "श्री कन्हैयालाल लालाजी भायल", "designation": "सकल पंच / वरिष्ठ मार्गदर्शक", "village": "कोणदा", "tehsil": "कुक्षी", "district": "धार" },
+    { "name": "श्री लक्ष्मण वालाजी काग", "designation": "सकल पंच / वरिष्ठ मार्गदर्शक", "village": "कोणदा", "tehsil": "कुक्षी", "district": "धार" },
+    { "name": "श्री सुनिल पन्नालाल जी भायल", "designation": "सकल पंच / वरिष्ठ मार्गदर्शक", "village": "कोणदा", "tehsil": "कुक्षी", "district": "धार" }
+  ]
+}

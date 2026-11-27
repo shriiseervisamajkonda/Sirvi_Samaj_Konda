@@ -10,6 +10,7 @@ const base = createSupabaseCRUDController('family_members', {
     blood_group: 'blood_group',
     marital_status: 'marital_status',
     occupation: 'occupation',
+    education: 'education',
     life_status: 'life_status',
   },
   select: '*, families(panchayat_family_id, head_name, gotra, village)',

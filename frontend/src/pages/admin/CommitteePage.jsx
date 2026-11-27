@@ -15,6 +15,7 @@ import {
   FiUserCheck,
 } from 'react-icons/fi';
 import { committeeAPI, gramUnitAPI } from '../../services/api';
+import { supabase } from '../../config/supabase';
 import { useForm } from 'react-hook-form';
 import DataTable from '../../components/common/DataTable';
 import Modal from '../../components/common/Modal';
@@ -31,7 +32,7 @@ const committeeTypes = [
   { id: 'yuva_sangathan', label: 'सिर्वी समाज युवा संगठन', icon: FiUsers },
   { id: 'sahayata_kosh', label: 'श्री आईं जी सहायता कोष समिति', icon: FiHeart },
   { id: 'bhavan_samiti', label: 'माँ अन्नपूर्णा भवन समिति', icon: FiAward },
-  { id: 'committee', label: 'सामान्य कार्यकारिणी समिति', icon: FiUsers },
+  { id: 'executive_body', label: 'सामान्य कार्यकारिणी समिति', icon: FiUsers },
 ];
 
 const designationsList = [
@@ -70,7 +71,7 @@ const CommitteePage = () => {
     try {
       const params = { page, limit: 20, search };
       if (selectedType !== 'all') {
-        params.type = selectedType;
+        params.committee_type = selectedType;
       }
       const res = await committeeAPI.getAll(params);
       setItems(res.data?.data || []);
@@ -84,14 +85,33 @@ const CommitteePage = () => {
 
   useEffect(() => {
     fetchData();
+
+    let debounceTimer = null;
+    const handleRealtimeChange = () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchData();
+      }, 300);
+    };
+
+    // Live real-time Supabase subscription
+    const channel = supabase
+      .channel('admin_committees_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'committees' }, handleRealtimeChange)
+      .subscribe();
+
+    return () => {
+      clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
   }, [fetchData]);
 
   const stats = useMemo(() => {
     return {
       total: items.length,
-      sakalPanch: items.filter((i) => i.type === 'sankal_panch').length,
-      women: items.filter((i) => i.type === 'women_committee').length,
-      gramUnit: items.filter((i) => i.type === 'konda_gram_unit' || i.type === 'sangathan').length,
+      sakalPanch: items.filter((i) => i.committee_type === 'sankal_panch' || i.type === 'sankal_panch').length,
+      women: items.filter((i) => i.committee_type === 'women_committee' || i.type === 'women_committee').length,
+      gramUnit: items.filter((i) => i.committee_type === 'konda_gram_unit' || i.committee_type === 'sangathan' || i.type === 'konda_gram_unit').length,
     };
   }, [items]);
 
@@ -119,23 +139,39 @@ const CommitteePage = () => {
   const handleOpenEdit = (item) => {
     setEditItem(item);
     reset({
-      ...item,
-      status: item.isActive === false ? 'inactive' : 'active',
+      name: item.name || '',
+      phone: item.phone || '',
+      email: item.email || '',
+      type: item.committee_type || 'sankal_panch',
+      designation: item.designation || '',
+      order: item.order_priority || 0,
+      photo: item.photo_url || '',
+      bio: item.bio || '',
+      status: item.is_active === false ? 'inactive' : 'active',
     });
     setModalOpen(true);
   };
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
     try {
+      // Only send columns that exist in the committees table
+      // Actual columns: id, name, designation, committee_type, phone, email, photo_url, order_priority, is_active, member_id, bio, created_at, updated_at
       const payload = {
-        ...data,
-        isActive: data.status === 'active',
-        order: Number(data.order) || 0,
+        name: (data.name || '').trim(),
+        committee_type: data.type || 'sankal_panch',
+        designation: (data.designation || '').trim(),
+        phone: (data.phone || '').trim() || null,
+        email: (data.email || '').trim() || null,
+        photo_url: data.photo || null,
+        bio: (data.bio || '').trim() || null,
+        order_priority: Number(data.order) || 0,
+        is_active: data.status === 'active',
       };
 
-      if (editItem) {
-        await committeeAPI.update(editItem._id, payload);
+      if (editItem && targetId) {
+        await committeeAPI.update(targetId, payload);
         toast.success('समिति पदाधिकारी सफलतापूर्वक अद्यतन किया गया!');
       } else {
         await committeeAPI.create(payload);
@@ -152,11 +188,12 @@ const CommitteePage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await committeeAPI.delete(targetId);
-      setItems((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('समिति पदाधिकारी सफलतापूर्वक हटाया गया!');
       setDeleteItem(null);
       if (items.length === 1 && page > 1) {
@@ -173,7 +210,7 @@ const CommitteePage = () => {
 
   const columns = [
     {
-      key: 'photo',
+      key: 'photo_url',
       label: 'फ़ोटो / अवतार',
       render: (v, r) => (
         <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-0.5 shadow-sm flex items-center justify-center text-white font-black overflow-hidden">
@@ -203,6 +240,7 @@ const CommitteePage = () => {
     {
       key: 'designation',
       label: 'पद (Designation)',
+      sortable: true,
       render: (v) => (
         <span className="inline-block px-3 py-1 bg-[#FFF8EC] border border-[#E8DCC8] rounded-full text-xs font-extrabold text-[#7A2525]">
           {v}
@@ -210,46 +248,61 @@ const CommitteePage = () => {
       ),
     },
     {
-      key: 'type',
+      key: 'committee_type',
       label: 'समिति प्रकार (Committee Type)',
-      render: (v) => {
-        const matchingType = committeeTypes.find((t) => t.id === v);
+      sortable: true,
+      render: (v, r) => {
+        const typeVal = v || r.committee_type || r.type;
+        const matchingType = committeeTypes.find((t) => t.id === typeVal);
         return (
           <span className="inline-block px-3 py-1 bg-amber-50 border border-amber-200 text-[#C85A17] rounded-xl text-xs font-bold">
-            {matchingType ? matchingType.label.split('(')[0] : v}
+            {matchingType ? matchingType.label.split('(')[0] : typeVal}
           </span>
         );
       },
     },
     {
-      key: 'order',
+      key: 'order_priority',
       label: 'क्रम (Order)',
-      render: (v) => <span className="font-mono text-xs font-bold">{v || 0}</span>,
+      sortable: true,
+      render: (v, r) => <span className="font-mono text-xs font-bold">{v ?? r.order_priority ?? r.order ?? 0}</span>,
     },
     {
-      key: 'isActive',
+      key: 'is_active',
       label: 'स्थिति (Status)',
-      render: (v) => (
-        <Badge variant={v !== false ? 'success' : 'warning'}>
-          {v !== false ? 'सक्रिय' : 'निष्क्रिय'}
-        </Badge>
-      ),
+      sortable: true,
+      render: (v, r) => {
+        const active = v !== undefined ? v : (r.is_active !== false && r.isActive !== false);
+        return (
+          <Badge variant={active ? 'success' : 'warning'}>
+            {active ? 'सक्रिय' : 'निष्क्रिय'}
+          </Badge>
+        );
+      },
     },
     {
-      key: '_id',
+      key: 'actions',
       label: 'कार्यवाही (Actions)',
       render: (_, r) => (
         <div className="flex gap-2">
           <button
-            onClick={() => handleOpenEdit(r)}
-            className="p-2 text-blue-600 hover:bg-blue-50 :bg-blue-900/20 rounded-xl transition cursor-pointer"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenEdit(r);
+            }}
+            className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition cursor-pointer"
             title="संपादित करें"
           >
             <FiEdit2 className="w-4 h-4" />
           </button>
           <button
-            onClick={() => setDeleteItem(r)}
-            className="p-2 text-red-600 hover:bg-red-50 :bg-red-900/20 rounded-xl transition cursor-pointer"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteItem(r);
+            }}
+            className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition cursor-pointer"
             title="हटाएँ"
           >
             <FiTrash2 className="w-4 h-4" />
@@ -258,6 +311,12 @@ const CommitteePage = () => {
       ),
     },
   ];
+
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
 
   return (
     <div className="space-y-6 text-[#2B211B]">
@@ -295,11 +354,10 @@ const CommitteePage = () => {
                 setSelectedType(tab.id);
                 setPage(1);
               }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                isSelected
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${isSelected
                   ? 'bg-gradient-to-r from-[#7A2525] to-[#C85A17] text-white shadow-md font-black'
                   : 'bg-white text-[#2B211B] hover:bg-[#FFF8EC] border border-[#E8DCC8]'
-              }`}
+                }`}
             >
               <Icon className="w-4 h-4" />
               {tab.label}
@@ -332,7 +390,7 @@ const CommitteePage = () => {
         title={editItem ? 'समिति सदस्य / पदाधिकारी संपादित करें' : 'नया समिति सदस्य / पंच जोड़ें'}
         size="lg"
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-8 space-y-5">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-8 space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Full Name */}
             <div>

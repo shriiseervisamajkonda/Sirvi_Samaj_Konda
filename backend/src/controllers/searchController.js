@@ -3,7 +3,10 @@ import { asyncHandler } from '../middleware/validate.js';
 
 // GET /api/search
 export const globalSearch = asyncHandler(async (req, res) => {
-  const q = req.query.q || req.query.search;
+  const rawQ = req.query.q || req.query.search || '';
+  // Sanitize search term to prevent PostgREST delimiter/filter injection
+  const q = rawQ.replace(/[%_(),.'"\\*]/g, '').trim().slice(0, 100);
+
   if (!q || q.length < 2) {
     return res.json({
       success: true,
@@ -50,3 +53,16 @@ export const globalSearch = asyncHandler(async (req, res) => {
     },
   });
 });
+
+export const searchBloodDonors = asyncHandler(async (req, res) => {
+  const { blood_group, bloodGroup, village, q } = req.query;
+  let query = supabase.from('blood_donors').select('*');
+  const bg = blood_group || bloodGroup;
+  if (bg) query = query.eq('blood_group', bg);
+  if (village) query = query.ilike('village', `%${village}%`);
+  if (q) query = query.or(`name.ilike.%${q}%,village.ilike.%${q}%`);
+  const { data, error } = await query.limit(50);
+  if (error) return res.status(400).json({ success: false, message: error.message });
+  res.json({ success: true, data: data || [] });
+});
+

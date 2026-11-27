@@ -1,13 +1,32 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiPhone, FiMail, FiMapPin, FiSend, FiUser, FiMessageSquare } from 'react-icons/fi';
+import { FaWhatsapp, FaFacebook, FaInstagram, FaYoutube, FaTwitter } from 'react-icons/fa';
 import { useForm } from 'react-hook-form';
 import { contactAPI } from '../../services/api';
+import { useSiteSettings } from '../../context/SiteSettingsContext';
 import toast from 'react-hot-toast';
+
+const formatWhatsAppUrl = (val) => {
+  if (!val) return 'https://wa.me/919981644585';
+  if (val.startsWith('http://') || val.startsWith('https://')) return val;
+  const digits = val.replace(/\D/g, '');
+  return `https://wa.me/${digits || '919981644585'}`;
+};
 
 const ContactPage = () => {
   const [loading, setLoading] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const {
+    heroBgUrl,
+    contactPhone,
+    contactEmail,
+    facebookUrl,
+    instagramUrl,
+    youtubeUrl,
+    whatsappNumber,
+    twitterUrl,
+  } = useSiteSettings();
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -23,9 +42,17 @@ const ContactPage = () => {
   };
 
   const contactInfo = [
-    { icon: FiMapPin, label: 'Address', value: 'Sirvi Samaj Dharmshala, Konda, Tehsil Kukshi, Dhar, MP 454335', href: null, color: 'from-[#C85A17] to-[#D4AF37]' },
-    { icon: FiPhone, label: 'Phone', value: '+91 98765 43210', href: 'tel:+919876543210', color: 'from-[#C85A17] to-[#E27620]' },
-    { icon: FiMail, label: 'Email', value: 'contact@seervisamajkonda.org', href: 'mailto:contact@seervisamajkonda.org', color: 'from-[#7A2525] to-[#C85A17]' },
+    { icon: FiMapPin, label: 'Address / पता', value: 'Sirvi Samaj Dharmshala, Konda, Tehsil Kukshi, Dhar, MP 454335', href: null, color: 'from-[#C85A17] to-[#D4AF37]' },
+    { icon: FiPhone, label: 'Phone / फ़ोन', value: contactPhone || '+91-9981644585', href: `tel:${(contactPhone || '+919981644585').replace(/\s+/g, '')}`, color: 'from-[#C85A17] to-[#E27620]' },
+    { icon: FiMail, label: 'Email / ईमेल', value: contactEmail || 'shriseervisamajkonda@gmail.com', href: `mailto:${contactEmail || 'shriseervisamajkonda@gmail.com'}`, color: 'from-[#7A2525] to-[#C85A17]' },
+  ];
+
+  const socialLinks = [
+    { Icon: FaWhatsapp, label: 'WhatsApp', href: formatWhatsAppUrl(whatsappNumber), color: 'bg-green-600/20 text-green-400 border-green-500/30 hover:bg-green-600 hover:text-white' },
+    { Icon: FaFacebook, label: 'Facebook', href: facebookUrl || 'https://facebook.com/', color: 'bg-blue-600/20 text-blue-400 border-blue-500/30 hover:bg-blue-600 hover:text-white' },
+    { Icon: FaInstagram, label: 'Instagram', href: instagramUrl || 'https://instagram.com/', color: 'bg-pink-600/20 text-pink-400 border-pink-500/30 hover:bg-pink-600 hover:text-white' },
+    { Icon: FaYoutube, label: 'YouTube', href: youtubeUrl || 'https://youtube.com/', color: 'bg-red-600/20 text-red-400 border-red-500/30 hover:bg-red-600 hover:text-white' },
+    ...(twitterUrl ? [{ Icon: FaTwitter, label: 'Twitter / X', href: twitterUrl, color: 'bg-sky-600/20 text-sky-400 border-sky-500/30 hover:bg-sky-600 hover:text-white' }] : []),
   ];
 
   return (
@@ -34,7 +61,12 @@ const ContactPage = () => {
       <div className="relative py-20 text-white overflow-hidden border-b border-[#D4AF37]/20">
         {/* Background image overlay */}
         <div className="absolute inset-0">
-          <img src="/hero_background.webp" alt="Header Background" className="w-full h-full object-cover opacity-20" />
+          <img
+            src={heroBgUrl || '/hero_background.webp'}
+            alt="Header Background"
+            className="w-full h-full object-cover opacity-20"
+            onError={(e) => { e.currentTarget.src = '/hero_background.webp'; }}
+          />
           <div className="absolute inset-0 bg-gradient-to-br from-[#7A2525] via-[#C85A17]/85 to-[#7A2525]" />
         </div>
 
@@ -55,7 +87,7 @@ const ContactPage = () => {
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }}>
             <h2 className="text-2xl font-bold text-[#FFF3DD] mb-8 border-b border-[#D4AF37]/10 pb-4">संपर्क सूत्र (Get In Touch)</h2>
 
-            <div className="space-y-4 mb-10">
+            <div className="space-y-4 mb-8">
               {contactInfo.map(({ icon: Icon, label, value, href, color }) => (
                 <div key={label} className="flex gap-4 p-5 bg-[#2A1010] rounded-2xl border border-[#D4AF37]/15 hover:border-[#D4AF37]/35 transition-all shadow-lg">
                   <div className={`w-12 h-12 bg-gradient-to-br ${color} rounded-xl flex items-center justify-center shrink-0`}>
@@ -71,6 +103,27 @@ const ContactPage = () => {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Social Media Channels */}
+            <div className="bg-[#2A1010] rounded-2xl p-5 border border-[#D4AF37]/15 mb-8 shadow-lg">
+              <h3 className="text-sm font-bold text-[#FFF3DD] uppercase tracking-wider mb-3 text-amber-400">
+                सोशल मीडिया से जुड़ें (Connect on Social Media)
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {socialLinks.map(({ Icon, label, href, color }, i) => (
+                  <a
+                    key={i}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-bold transition-all ${color}`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{label}</span>
+                  </a>
+                ))}
+              </div>
             </div>
 
             {/* Map */}

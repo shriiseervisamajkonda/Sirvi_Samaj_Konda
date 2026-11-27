@@ -1,12 +1,13 @@
 import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import './index.css';
 
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { SiteSettingsProvider } from './context/SiteSettingsContext';
 
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
@@ -15,9 +16,14 @@ import AdminLayout from './layouts/AdminLayout';
 // Common
 import ProtectedRoute from './components/common/ProtectedRoute';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import ForcePasswordChangeModal from './components/auth/ForcePasswordChangeModal';
 
-// Loading fallback component (disabled)
-const PageFallback = () => null;
+// Loading fallback component
+const PageFallback = () => (
+  <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF8EC]">
+    <div className="w-12 h-12 border-4 border-[#E8DCC8] border-t-[#C85A17] rounded-full animate-spin"></div>
+  </div>
+);
 
 // Auth Pages (Lazy)
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
@@ -25,6 +31,7 @@ const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
 const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'));
+const AuthCallbackPage = lazy(() => import('./pages/auth/AuthCallbackPage'));
 
 // Public Pages (Lazy)
 const HomePage = lazy(() => import('./pages/public/HomePage'));
@@ -33,22 +40,21 @@ const CommitteePage = lazy(() => import('./pages/public/CommitteePage'));
 const WomenCommitteePage = lazy(() => import('./pages/public/WomenCommitteePage'));
 const VillagePage = lazy(() => import('./pages/public/VillagePage'));
 const FamilyDirectoryPage = lazy(() => import('./pages/public/FamilyDirectoryPage'));
-const MemberDirectoryPage = lazy(() => import('./pages/public/MemberDirectoryPage'));
 const StudentPage = lazy(() => import('./pages/public/StudentPage'));
 const BusinessDirectoryPage = lazy(() => import('./pages/public/BusinessDirectoryPage'));
-const BloodDonorPage = lazy(() => import('./pages/public/BloodDonorPage'));
-const MarriageBiodataPage = lazy(() => import('./pages/public/MarriageBiodataPage'));
 const EventsPage = lazy(() => import('./pages/public/EventsPage'));
 const NewsPage = lazy(() => import('./pages/public/NewsPage'));
 const GalleryPage = lazy(() => import('./pages/public/GalleryPage'));
 const DocumentsPage = lazy(() => import('./pages/public/DocumentsPage'));
 const ContactPage = lazy(() => import('./pages/public/ContactPage'));
 const LekhaJokhaPage = lazy(() => import('./pages/public/LekhaJokhaPage'));
+const DonationsPage = lazy(() => import('./pages/public/DonationsPage'));
 const PanchSettlementsPage = lazy(() => import('./pages/public/PanchSettlementsPage'));
 const SocialInfoPage = lazy(() => import('./pages/public/SocialInfoPage'));
 const KondaGramUnitPage = lazy(() => import('./pages/public/KondaGramUnitPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/public/PrivacyPolicyPage'));
 const TermsPage = lazy(() => import('./pages/public/TermsPage'));
+const MyReceiptsPage = lazy(() => import('./pages/member/MyReceiptsPage'));
 const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage'));
 
 // Admin Pages (Lazy - Isolated in separate bundles)
@@ -59,6 +65,7 @@ const AdminStudentsPage = lazy(() => import('./pages/admin/StudentsPage'));
 const AdminBusinessesPage = lazy(() => import('./pages/admin/BusinessesPage'));
 const AdminBloodDonorsPage = lazy(() => import('./pages/admin/BloodDonorsPage'));
 const AdminMarriagePage = lazy(() => import('./pages/admin/MarriagePage'));
+const AdminDonationsPage = lazy(() => import('./pages/admin/DonationsPage'));
 const AdminEventsPage = lazy(() => import('./pages/admin/EventsPage'));
 const AdminGalleryPage = lazy(() => import('./pages/admin/GalleryPage'));
 const AdminNewsPage = lazy(() => import('./pages/admin/NewsPage'));
@@ -74,6 +81,7 @@ const AdminUsersPage = lazy(() => import('./pages/admin/UsersPage'));
 const AdminActivityLogsPage = lazy(() => import('./pages/admin/ActivityLogsPage'));
 const AdminSettingsPage = lazy(() => import('./pages/admin/SettingsPage'));
 const AdminProfilePage = lazy(() => import('./pages/admin/ProfilePage'));
+const AdminAuthorityPage = lazy(() => import('./pages/admin/AuthorityPage'));
 const AdminContactsPage = lazy(() => import('./pages/admin/ContactsPage'));
 
 createRoot(document.getElementById('root')).render(
@@ -82,7 +90,8 @@ createRoot(document.getElementById('root')).render(
       <ThemeProvider>
         <AuthProvider>
           <LanguageProvider>
-            <Toaster
+            <SiteSettingsProvider>
+              <Toaster
               position="top-right"
               toastOptions={{
                 duration: 3000,
@@ -96,12 +105,14 @@ createRoot(document.getElementById('root')).render(
                 },
               }}
             />
+            <ForcePasswordChangeModal />
             <ErrorBoundary>
-              <Suspense fallback={null}>
+              <Suspense fallback={<PageFallback />}>
                 <Routes>
                   {/* Auth Routes */}
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/auth/callback" element={<AuthCallbackPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
                   <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
@@ -115,30 +126,72 @@ createRoot(document.getElementById('root')).render(
                     <Route path="/shri-ii-g-women-committee" element={<WomenCommitteePage />} />
                     <Route path="/village" element={<VillagePage />} />
                     <Route path="/families" element={<FamilyDirectoryPage />} />
-                    <Route path="/members" element={<MemberDirectoryPage />} />
+                    <Route path="/members" element={<Navigate to="/families" replace />} />
                     <Route path="/students" element={<StudentPage />} />
                     <Route path="/businesses" element={<BusinessDirectoryPage />} />
-                    <Route path="/blood-donors" element={<BloodDonorPage />} />
-                    <Route path="/marriage" element={<MarriageBiodataPage />} />
+                    <Route path="/blood-donors" element={<Navigate to="/" replace />} />
+                    <Route path="/marriage" element={<Navigate to="/" replace />} />
                     <Route path="/events" element={<EventsPage />} />
                     <Route path="/news" element={<NewsPage />} />
                     <Route path="/gallery" element={<GalleryPage />} />
                     <Route path="/documents" element={<DocumentsPage />} />
                     <Route path="/contact" element={<ContactPage />} />
-                    <Route path="/lekha-jokha" element={<LekhaJokhaPage />} />
+                    <Route
+                      path="/lekha-jokha"
+                      element={
+                        <ProtectedRoute>
+                          <LekhaJokhaPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route path="/donations" element={<DonationsPage />} />
                     <Route path="/panch-settlements" element={<PanchSettlementsPage />} />
                     <Route path="/social-info" element={<SocialInfoPage />} />
                     <Route path="/konda-gram-unit" element={<KondaGramUnitPage />} />
                     <Route path="/gram-unit" element={<KondaGramUnitPage />} />
                     <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                     <Route path="/terms" element={<TermsPage />} />
+                    <Route
+                      path="/my-receipts"
+                      element={
+                        <ProtectedRoute>
+                          <MyReceiptsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/member/receipts"
+                      element={
+                        <ProtectedRoute>
+                          <MyReceiptsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/my-transactions"
+                      element={
+                        <ProtectedRoute>
+                          <MyReceiptsPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/profile"
+                      element={
+                        <ProtectedRoute>
+                          <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6">
+                            <AdminProfilePage />
+                          </div>
+                        </ProtectedRoute>
+                      }
+                    />
                   </Route>
 
                   {/* Admin Routes */}
                   <Route
                     path="/admin"
                     element={
-                      <ProtectedRoute allowedRoles={['super_admin', 'admin', 'editor']}>
+                      <ProtectedRoute allowedRoles={['developer', 'super_admin', 'admin', 'editor', 'treasurer']}>
                         <AdminLayout />
                       </ProtectedRoute>
                     }
@@ -150,6 +203,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path="businesses" element={<AdminBusinessesPage />} />
                     <Route path="blood-donors" element={<AdminBloodDonorsPage />} />
                     <Route path="marriage" element={<AdminMarriagePage />} />
+                    <Route path="donations" element={<AdminDonationsPage />} />
                     <Route path="events" element={<AdminEventsPage />} />
                     <Route path="gallery" element={<AdminGalleryPage />} />
                     <Route path="news" element={<AdminNewsPage />} />
@@ -164,6 +218,7 @@ createRoot(document.getElementById('root')).render(
                     <Route path="social-info" element={<AdminSocialInfoPage />} />
                     <Route path="contacts" element={<AdminContactsPage />} />
                     <Route path="users" element={<AdminUsersPage />} />
+                    <Route path="authority" element={<AdminAuthorityPage />} />
                     <Route path="activity-logs" element={<AdminActivityLogsPage />} />
                     <Route path="settings" element={<AdminSettingsPage />} />
                     <Route path="profile" element={<AdminProfilePage />} />
@@ -174,6 +229,7 @@ createRoot(document.getElementById('root')).render(
                 </Routes>
               </Suspense>
             </ErrorBoundary>
+            </SiteSettingsProvider>
           </LanguageProvider>
         </AuthProvider>
       </ThemeProvider>

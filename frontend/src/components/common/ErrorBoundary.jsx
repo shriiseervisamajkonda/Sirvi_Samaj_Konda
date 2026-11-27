@@ -30,12 +30,17 @@ class ErrorBoundary extends React.Component {
             <h2 className="text-2xl font-bold text-[#f4e8d1] mb-2 font-serif">
               Something went wrong
             </h2>
-            <p className="text-sm text-[#c5b598] mb-6 leading-relaxed">
+            <p className="text-sm text-[#c5b598] mb-4 leading-relaxed">
               We encountered an unexpected issue while loading this page. Please try refreshing the portal.
             </p>
+            {this.state.error && (
+              <div className="mb-6 p-3 bg-red-950/40 border border-red-800/40 rounded-xl text-left text-xs font-mono text-red-300 max-h-32 overflow-auto">
+                {this.state.error.message || String(this.state.error)}
+              </div>
+            )}
             <button
               onClick={this.handleReload}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#d4af37] text-[#0d0905] font-semibold rounded-xl hover:bg-[#e6c250] transition-colors shadow-lg"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#d4af37] text-[#0d0905] font-semibold rounded-xl hover:bg-[#e6c250] transition-colors shadow-lg cursor-pointer"
             >
               <FiRefreshCw className="text-lg" />
               Reload Page

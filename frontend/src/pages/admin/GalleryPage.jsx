@@ -28,13 +28,9 @@ const GalleryPage = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, albumRes] = await Promise.all([
-        galleryAPI.getAll({ page, limit: 12, search }),
-        galleryAPI.getAlbums(),
-      ]);
+      const res = await galleryAPI.getAll({ page, limit: 12, search });
       setItems(res.data.data || []);
       setTotalPages(res.data.pagination?.pages || 1);
-      setAlbums(albumRes.data.data || []);
     } catch {
       toast.error('Failed to load gallery');
     } finally {
@@ -46,14 +42,28 @@ const GalleryPage = () => {
     fetchData();
   }, [fetchData]);
 
+  useEffect(() => {
+    galleryAPI.getAlbums().then((res) => setAlbums(res.data.data || [])).catch(() => {});
+  }, []);
+
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const photoUrl = data.url || data.photo_url || data.image_url;
+    const payload = {
+      ...data,
+      title: data.title || 'फ़ोटो',
+      photo_url: photoUrl,
+      image_url: photoUrl,
+      album_id: data.album || data.album_id || null,
+      caption: data.caption || '',
+    };
     try {
-      if (editItem) {
-        await galleryAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await galleryAPI.update(targetId, payload);
         toast.success('Photo updated!');
       } else {
-        await galleryAPI.create(data);
+        await galleryAPI.create(payload);
         toast.success('Photo added!');
       }
       setModalOpen(false);
@@ -72,7 +82,7 @@ const GalleryPage = () => {
       toast.success('Album created!');
       setAlbumModalOpen(false);
       resetAlbum({});
-      fetchData();
+      galleryAPI.getAlbums().then((res) => setAlbums(res.data.data || [])).catch(() => {});
     } catch {
       toast.error('Failed to create album');
     } finally {
@@ -82,14 +92,15 @@ const GalleryPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await galleryAPI.delete(targetId);
-      setImages((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Photo deleted successfully!');
       setDeleteItem(null);
-      if (images.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -102,20 +113,48 @@ const GalleryPage = () => {
   };
 
   const columns = [
-    { key: 'url', label: 'Preview', render: (v) => v ? <img src={v} alt="Gallery" className="w-14 h-14 object-cover rounded-xl" /> : <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center"><FiImage className="w-5 h-5 text-gray-400" /></div> },
-    { key: 'title', label: 'Title' },
-    { key: 'album', label: 'Album', render: (v) => v?.title ? <Badge variant="purple">{v.title}</Badge> : '—' },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'active' ? 'success' : 'warning'}>{v}</Badge> },
-    { key: 'createdAt', label: 'Added', render: (v) => new Date(v).toLocaleDateString('en-IN') },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'url',
+      label: 'Preview',
+      render: (_, r) => {
+        const src = r.photo_url || r.image_url || r.url;
+        return src ? (
+          <img src={src} alt="Gallery" className="w-14 h-14 object-cover rounded-xl" />
+        ) : (
+          <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center">
+            <FiImage className="w-5 h-5 text-gray-400" />
+          </div>
+        );
+      },
+    },
+    { key: 'title', label: 'Title', render: (v) => v || '—' },
+    { key: 'album', label: 'Album', render: (_, r) => (r.album?.title || r.album_title ? <Badge variant="purple">{r.album?.title || r.album_title}</Badge> : '—') },
+    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'inactive' ? 'warning' : 'success'}>{v || 'active'}</Badge> },
+    {
+      key: 'createdAt',
+      label: 'Added',
+      render: (_, r) => {
+        const d = r.created_at || r.createdAt;
+        return d ? new Date(d).toLocaleDateString('en-IN') : '—';
+      },
+    },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => { setEditItem(r); reset({ ...r, url: r.photo_url || r.image_url || r.url }); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
   ];
+
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -138,7 +177,7 @@ const GalleryPage = () => {
 
       {/* Add Photo Modal */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Photo' : 'Add Photo'} size="lg">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <ImageUpload
             value={watch('url')}
             onChange={(url) => setValue('url', url, { shouldDirty: true })}
@@ -154,7 +193,7 @@ const GalleryPage = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">Album</label>
               <select {...register('album')} className="input-field">
                 <option value="">No Album</option>
-                {albums.map(a => <option key={a._id} value={a._id}>{a.title}</option>)}
+                {albums.map(a => <option key={a.id || a._id} value={a.id || a._id}>{a.title}</option>)}
               </select>
             </div>
             <div>
@@ -181,7 +220,7 @@ const GalleryPage = () => {
 
       {/* Create Album Modal */}
       <Modal isOpen={albumModalOpen} onClose={() => setAlbumModalOpen(false)} title="Create Album" size="sm">
-        <form onSubmit={handleAlbumSubmit(onAlbumSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleAlbumSubmit(onAlbumSubmit)} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Album Name *</label>
             <input {...regAlbum('title', { required: true })} placeholder="e.g. Navratri 2024" className="input-field" />

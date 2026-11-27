@@ -1,6 +1,35 @@
 import supabase from '../config/supabase.js';
 import { asyncHandler } from '../middleware/validate.js';
 
+// Gotra name Hindi beautifier
+const formatGotraName = (rawGotra) => {
+  const g = (rawGotra || '').toLowerCase().trim();
+  const map = {
+    bhayal: 'भायल (Bhayal)',
+    pawar: 'पंवार (Pawar)',
+    choyal: 'चोयल (Choyal)',
+    gehlot: 'गेहलोत (Gehlot)',
+    lacheta: 'लछेटा (Lacheta)',
+    chouhan: 'चौहान (Chouhan)',
+    shinada: 'शिणादा (Shinada)',
+    rathore: 'राठौड़ (Rathore)',
+    sencha: 'सेंचा (Sencha)',
+    solanki: 'सोलंकी (Solanki)',
+    kag: 'काग (Kag)',
+    barfa: 'बर्फा (Barfa)',
+    padiyar: 'पड़ियार (Padiyar)',
+    agalcha: 'आगलचा (Agalcha)',
+    parihar: 'परिहार (Parihar)',
+    septa: 'सेपटा (Septa)',
+    septan: 'सेपटा (Septa)',
+    mulewa: 'मुलेवा (Mulewa)',
+    aagla: 'आगला (Aagla)',
+    mogrecha: 'मोगरेचा (Mogrecha)',
+    hambad: 'हाम्बड़ (Hambad)',
+  };
+  return map[g] || (rawGotra ? `${rawGotra.charAt(0).toUpperCase() + rawGotra.slice(1)}` : 'अन्य (Other)');
+};
+
 // GET /api/dashboard
 export const getDashboardStats = asyncHandler(async (_req, res) => {
   const [
@@ -8,40 +37,73 @@ export const getDashboardStats = asyncHandler(async (_req, res) => {
     { count: totalMembers },
     { count: maleCount },
     { count: femaleCount },
+    { count: studentCount },
     { count: bloodDonorCount },
     { count: eventCount },
     { count: newsCount },
     { data: donations },
     { data: recentLogs },
+    { data: familiesGotra },
   ] = await Promise.all([
     supabase.from('families').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active'),
-    supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active').eq('gender', 'male'),
-    supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active').eq('gender', 'female'),
+    supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active').in('gender', ['male', 'Male', 'पुरुष']),
+    supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active').in('gender', ['female', 'Female', 'महिला']),
+    supabase.from('family_members').select('*', { count: 'exact', head: true }).or('occupation.ilike.%student%,occupation.ilike.%विद्यार्थी%'),
     supabase.from('blood_donors').select('*', { count: 'exact', head: true }).eq('is_available', true),
     supabase.from('events').select('*', { count: 'exact', head: true }),
     supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published'),
     supabase.from('donations').select('amount').eq('payment_status', 'confirmed'),
     supabase.from('activity_logs').select('*').order('created_at', { ascending: false }).limit(8),
+    supabase.from('families').select('gotra, total_members').not('gotra', 'is', null),
   ]);
 
   const totalDonationAmount = (donations || []).reduce((sum, d) => sum + Number(d.amount || 0), 0);
+
+  // Compute Gotra Distribution from live families
+  const gotraCounts = {};
+  for (const f of familiesGotra || []) {
+    const key = (f.gotra || '').trim();
+    if (key) {
+      gotraCounts[key] = (gotraCounts[key] || 0) + 1;
+    }
+  }
+
+  const gotraDistribution = Object.entries(gotraCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([gotra, count]) => ({
+      gotra: formatGotraName(gotra),
+      families: count,
+      count,
+    }));
+
+  const mCount = maleCount || 0;
+  const fCount = femaleCount || 0;
+  const familiesMemberSum = (familiesGotra || []).reduce((sum, f) => sum + (Number(f.total_members) || 1), 0);
+  const tMembers = (totalMembers && totalMembers > 0) ? totalMembers : (familiesMemberSum > 0 ? familiesMemberSum : (mCount + fCount));
 
   res.json({
     success: true,
     data: {
       stats: {
         totalFamilies: totalFamilies || 0,
-        totalMembers: totalMembers || 0,
-        maleCount: maleCount || 0,
-        femaleCount: femaleCount || 0,
+        totalMembers: tMembers || 0,
+        maleCount: mCount,
+        femaleCount: fCount,
+        studentCount: studentCount || 0,
         bloodDonorCount: bloodDonorCount || 0,
         eventCount: eventCount || 0,
         newsCount: newsCount || 0,
         totalDonations: totalDonationAmount,
         totalDonationRecords: donations?.length || 0,
       },
+      genderDistribution: [
+        { name: 'पुरुष (Male)', value: mCount },
+        { name: 'महिला (Female)', value: fCount },
+      ],
+      recentLogs: recentLogs || [],
       recentActivities: recentLogs || [],
+      gotraDistribution,
     },
   });
 });
@@ -51,25 +113,45 @@ export const getPublicStats = asyncHandler(async (_req, res) => {
   const [
     { count: totalFamilies },
     { count: totalMembers },
+    { count: studentCount },
     { count: bloodDonorCount },
     { count: eventCount },
     { count: newsCount },
+    { data: activeFamiliesData },
   ] = await Promise.all([
     supabase.from('families').select('*', { count: 'exact', head: true }).eq('status', 'active'),
     supabase.from('family_members').select('*', { count: 'exact', head: true }).eq('life_status', 'active'),
+    supabase.from('family_members').select('*', { count: 'exact', head: true }).or('occupation.ilike.%student%,occupation.ilike.%विद्यार्थी%'),
     supabase.from('blood_donors').select('*', { count: 'exact', head: true }).eq('is_available', true),
     supabase.from('events').select('*', { count: 'exact', head: true }).eq('status', 'published'),
     supabase.from('news').select('*', { count: 'exact', head: true }).eq('status', 'published'),
+    supabase.from('families').select('total_members').eq('status', 'active'),
   ]);
+
+  const fCount = totalFamilies || 0;
+  const familiesMemberSum = (activeFamiliesData || []).reduce((sum, f) => sum + (Number(f.total_members) || 1), 0);
+  const mCount = (totalMembers && totalMembers > 0) ? totalMembers : familiesMemberSum;
+  const sCount = studentCount || 0;
+  const bCount = bloodDonorCount || 0;
+  const eCount = eventCount || 0;
+  const nCount = newsCount || 0;
 
   res.json({
     success: true,
     data: {
-      totalFamilies: totalFamilies || 0,
-      totalMembers: totalMembers || 0,
-      bloodDonorCount: bloodDonorCount || 0,
-      eventCount: eventCount || 0,
-      newsCount: newsCount || 0,
+      totalFamilies: fCount,
+      totalMembers: mCount,
+      studentCount: sCount,
+      bloodDonorCount: bCount,
+      eventCount: eCount,
+      newsCount: nCount,
+      // Frontend reflection keys
+      families: fCount,
+      members: mCount,
+      students: sCount,
+      bloodDonors: bCount,
+      events: eCount,
+      news: nCount,
     },
   });
 });

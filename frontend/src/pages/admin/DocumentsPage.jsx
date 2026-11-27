@@ -40,12 +40,17 @@ const DocumentsPage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      ...data,
+      file_url: data.fileUrl || data.file_url,
+    };
     try {
-      if (editItem) {
-        await documentAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await documentAPI.update(targetId, payload);
         toast.success('Document updated!');
       } else {
-        await documentAPI.create(data);
+        await documentAPI.create(payload);
         toast.success('Document uploaded!');
       }
       setModalOpen(false);
@@ -59,14 +64,15 @@ const DocumentsPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await documentAPI.delete(targetId);
-      setDocuments((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Document deleted successfully!');
       setDeleteItem(null);
-      if (documents.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -80,28 +86,69 @@ const DocumentsPage = () => {
 
   const columns = [
     { key: 'title', label: 'Title', sortable: true, render: (v) => <span className="font-medium">{v}</span> },
-    { key: 'category', label: 'Category', render: (v) => <Badge variant="info">{v}</Badge> },
+    { key: 'category', label: 'Category', sortable: true, render: (v) => <Badge variant="info">{v || 'General'}</Badge> },
     { key: 'description', label: 'Description', render: (v) => <span className="text-xs line-clamp-1 max-w-xs">{v || '—'}</span> },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'active' ? 'success' : 'warning'}>{v}</Badge> },
-    { key: 'createdAt', label: 'Uploaded Date', render: (v) => new Date(v).toLocaleDateString('en-IN') },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'inactive' ? 'warning' : 'success'}>{v || 'active'}</Badge> },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'createdAt',
+      label: 'Uploaded Date',
+      sortable: true,
+      render: (_, r) => {
+        const d = r.created_at || r.createdAt;
+        return d ? new Date(d).toLocaleDateString('en-IN') : '—';
+      },
+    },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => openEdit(r)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
   ];
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
+  const openCreate = () => {
+    setEditItem(null);
+    reset({
+      title: '',
+      category: 'General',
+      status: 'active',
+      fileUrl: '',
+      description: '',
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (row) => {
+    setEditItem(row);
+    reset({
+      ...row,
+      title: row.title || '',
+      category: row.category || 'General',
+      status: row.status || 'active',
+      fileUrl: row.file_url || row.fileUrl || row.url || '',
+      description: row.description || '',
+    });
+    setModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 ">Document Management</h1>
-          <p className="text-gray-500 text-sm mt-1">Upload and manage community forms, certificates, and guides</p>
+          <h1 className="text-2xl font-bold text-gray-900 ">Documents & Files</h1>
+          <p className="text-gray-500 text-sm mt-1">Manage downloadable forms and documents</p>
         </div>
-        <button onClick={() => { setEditItem(null); reset({ status: 'active', category: 'General' }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
           <FiPlus className="w-4 h-4" /> Add Document
         </button>
       </div>
@@ -109,7 +156,7 @@ const DocumentsPage = () => {
         onPageChange={setPage} onSearchChange={(v) => { setSearch(v); setPage(1); }} serverSide emptyIcon={FiFileText} emptyText="No documents found" />
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Document' : 'Upload Document'} size="lg">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Document Title *</label>

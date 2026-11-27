@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FiSearch, FiUsers, FiMapPin, FiPhone, FiMap, FiInbox } from 'react-icons/fi';
+import { FiSearch, FiInbox, FiUsers } from 'react-icons/fi';
 import { familyAPI } from '../../services/api';
 import DataTable from '../../components/common/DataTable';
+import FamilyMembersModal from '../../components/common/FamilyMembersModal';
 
 const FamilyDirectoryPage = () => {
   const [families, setFamilies] = useState([]);
@@ -11,6 +12,7 @@ const FamilyDirectoryPage = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [selectedFamilyForMembers, setSelectedFamilyForMembers] = useState(null);
 
   const fetchFamilies = useCallback(async () => {
     setLoading(true);
@@ -39,29 +41,80 @@ const FamilyDirectoryPage = () => {
   };
 
   const columns = [
-    { key: 'familyId', label: 'S.No.', sortable: false, render: (v, row, idx) => <span className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] px-2.5 py-1 rounded-lg border border-[#E8DCC8]">{(page - 1) * 10 + idx + 1}</span> },
+    {
+      key: 'familyId',
+      label: 'S.No.',
+      sortable: false,
+      render: (_, row, idx) => (
+        <button
+          type="button"
+          onClick={() => setSelectedFamilyForMembers(row)}
+          className="font-mono font-bold text-[#7A2525] bg-[#FFF8EC] hover:bg-[#7A2525] hover:text-white px-2.5 py-1 rounded-lg border border-[#E8DCC8] hover:border-[#7A2525] transition cursor-pointer shadow-2xs"
+          title="परिवार के सभी सदस्य देखें"
+        >
+          #{row.panchayat_family_id || row.familyId || ((page - 1) * 10 + idx + 1)}
+        </button>
+      ),
+    },
     { 
       key: 'headOfFamily', 
       label: 'मुखिया (Head)', 
       sortable: true, 
-      render: (v, row) => (
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#C85A17] to-[#C9A44C] text-white text-sm font-bold shrink-0">
-            {row.familyPhoto ? (
-              <img src={row.familyPhoto} alt="Family" className="w-full h-full object-cover" />
-            ) : (
-              row.surname?.charAt(0) || 'F'
-            )}
-          </div>
-          <span className="font-bold text-[#2B211B]">{v}</span>
-        </div>
-      ) 
+      render: (_, row) => {
+        const headName = row.head_name || row.headOfFamily || '—';
+        const gotra = row.gotra || row.surname || '';
+        return (
+          <button
+            type="button"
+            onClick={() => setSelectedFamilyForMembers(row)}
+            className="flex items-center gap-3 text-left group cursor-pointer"
+            title="परिवार के सभी सदस्य देखें"
+          >
+            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#C85A17] to-[#C9A44C] text-white text-sm font-bold shrink-0">
+              {row.familyPhoto || row.family_photo ? (
+                <img src={row.familyPhoto || row.family_photo} alt="Family" className="w-full h-full object-cover" />
+              ) : (
+                gotra.charAt(0) || headName.charAt(0) || 'F'
+              )}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-[#2B211B] group-hover:text-[#7A2525] group-hover:underline transition">
+                {headName}
+              </span>
+              <FiUsers className="w-3.5 h-3.5 text-[#C85A17] opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+          </button>
+        );
+      },
     },
-    { key: 'surname', label: 'गोत्र (Surname)', sortable: true, render: (v) => <span className="font-medium text-[#C85A17]">{v}</span> },
-    { key: 'village', label: 'गाँव (Village)' },
-    { key: 'mobileNumber', label: 'मोबाइल (Mobile)', render: (v) => v ? <span className="font-mono text-sm">{v}</span> : '—' },
-    { key: 'numberOfMembers', label: 'सदस्य (Members)', render: (v) => <span className="font-bold">{v || 0}</span> },
-    { key: 'agriculturalLandArea', label: 'कृषि भूमि (Land Area)', render: (v) => v ? <span className="font-bold text-[#3F7655]">{v}</span> : '—' },
+    { key: 'surname', label: 'गोत्र (Surname)', sortable: true, render: (_, row) => <span className="font-medium text-[#C85A17]">{row.gotra || row.surname || '—'}</span> },
+    { key: 'village', label: 'गाँव (Village)', render: (v) => v || 'Konda' },
+    { key: 'mobileNumber', label: 'मोबाइल (Mobile)', render: (_, row) => (row.head_mobile || row.mobileNumber) ? <span className="font-mono text-sm">{row.head_mobile || row.mobileNumber}</span> : '—' },
+    {
+      key: 'numberOfMembers',
+      label: 'सदस्य (Members)',
+      render: (_, row) => (
+        <button
+          type="button"
+          onClick={() => setSelectedFamilyForMembers(row)}
+          className="font-bold text-[#7A2525] hover:text-[#C85A17] hover:underline cursor-pointer flex items-center gap-1"
+          title="परिवार के सभी सदस्य देखें"
+        >
+          <FiUsers className="w-3.5 h-3.5 text-[#C85A17]" />
+          <span>
+            {row.total_members || (Array.isArray(row.family_members) ? row.family_members.length : 0) || row.numberOfMembers || row.memberCount || 0}
+          </span>
+        </button>
+      ),
+    },
+    { 
+      key: 'agriculturalLandArea', 
+      label: 'कृषि भूमि (Land Area)', 
+      render: (_, row) => {
+        const area = row.land_area_acres ? `${row.land_area_acres} एकड़` : (row.land_details_text || row.land_holding || row.agriculturalLandArea);
+        return area ? <span className="font-bold text-[#3F7655]">{area}</span> : '—';
+      } 
+    },
   ];
 
   return (
@@ -122,6 +175,12 @@ const FamilyDirectoryPage = () => {
           />
         </div>
       </div>
+
+      <FamilyMembersModal
+        isOpen={Boolean(selectedFamilyForMembers)}
+        onClose={() => setSelectedFamilyForMembers(null)}
+        family={selectedFamilyForMembers}
+      />
     </div>
   );
 };

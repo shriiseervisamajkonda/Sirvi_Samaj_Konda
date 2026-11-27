@@ -2,15 +2,20 @@ import api from '../api/axios';
 
 export const authAPI = {
   login: (data) => api.post('/auth/login', data),
+  googleLogin: (data) => api.post('/auth/google-login', data),
+  linkGoogleOAuth: (data) => api.post('/auth/link-google-oauth', data),
+  unlinkGoogle: () => api.post('/auth/unlink-google'),
   register: (data) => api.post('/auth/register', data),
   logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),
-  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+  updateProfile: (data) => api.put('/auth/profile', data),
+  forgotPassword: (data) => api.post('/auth/forgot-password', typeof data === 'string' ? { email: data } : data),
   resetPassword: (token, password) => api.put(`/auth/reset-password/${token}`, { password }),
   verifyEmail: (token) => api.get(`/auth/verify-email/${token}`),
-  sendOTP: (email) => api.post('/auth/send-otp', { email }),
+  sendOTP: (data) => api.post('/auth/send-otp', typeof data === 'string' ? { email: data } : data),
   verifyOTP: (data) => api.post('/auth/verify-otp', data),
   updatePassword: (data) => api.put('/auth/update-password', data),
+  changePassword: (data) => api.put('/auth/update-password', data),
 };
 
 export const dashboardAPI = {
@@ -89,6 +94,9 @@ export const newsAPI = {
 export const galleryAPI = {
   getAll: (params) => api.get('/gallery', { params }),
   getAlbums: () => api.get('/gallery/albums'),
+  createAlbum: (data) => api.post('/gallery/albums', data),
+  updateAlbum: (id, data) => api.put(`/gallery/albums/${id}`, data),
+  deleteAlbum: (id) => api.delete(`/gallery/albums/${id}`),
   getOne: (id) => api.get(`/gallery/${id}`),
   create: (data) => api.post('/gallery', data),
   update: (id, data) => api.put(`/gallery/${id}`, data),
@@ -105,11 +113,11 @@ export const documentAPI = {
 };
 
 export const committeeAPI = {
-  getAll: (params) => api.get('/committee', { params }),
-  getOne: (id) => api.get(`/committee/${id}`),
-  create: (data) => api.post('/committee', data),
-  update: (id, data) => api.put(`/committee/${id}`, data),
-  delete: (id) => api.delete(`/committee/${id}`),
+  getAll: (params) => api.get('/committees', { params }),
+  getOne: (id) => api.get(`/committees/${id}`),
+  create: (data) => api.post('/committees', data),
+  update: (id, data) => api.put(`/committees/${id}`, data),
+  delete: (id) => api.delete(`/committees/${id}`),
 };
 
 export const lekhaJokhaAPI = {
@@ -124,9 +132,20 @@ export const lekhaJokhaAPI = {
 export const panchSettlementAPI = {
   getAll: (params) => api.get('/panch-settlements', { params }),
   getPublic: (params) => api.get('/panch-settlements/public', { params }),
+  getOne: (id) => api.get(`/panch-settlements/${id}`),
   create: (data) => api.post('/panch-settlements', data),
   update: (id, data) => api.put(`/panch-settlements/${id}`, data),
   delete: (id) => api.delete(`/panch-settlements/${id}`),
+};
+
+export const donationAPI = {
+  getStats: () => api.get('/donations/stats'),
+  getReceipt: (receiptNumber) => api.get(`/donations/receipt/${receiptNumber}`),
+  getMyReceipts: () => api.get('/donations/my-receipts'),
+  getAll: (params) => api.get('/donations', { params }),
+  create: (data) => api.post('/donations', data),
+  update: (id, data) => api.put(`/donations/${id}`, data),
+  delete: (id) => api.delete(`/donations/${id}`),
 };
 
 export const socialInfoAPI = {
@@ -139,8 +158,10 @@ export const socialInfoAPI = {
 
 export const villageAPI = {
   getAll: () => api.get('/village'),
+  getDetails: () => api.get('/village'),
   getOne: (id) => api.get(`/village/${id}`),
   update: (id, data) => api.put(`/village/${id}`, data),
+  updateInfo: (data) => api.put('/village', data),
 };
 
 export const contactAPI = {
@@ -166,6 +187,9 @@ export const userAPI = {
   create: (data) => api.post('/users', data),
   update: (id, data) => api.put(`/users/${id}`, data),
   updateRole: (id, role) => api.put(`/users/${id}/role`, { role }),
+  toggleExportPermission: (id) => api.put(`/users/${id}/toggle-export-permission`),
+  togglePermission: (id, permission) => api.put(`/users/${id}/toggle-permission`, { permission }),
+  resetDefaultPassword: (id) => api.post(`/users/${id}/reset-default-password`),
   delete: (id) => api.delete(`/users/${id}`),
 };
 
@@ -190,17 +214,10 @@ export const gramUnitMemberAPI = {
   delete: (id) => api.delete(`/gram-unit-members/${id}`),
 };
 
-export const formationEventAPI = {
-  getAll: (params) => api.get('/formation-events', { params }),
-  getOne: (id) => api.get(`/formation-events/${id}`),
-  create: (data) => api.post('/formation-events', data),
-  update: (id, data) => api.put(`/formation-events/${id}`, data),
-  delete: (id) => api.delete(`/formation-events/${id}`),
-};
-
 export const uploadAPI = {
   upload: (formData) => api.post('/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120000,
   }),
 };
 

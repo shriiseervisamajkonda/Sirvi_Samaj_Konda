@@ -25,37 +25,60 @@ const StudentsPage = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [res, membersRes] = await Promise.all([
-        studentAPI.getAll({ page, limit: 10, search }),
-        memberAPI.getAll({ limit: 200 }),
-      ]);
+      const res = await studentAPI.getAll({ page, limit: 10, search });
       setItems(res.data.data || []);
       setTotalPages(res.data.pagination?.pages || 1);
-      setMembers(membersRes.data.data || []);
-    } catch { toast.error('Failed to load'); } finally { setLoading(false); }
+    } catch {
+      toast.error('Failed to load students');
+    } finally {
+      setLoading(false);
+    }
   }, [page, search]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    memberAPI.getAll({ limit: 200 }).then((res) => setMembers(res.data.data || [])).catch(() => {});
+  }, []);
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      ...data,
+      college_name: data.collegeName || data.college_name,
+      current_year: data.currentYear || data.current_year,
+    };
     try {
-      editItem ? await studentAPI.update(editItem._id, data) : await studentAPI.create(data);
-      toast.success(editItem ? 'Updated!' : 'Added!');
-      setModalOpen(false); fetchData();
-    } catch (err) { toast.error(err.response?.data?.message || 'Save failed'); } finally { setSaving(false); }
+      if (editItem && targetId) {
+        await studentAPI.update(targetId, payload);
+        toast.success('Updated!');
+      } else {
+        await studentAPI.create(payload);
+        toast.success('Added!');
+      }
+      setModalOpen(false);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Save failed');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await studentAPI.delete(targetId);
-      setStudents((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Student record deleted successfully!');
       setDeleteItem(null);
-      if (students.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -68,39 +91,98 @@ const StudentsPage = () => {
   };
 
   const columns = [
-    { key: 'member', label: 'Name', render: (_, r) => <span className="font-medium">{r.member?.firstName} {r.member?.lastName}</span> },
-    { key: 'collegeName', label: 'College/School', sortable: true },
-    { key: 'course', label: 'Course' },
-    { key: 'currentYear', label: 'Year', render: (v) => v ? <Badge variant="info">Year {v}</Badge> : '—' },
-    { key: 'cgpa', label: 'CGPA' },
-    { key: 'scholarship', label: 'Scholarship', render: (v) => v ? <Badge variant="success">Yes</Badge> : <Badge variant="default">No</Badge> },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'member',
+      label: 'Name',
+      sortable: true,
+      render: (_, r) => <span className="font-medium">{r.name || r.studentName || r.full_name || (r.member?.firstName ? `${r.member.firstName} ${r.member.lastName || ''}` : '—')}</span>,
+    },
+    { key: 'collegeName', label: 'College/School', sortable: true, render: (_, r) => r.college_name || r.collegeName || '—' },
+    { key: 'course', label: 'Course', sortable: true, render: (v) => v || '—' },
+    {
+      key: 'currentYear',
+      label: 'Year',
+      sortable: true,
+      render: (_, r) => {
+        const y = r.current_year || r.currentYear;
+        return y ? <Badge variant="info">Year {y}</Badge> : '—';
+      },
+    },
+    { key: 'cgpa', label: 'CGPA / %', sortable: true, render: (v) => v || '—' },
+    { key: 'scholarship', label: 'Scholarship', sortable: true, render: (v) => v ? <Badge variant="success">Yes</Badge> : <Badge variant="default">No</Badge> },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => openEdit(r)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
   ];
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
+  const openCreate = () => {
+    setEditItem(null);
+    reset({
+      member: '',
+      collegeName: '',
+      universityName: '',
+      course: '',
+      currentYear: '',
+      cgpa: '',
+      scholarship: false,
+      achievements: '',
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (row) => {
+    setEditItem(row);
+    reset({
+      ...row,
+      member: row.member_id || row.member?.id || row.member?._id || row.member || '',
+      collegeName: row.college_name || row.collegeName || '',
+      universityName: row.university_name || row.universityName || '',
+      course: row.course || '',
+      currentYear: row.current_year || row.currentYear || '',
+      cgpa: row.cgpa || row.percentage || '',
+      scholarship: Boolean(row.scholarship),
+      achievements: row.achievements || '',
+    });
+    setModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-gray-900 ">Student Management</h1><p className="text-gray-500 text-sm mt-1">Manage student records</p></div>
-        <button onClick={() => { setEditItem(null); reset({}); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 ">Student Directory</h1>
+          <p className="text-gray-500 text-sm mt-1">Manage student records and higher education achievements</p>
+        </div>
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/20 transition cursor-pointer">
           <FiPlus className="w-4 h-4" /> Add Student
         </button>
       </div>
       <DataTable columns={columns} data={items} loading={loading} totalPages={totalPages} currentPage={page}
         onPageChange={setPage} onSearchChange={(v) => { setSearch(v); setPage(1); }} serverSide emptyIcon={FiBook} emptyText="No students found" />
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Student' : 'Add Student'} size="lg">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Member *</label>
+            <div className="col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">समाज सदस्य चुनें (Member) *</label>
               <select {...register('member', { required: true })} className="input-field">
-                <option value="">Select member</option>
-                {members.map(m => <option key={m._id} value={m._id}>{m.firstName} {m.lastName}</option>)}
+                <option value="">सदस्य चुनें</option>
+                {members.map(m => (
+                  <option key={m.id || m._id} value={m.id || m._id}>
+                    {m.full_name || `${m.firstName || ''} ${m.lastName || ''}`.trim() || 'सदस्य'} {m.mobile_number || m.phone ? `(${m.mobile_number || m.phone})` : ''}
+                  </option>
+                ))}
               </select>
             </div>
             <div><label className="block text-sm font-medium text-gray-700 mb-1">School/College</label><input {...register('collegeName')} placeholder="Institution name" className="input-field" /></div>

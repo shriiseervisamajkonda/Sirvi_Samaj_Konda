@@ -50,12 +50,22 @@ const PanchSettlementsPage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      title: (data.title || '').trim(),
+      parties: (data.parties || '').trim(),
+      settlement_date: data.settlementDate || data.settlement_date || new Date().toISOString().slice(0, 10),
+      description: (data.description || '').trim() || null,
+      panchs: Array.isArray(data.panchs) ? data.panchs : (data.panchs ? data.panchs.split(',').map(s => s.trim()) : []),
+      documents: Array.isArray(data.documents) ? data.documents : [],
+      status: data.status || 'settled',
+    };
     try {
-      if (editItem) {
-        await panchSettlementAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await panchSettlementAPI.update(targetId, payload);
         toast.success('Panch settlement record updated!');
       } else {
-        await panchSettlementAPI.create(data);
+        await panchSettlementAPI.create(payload);
         toast.success('Panch settlement record created!');
       }
       setModalOpen(false);
@@ -69,11 +79,12 @@ const PanchSettlementsPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await panchSettlementAPI.delete(targetId);
-      setItems((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Record removed successfully!');
       setDeleteItem(null);
       if (items.length === 1 && page > 1) {
@@ -89,20 +100,46 @@ const PanchSettlementsPage = () => {
   };
 
   const columns = [
-    { key: 'settlementDate', label: 'Date', render: (v) => new Date(v).toLocaleDateString('en-IN') },
-    { key: 'title', label: 'Case Subject', render: (v) => <span className="font-semibold">{v}</span> },
-    { key: 'parties', label: 'Parties Involved' },
-    { key: 'panchs', label: 'Panch Arbitrators', render: (v) => v || '-' },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'resolved' ? 'success' : v === 'ongoing' ? 'warning' : 'danger'}>{v}</Badge> },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'settlementDate',
+      label: 'Date',
+      sortable: true,
+      render: (v, r) => {
+        const d = v || r.settlement_date || r.created_at;
+        return d ? new Date(d).toLocaleDateString('en-IN') : '—';
+      },
+    },
+    { key: 'title', label: 'Case Subject', sortable: true, render: (v) => <span className="font-semibold">{v || '—'}</span> },
+    { key: 'parties', label: 'Parties Involved', sortable: true, render: (v) => v || '—' },
+    { key: 'panchs', label: 'Panch Arbitrators', render: (v) => v || '-' },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'resolved' ? 'success' : v === 'ongoing' ? 'warning' : 'danger'}>{v || 'resolved'}</Badge> },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset({ ...r, settlementDate: new Date(r.settlementDate).toISOString().split('T')[0] }); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button
+            onClick={() => {
+              setEditItem(r);
+              const d = r.settlement_date || r.settlementDate;
+              reset({ ...r, settlementDate: d ? new Date(d).toISOString().split('T')[0] : '' });
+              setModalOpen(true);
+            }}
+            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"
+          >
+            <FiEdit2 className="w-4 h-4" />
+          </button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
   ];
+
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -120,7 +157,7 @@ const PanchSettlementsPage = () => {
         onPageChange={setPage} onSearchChange={(v) => { setSearch(v); setPage(1); }} serverSide emptyIcon={FiBook} emptyText="No settlement records found" />
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Settlement Record' : 'Add Settlement Record'} size="lg">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">केस का विषय / शीर्षक (Case Title) *</label>

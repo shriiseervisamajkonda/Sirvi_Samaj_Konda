@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FiSearch, FiChevronUp, FiChevronDown, FiDownload } from 'react-icons/fi';
 import Pagination from './Pagination';
 import EmptyState from './EmptyState';
@@ -13,7 +13,7 @@ const DataTable = ({
   currentPage = 1,
   onPageChange,
   searchable = true,
-  downloadable = true,
+  downloadable = false, // Default false to protect sensitive community table datasets
   title,
   actions,
   emptyIcon,
@@ -21,19 +21,37 @@ const DataTable = ({
   emptyDescription,
   serverSide = false,
   onSearchChange,
+  onSortChange,
+  searchValue,
+  initialSortField = null,
+  initialSortDir = 'asc',
 }) => {
-  const [localSearch, setLocalSearch] = useState('');
-  const [sortField, setSortField] = useState(null);
-  const [sortDir, setSortDir] = useState('asc');
+  const [localSearch, setLocalSearch] = useState(searchValue !== undefined ? searchValue : '');
+  const [sortField, setSortField] = useState(initialSortField);
+  const [sortDir, setSortDir] = useState(initialSortDir);
   
-  const { isAdmin } = useAuth();
+  const { isAdmin, canExportData } = useAuth();
+
+  useEffect(() => {
+    if (searchValue !== undefined) {
+      setLocalSearch(searchValue);
+    }
+  }, [searchValue]);
+
+  useEffect(() => {
+    setSortField(initialSortField);
+  }, [initialSortField]);
+
+  useEffect(() => {
+    setSortDir(initialSortDir);
+  }, [initialSortDir]);
 
   const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortField(field);
-      setSortDir('asc');
+    const newDir = sortField === field ? (sortDir === 'asc' ? 'desc' : 'asc') : 'asc';
+    setSortField(field);
+    setSortDir(newDir);
+    if (onSortChange) {
+      onSortChange(field, newDir);
     }
   };
 
@@ -43,34 +61,70 @@ const DataTable = ({
     if (onSearchChange) onSearchChange(value);
   };
 
+  const getCellValue = (row, key) => {
+    if (!row || !key) return '';
+    // Direct property
+    if (row[key] !== undefined && row[key] !== null) return row[key];
+    
+    // Snake_case equivalent
+    const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    if (row[snakeKey] !== undefined && row[snakeKey] !== null) return row[snakeKey];
+
+    // Specific domain mappings
+    if (key === 'headOfFamily') return row.head_name || row.headOfFamily || '';
+    if (key === 'surname') return row.gotra || row.surname || '';
+    if (key === 'mobileNumber' || key === 'phone') return row.head_mobile || row.mobile_number || row.phone || '';
+    if (key === 'numberOfMembers') return Number(row.total_members ?? row.numberOfMembers ?? 0);
+    if (key === 'agriculturalLandArea') return Number(row.land_area_acres ?? row.agriculturalLandArea ?? row.land_holding ?? 0);
+    if (key === 'familyId') return row.panchayat_family_id || row.familyId || '';
+    if (key === 'role') return row.role?.name || row.role || '';
+    if (key === 'status') return row.is_active === false || row.status === 'inactive' ? 'inactive' : 'active';
+    if (key === 'createdAt') return row.created_at || row.createdAt || '';
+    if (key === 'date' || key === 'settlementDate' || key === 'entryDate') return row.entry_date || row.settlement_date || row.date || row.created_at || '';
+    if (key === 'amount') return Number(row.amount ?? 0);
+
+    return '';
+  };
+
   const filtered = useMemo(() => {
     if (serverSide || !localSearch) return data || [];
     const q = localSearch.toLowerCase();
     return (data || []).filter((row) =>
       columns.some((col) => {
         if (!col.key) return false;
-        const val = row[col.key];
-        return val && String(val).toLowerCase().includes(q);
+        const val = getCellValue(row, col.key);
+        return val !== undefined && val !== null && String(val).toLowerCase().includes(q);
       })
     );
   }, [data, localSearch, columns, serverSide]);
 
   const sorted = useMemo(() => {
+    if (serverSide) return filtered;
     if (!sortField) return filtered;
     return [...filtered].sort((a, b) => {
-      const aVal = a[sortField];
-      const bVal = b[sortField];
-      if (aVal < bVal) return sortDir === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortDir === 'asc' ? 1 : -1;
-      return 0;
+      const aVal = getCellValue(a, sortField);
+      const bVal = getCellValue(b, sortField);
+
+      if (aVal === null || aVal === undefined || aVal === '') return 1;
+      if (bVal === null || bVal === undefined || bVal === '') return -1;
+
+      const aNum = Number(aVal);
+      const bNum = Number(bVal);
+      if (!isNaN(aNum) && !isNaN(bNum) && typeof aVal !== 'boolean' && typeof bVal !== 'boolean' && String(aVal).trim() !== '' && String(bVal).trim() !== '') {
+        return sortDir === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+
+      return sortDir === 'asc'
+        ? String(aVal).localeCompare(String(bVal), undefined, { numeric: true, sensitivity: 'base' })
+        : String(bVal).localeCompare(String(aVal), undefined, { numeric: true, sensitivity: 'base' });
     });
-  }, [filtered, sortField, sortDir]);
+  }, [filtered, sortField, sortDir, serverSide]);
 
   const exportToCSV = () => {
-    if (!sorted || sorted.length === 0) return;
+    if (!isAdmin || !sorted || sorted.length === 0) return;
     
     // Get headers from columns
-    const exportColumns = columns.filter(col => col.key && col.label !== 'Actions');
+    const exportColumns = columns.filter(col => col.key && !col.key.startsWith('_') && col.label !== 'Actions');
     const headers = exportColumns.map(col => col.label);
     const keys = exportColumns.map(col => col.key);
 
@@ -86,20 +140,22 @@ const DataTable = ({
       )
     ].join('\n');
 
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' }); // Added BOM for UTF-8 Excel support
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `${title ? title.replace(/\s+/g, '_') : 'export'}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `${title ? title.replace(/\s+/g, '_') : 'konda_export'}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  const showHeader = Boolean(title || searchable || (downloadable && isAdmin && sorted.length > 0) || actions);
+
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-[#E8DCC8] overflow-hidden">
       {/* Header */}
-      {(title || searchable || downloadable || actions) && (
+      {showHeader && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 sm:p-6 border-b border-[#E8DCC8] bg-gradient-to-r from-[#FFF8EC]/60 to-white">
           {title && <h3 className="font-extrabold text-[#2B211B] text-base sm:text-lg">{title}</h3>}
           <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -115,11 +171,12 @@ const DataTable = ({
                 />
               </div>
             )}
-            {downloadable && isAdmin && sorted.length > 0 && (
+            {/* Granular Authority: Gated behind can_export_data permission */}
+            {downloadable && (canExportData !== undefined ? canExportData : isAdmin) && sorted.length > 0 && (
               <button
                 onClick={exportToCSV}
-                className="p-2.5 bg-white border border-[#E8DCC8] rounded-2xl text-[#C85A17] hover:bg-[#FFF8EC] hover:border-[#C85A17] transition-all shadow-sm flex items-center gap-2 shrink-0"
-                title="CSV डाउनलोड करें (Download CSV)"
+                className="p-2.5 bg-white border border-[#E8DCC8] rounded-2xl text-[#C85A17] hover:bg-[#FFF8EC] hover:border-[#C85A17] transition-all shadow-sm flex items-center gap-2 shrink-0 cursor-pointer"
+                title="CSV डाउनलोड करें"
               >
                 <FiDownload className="w-4 h-4" />
                 <span className="hidden sm:inline text-sm font-bold">CSV</span>
@@ -150,8 +207,16 @@ const DataTable = ({
                   >
                     <div className="flex items-center gap-1.5">
                       {col.label}
-                      {col.sortable && sortField === col.key && (
-                        sortDir === 'asc' ? <FiChevronUp className="w-3.5 h-3.5 text-[#C85A17]" /> : <FiChevronDown className="w-3.5 h-3.5 text-[#C85A17]" />
+                      {col.sortable && (
+                        sortField === col.key ? (
+                          sortDir === 'asc' ? (
+                            <FiChevronUp className="w-3.5 h-3.5 text-[#C85A17]" />
+                          ) : (
+                            <FiChevronDown className="w-3.5 h-3.5 text-[#C85A17]" />
+                          )
+                        ) : (
+                          <span className="text-[#CDBBA4] text-xs opacity-50">⇅</span>
+                        )
                       )}
                     </div>
                   </th>
@@ -161,7 +226,7 @@ const DataTable = ({
             <tbody className="divide-y divide-[#E8DCC8]/60">
               {sorted.map((row, idx) => (
                 <tr
-                  key={row._id || idx}
+                  key={row.id || row._id || idx}
                   className="hover:bg-[#FFF8EC]/50 transition-colors"
                 >
                   {columns.map((col) => (

@@ -106,30 +106,20 @@ const DashboardPage = () => {
   if (loading) return <SkeletonDashboard />;
 
   const statCards = [
-    { title: 'कुल परिवार (Families)', value: stats?.totalFamilies ?? stats?.families, icon: FiUsers, link: '/admin/families', badge: 'पंजीकृत परिवार' },
-    { title: 'समाज सदस्य (Members)', value: stats?.totalMembers ?? stats?.members, icon: FiUsers, link: '/admin/members', badge: 'कुल जनसंख्या' },
-    { title: 'विद्यार्थी (Students)', value: stats?.students ?? stats?.studentCount, icon: FiBook, link: '/admin/students', badge: 'शिक्षा प्रतिभा' },
-    { title: 'रक्तदाता (Blood Donors)', value: stats?.bloodDonors ?? stats?.bloodDonorCount, icon: FiDroplet, link: '/admin/blood-donors', badge: 'जीवनदाता' },
-    { title: 'सक्रिय कार्यक्रम (Events)', value: stats?.events ?? stats?.eventCount, icon: FiCalendar, link: '/admin/events', badge: 'सामाजिक आयोजन' },
-    { title: 'समाचार (News)', value: stats?.news ?? stats?.newsCount, icon: FiFileText, link: '/admin/news', badge: 'उद्घोषणाएं' },
+    { title: 'कुल परिवार (Families)', value: stats?.totalFamilies ?? stats?.total_families ?? 0, icon: FiUsers, link: '/admin/families', badge: 'पंजीकृत परिवार' },
+    { title: 'समाज सदस्य (Members)', value: stats?.totalMembers ?? stats?.total_members ?? 0, icon: FiUsers, link: '/admin/members', badge: 'कुल जनसंख्या' },
+    { title: 'विद्यार्थी (Students)', value: stats?.studentCount ?? stats?.students ?? 0, icon: FiBook, link: '/admin/students', badge: 'शिक्षा प्रतिभा' },
+    { title: 'रक्तदाता (Blood Donors)', value: stats?.bloodDonorCount ?? stats?.blood_donors ?? 0, icon: FiDroplet, link: '/admin/blood-donors', badge: 'जीवनदाता' },
+    { title: 'सक्रिय कार्यक्रम (Events)', value: stats?.eventCount ?? stats?.events ?? 0, icon: FiCalendar, link: '/admin/events', badge: 'सामाजिक आयोजन' },
+    { title: 'समाचार (News)', value: stats?.newsCount ?? stats?.news ?? 0, icon: FiFileText, link: '/admin/news', badge: 'उद्घोषणाएं' },
   ];
 
-  const genderData = [
-    { name: 'पुरुष (Male)', value: stats?.male || 1 },
-    { name: 'महिला (Female)', value: stats?.female || 1 },
-    { name: 'बच्चे (Children)', value: stats?.children || 1 },
+  const genderData = statsData?.genderDistribution || [
+    { name: 'पुरुष (Male)', value: stats?.maleCount || 0 },
+    { name: 'महिला (Female)', value: stats?.femaleCount || 0 },
   ];
 
-  const monthlyGrowth = statsData?.monthlyGrowth?.length
-    ? statsData.monthlyGrowth.map((g) => ({ month: g._id, members: g.count }))
-    : [
-        { month: 'जनवरी', members: 45 },
-        { month: 'फरवरी', members: 60 },
-        { month: 'मार्च', members: 78 },
-        { month: 'अप्रैल', members: 92 },
-        { month: 'मई', members: 110 },
-        { month: 'जून', members: 135 },
-      ];
+  const gotraData = statsData?.gotraDistribution || [];
 
   return (
     <div className="space-y-8 text-[#2B211B]">
@@ -190,35 +180,43 @@ const DashboardPage = () => {
 
       {/* Charts Visualization Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Registration Growth */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E8DCC8] shadow-sm">
-          <div className="flex items-center justify-between mb-6">
+        {/* Gotra Family Distribution */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E8DCC8] shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <span className="text-xs font-extrabold text-[#7A2525] uppercase tracking-wider block">
-                सांख्यिकी रुझान
+                गोत्र सांख्यिकी (16 कुल गोत्र)
               </span>
               <h3 className="text-lg font-black text-[#2B211B] flex items-center gap-2 mt-0.5">
-                <FiTrendingUp className="w-5 h-5 text-[#C85A17]" /> मासिक समाज वृद्धि
+                <FiTrendingUp className="w-5 h-5 text-[#C85A17]" /> समाज गोत्र / उपनाम वितरण (213 परिवार)
               </h3>
             </div>
           </div>
-          <div className="w-full h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyGrowth}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E8DCC8" />
-                <XAxis dataKey="month" tick={{ fill: '#766A60', fontSize: 12 }} />
-                <YAxis tick={{ fill: '#766A60', fontSize: 12 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#FFF8EC',
-                    borderColor: '#E8DCC8',
-                    borderRadius: '1rem',
-                    fontWeight: 'bold',
-                  }}
-                />
-                <Bar dataKey="members" fill="#7A2525" radius={[8, 8, 0, 0]} name="सदस्य संख्या" />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="w-full overflow-x-auto pb-2">
+            <div className="min-w-[620px] h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={gotraData} margin={{ top: 10, right: 10, left: -20, bottom: 45 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E8DCC8" />
+                  <XAxis
+                    dataKey="gotra"
+                    interval={0}
+                    angle={-45}
+                    textAnchor="end"
+                    tick={{ fill: '#766A60', fontSize: 10, fontWeight: 'bold' }}
+                  />
+                  <YAxis tick={{ fill: '#766A60', fontSize: 11 }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#FFF8EC',
+                      borderColor: '#E8DCC8',
+                      borderRadius: '1rem',
+                      fontWeight: 'bold',
+                    }}
+                  />
+                  <Bar dataKey="families" fill="#C85A17" radius={[6, 6, 0, 0]} name="परिवार संख्या (Families)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
@@ -230,7 +228,7 @@ const DashboardPage = () => {
                 जनसांख्यिकी
               </span>
               <h3 className="text-lg font-black text-[#2B211B] flex items-center gap-2 mt-0.5">
-                <FiUsers className="w-5 h-5 text-[#C85A17]" /> सदस्य जनसांख्यिकी विभाजन
+                <FiUsers className="w-5 h-5 text-[#C85A17]" /> वास्तविक लिंग अनुपात (Gender Demographics)
               </h3>
             </div>
           </div>
@@ -292,7 +290,7 @@ const DashboardPage = () => {
             </div>
           ) : (
             logs.map((log, i) => (
-              <div key={log._id || i} className="flex items-center justify-between p-5 hover:bg-[#FFF8EC]/60 transition">
+              <div key={log.id || log._id || i} className="flex items-center justify-between p-5 hover:bg-[#FFF8EC]/60 transition">
                 <div className="flex items-center gap-4 min-w-0">
                   <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white text-xs font-black shrink-0 shadow-xs">
                     {log.user?.name?.charAt(0) || 'A'}
@@ -306,7 +304,7 @@ const DashboardPage = () => {
                       में {log.action} किया।
                     </p>
                     <p className="text-xs text-[#766A60] font-medium mt-0.5">
-                      {new Date(log.createdAt).toLocaleString('hi-IN', {
+                      {new Date(log.created_at || log.createdAt || Date.now()).toLocaleString('hi-IN', {
                         day: 'numeric',
                         month: 'short',
                         hour: '2-digit',

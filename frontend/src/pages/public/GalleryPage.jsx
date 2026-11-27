@@ -5,11 +5,8 @@ import { galleryAPI } from '../../services/api';
 import { SkeletonImageGrid } from '../../components/common/Skeleton';
 import EmptyState from '../../components/common/EmptyState';
 
-const defaultGalleryImages = [
-  { _id: 'g-temple-1', url: '/aai_mata_temple.webp', title: 'श्री आई जी मंदिर (बडेर) कोणदा' },
-  { _id: 'g-temple-2', url: '/aai_mataji_portrait.jpg', title: 'श्री आई माताजी पावन स्वरूप' },
-  { _id: 'g-temple-3', url: '/hero_background.webp', title: 'सिर्वी समाज कोणदा धरोहर' },
-];
+// TODO: This is mock/fallback data. Remove when actual data is filled in the database.
+import defaultGalleryImages from '../../data/mock/galleryFallback.json';
 
 const GalleryPage = () => {
   const [images, setImages] = useState(defaultGalleryImages);
@@ -20,7 +17,7 @@ const GalleryPage = () => {
 
   useEffect(() => {
     Promise.all([
-      galleryAPI.getAll({ limit: 60, status: 'active' }),
+      galleryAPI.getAll({ limit: 60 }),
       galleryAPI.getAlbums(),
     ])
       .then(([imgRes, albRes]) => {
@@ -35,7 +32,9 @@ const GalleryPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = selectedAlbum === 'All' ? images : images.filter(img => img.album?.title === selectedAlbum || img.album?._id === selectedAlbum);
+  const getImageUrl = (img) => img?.photo_url || img?.imageUrl || img?.image_url || img?.url || '/hero_background.webp';
+
+  const filtered = selectedAlbum === 'All' ? images : images.filter(img => img.album?.title === selectedAlbum || img.album?._id === selectedAlbum || img.album?.id === selectedAlbum || img.album_id === selectedAlbum);
 
   const openLightbox = (idx) => setLightbox(idx);
   const closeLightbox = () => setLightbox(null);
@@ -87,19 +86,22 @@ const GalleryPage = () => {
           >
             सभी चित्र ({images.length})
           </button>
-          {albums.map(album => (
+          {albums.map((album, aIdx) => {
+            const albumId = album.id || album._id || `album-${aIdx}`;
+            return (
             <button
-              key={album._id}
-              onClick={() => setSelectedAlbum(album._id)}
+              key={albumId}
+              onClick={() => setSelectedAlbum(albumId)}
               className={`px-6 py-2.5 rounded-2xl text-xs sm:text-sm font-bold border transition-all cursor-pointer ${
-                selectedAlbum === album._id
+                selectedAlbum === albumId
                   ? 'bg-gradient-to-r from-[#C85A17] to-[#C9A44C] text-white border-transparent shadow-md font-black'
                   : 'bg-white border-[#E8DCC8] text-[#2B211B] hover:bg-[#FFF8EC]'
               }`}
             >
-              {album.title}
+              {album.title || album.name}
             </button>
-          ))}
+            );
+          })}
         </div>
 
         {loading ? (
@@ -108,31 +110,41 @@ const GalleryPage = () => {
           <EmptyState icon={FiImage} title="कोई चित्र उपलब्ध नहीं" description="वर्तमान में गैलरी में कोई फोटो उपलब्ध नहीं है।" />
         ) : (
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-            {filtered.map((img, i) => (
-              <motion.div
-                key={img._id || i}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: (i % 12) * 0.04 }}
-                className="break-inside-avoid relative group cursor-pointer overflow-hidden rounded-3xl border border-[#E8DCC8] shadow-md hover:shadow-2xl hover:border-[#C9A44C]/60 transition-all duration-300 bg-white p-2"
-                onClick={() => openLightbox(i)}
-              >
-                <div className="rounded-2xl overflow-hidden bg-[#FAF1E0]">
-                  <img
-                    src={img.url || img.imageUrl}
-                    alt={img.title || `Gallery ${i + 1}`}
-                    className="w-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-2xl"
-                    loading="lazy"
-                  />
-                </div>
-                {img.title && (
-                  <div className="p-3">
-                    <p className="text-[#2B211B] text-sm font-bold truncate group-hover:text-[#C85A17] transition-colors">{img.title}</p>
+            {filtered.map((img, i) => {
+              const src = getImageUrl(img);
+              return (
+                <motion.div
+                  key={img.id || img._id || i}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: (i % 12) * 0.04 }}
+                  className="break-inside-avoid relative group cursor-pointer overflow-hidden rounded-3xl border border-[#E8DCC8] shadow-md hover:shadow-2xl hover:border-[#C9A44C]/60 transition-all duration-300 bg-white p-2"
+                  onClick={() => openLightbox(i)}
+                >
+                  <div className="rounded-2xl overflow-hidden bg-[#FAF1E0] min-h-[160px]">
+                    <img
+                      src={src}
+                      alt={img.title || `Gallery ${i + 1}`}
+                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500 rounded-2xl"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = '/hero_background.webp';
+                      }}
+                    />
                   </div>
-                )}
-              </motion.div>
-            ))}
+                  {img.title && (
+                    <div className="p-3">
+                      <p className="text-[#2B211B] text-sm font-bold truncate group-hover:text-[#C85A17] transition-colors">{img.title}</p>
+                      {img.caption && (
+                        <p className="text-[#766A60] text-xs mt-0.5 line-clamp-1">{img.caption}</p>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -167,9 +179,13 @@ const GalleryPage = () => {
             </button>
             <div className="max-w-4xl max-h-[85vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
               <img
-                src={filtered[lightbox]?.url || filtered[lightbox]?.imageUrl}
+                src={getImageUrl(filtered[lightbox])}
                 alt={filtered[lightbox]?.title || ''}
                 className="max-h-[75vh] max-w-full object-contain rounded-2xl shadow-2xl border-2 border-white/20"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/hero_background.webp';
+                }}
               />
               {filtered[lightbox]?.title && (
                 <p className="text-white text-center mt-4 text-base font-bold bg-black/50 px-4 py-1.5 rounded-full backdrop-blur-md">

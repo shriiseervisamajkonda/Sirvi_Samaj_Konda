@@ -58,12 +58,21 @@ const SocialInfoPage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      ...data,
+      is_active: data.isActive !== undefined ? data.isActive : true,
+      is_published: data.isActive !== undefined ? data.isActive : true,
+      order_priority: Number(data.order) || 0,
+      display_order: Number(data.order) || 0,
+      order: Number(data.order) || 0,
+    };
     try {
-      if (editItem) {
-        await socialInfoAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await socialInfoAPI.update(targetId, payload);
         toast.success('Social info updated successfully!');
       } else {
-        await socialInfoAPI.create(data);
+        await socialInfoAPI.create(payload);
         toast.success('Social info created successfully!');
       }
       setModalOpen(false);
@@ -77,11 +86,12 @@ const SocialInfoPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await socialInfoAPI.delete(targetId);
-      setItems((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Social info entry deleted successfully!');
       setDeleteItem(null);
       if (items.length === 1 && page > 1) {
@@ -97,19 +107,62 @@ const SocialInfoPage = () => {
   };
 
   const columns = [
-    { key: 'order', label: 'Order', sortable: true, render: (v) => <span className="font-semibold">{v}</span> },
-    { key: 'title', label: 'Title / Subject', render: (v) => <span className="font-medium">{v}</span> },
-    { key: 'category', label: 'Category', render: (v) => <Badge variant="primary">{categories.find(c => c.id === v)?.label || v}</Badge> },
-    { key: 'isActive', label: 'Status', render: (v) => <Badge variant={v ? 'success' : 'warning'}>{v ? 'Active' : 'Inactive'}</Badge> },
+    { key: 'order', label: 'Order', sortable: true, render: (v, r) => <span className="font-semibold">{v || r.display_order || 0}</span> },
+    { key: 'title', label: 'Title / Subject', sortable: true, render: (v) => <span className="font-medium">{v || '—'}</span> },
+    { key: 'category', label: 'Category', sortable: true, render: (v) => <Badge variant="primary">{categories.find((c) => c.id === v)?.label || v || 'General'}</Badge> },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'isActive',
+      label: 'Status',
+      sortable: true,
+      render: (_, r) => {
+        const active = r.is_active !== undefined ? r.is_active : r.isActive !== false;
+        return <Badge variant={active ? 'success' : 'warning'}>{active ? 'Active' : 'Inactive'}</Badge>;
+      },
+    },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button onClick={() => openEdit(r)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
   ];
+
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
+  const openCreate = () => {
+    setEditItem(null);
+    reset({
+      title: '',
+      category: 'general',
+      order: 1,
+      isActive: true,
+      content: '',
+      attachments: [],
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (row) => {
+    setEditItem(row);
+    reset({
+      ...row,
+      title: row.title || '',
+      category: row.category || 'general',
+      order: row.order_priority ?? row.display_order ?? row.order ?? 1,
+      isActive: row.is_active !== undefined ? Boolean(row.is_active) : (row.isActive !== false),
+      content: row.content || '',
+      attachments: row.attachments || [],
+    });
+    setModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -118,7 +171,7 @@ const SocialInfoPage = () => {
           <h1 className="text-2xl font-bold text-gray-900 ">सामाजिक जानकारी प्रबंधन (Social Info Management)</h1>
           <p className="text-gray-500 text-sm mt-1">Manage rules, history, customs, and reform resolutions for the public website</p>
         </div>
-        <button onClick={() => { setEditItem(null); reset({ isActive: true, category: 'general', order: 1, attachments: [] }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 shadow-md shadow-purple-600/30">
+        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 shadow-md shadow-purple-600/30">
           <FiPlus className="w-4 h-4" /> Add Social Info Entry
         </button>
       </div>
@@ -127,7 +180,7 @@ const SocialInfoPage = () => {
         onPageChange={setPage} onSearchChange={(v) => { setSearch(v); setPage(1); }} serverSide emptyIcon={FiBookOpen} emptyText="No social info records found" />
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Social Info' : 'Add Social Info'} size="lg">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">शीर्षक / विषय (Title) *</label>

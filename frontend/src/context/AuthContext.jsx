@@ -5,8 +5,14 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem('user');
-    return stored ? JSON.parse(stored) : null;
+    try {
+      const stored = localStorage.getItem('user');
+      if (!stored || stored === 'undefined' || stored === 'null') return null;
+      return JSON.parse(stored);
+    } catch {
+      localStorage.removeItem('user');
+      return null;
+    }
   });
   const [loading, setLoading] = useState(true);
 
@@ -32,23 +38,108 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     checkAuth();
+
+    const handleUnauthorized = () => {
+      setUser(null);
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && localStorage.getItem('accessToken')) {
+        checkAuth();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Inactivity timeout: 30 minutes of inactivity
+    const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
+    let inactivityTimer = null;
+
+    const resetInactivityTimer = () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      if (!localStorage.getItem('accessToken')) return;
+      inactivityTimer = setTimeout(() => {
+        if (localStorage.getItem('accessToken')) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          setUser(null);
+          if (typeof window !== 'undefined' && (window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/profile'))) {
+            window.location.href = '/login?reason=idle_timeout';
+          }
+        }
+      }, INACTIVITY_LIMIT_MS);
+    };
+
+    const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    activityEvents.forEach((ev) => window.addEventListener(ev, resetInactivityTimer, { passive: true }));
+    resetInactivityTimer();
+
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      activityEvents.forEach((ev) => window.removeEventListener(ev, resetInactivityTimer));
+    };
   }, [checkAuth]);
 
   const login = async (credentials) => {
-    const { data } = await authAPI.login(credentials);
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    setUser(data.user);
+    const res = await authAPI.login(credentials);
+    const data = res.data;
+    const accessToken = data.accessToken || data.data?.accessToken;
+    const refreshToken = data.refreshToken || data.data?.refreshToken;
+    const userObj = data.user || data.data?.user || data.data;
+
+    if (accessToken) localStorage.setItem('accessToken', accessToken);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+    if (userObj) {
+      if (data.must_change_password !== undefined) {
+        userObj.must_change_password = data.must_change_password;
+      }
+      localStorage.setItem('user', JSON.stringify(userObj));
+      setUser(userObj);
+    }
     return data;
   };
 
+  const googleLogin = async (googlePayload) => {
+    const res = await authAPI.googleLogin(googlePayload);
+    const data = res.data;
+    const accessToken = data.accessToken || data.data?.accessToken;
+    const refreshToken = data.refreshToken || data.data?.refreshToken;
+    const userObj = data.user || data.data?.user || data.data;
+
+    if (accessToken) localStorage.setItem('accessToken', accessToken);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+    if (userObj) {
+      localStorage.setItem('user', JSON.stringify(userObj));
+      setUser(userObj);
+    }
+    return data;
+  };
+
+  const updateUser = useCallback((updatedUser) => {
+    if (!updatedUser) return;
+    setUser((prev) => {
+      const merged = { ...prev, ...updatedUser };
+      localStorage.setItem('user', JSON.stringify(merged));
+      return merged;
+    });
+  }, []);
+
   const register = async (userData) => {
-    const { data } = await authAPI.register(userData);
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    setUser(data.user);
+    const res = await authAPI.register(userData);
+    const data = res.data;
+    const accessToken = data.accessToken || data.data?.accessToken;
+    const refreshToken = data.refreshToken || data.data?.refreshToken;
+    const userObj = data.user || data.data?.user || data.data;
+
+    if (accessToken) localStorage.setItem('accessToken', accessToken);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+    if (userObj) {
+      localStorage.setItem('user', JSON.stringify(userObj));
+      setUser(userObj);
+    }
     return data;
   };
 
@@ -63,11 +154,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const isAdmin = user && ['super_admin', 'admin', 'editor'].includes(user.role);
-  const isSuperAdmin = user?.role === 'super_admin';
+  const isDeveloper = Boolean(user && user.role === 'developer');
+  const isAdmin = Boolean(user && ['developer', 'super_admin', 'admin', 'editor', 'treasurer'].includes(user.role));
+  const isSuperAdmin = Boolean(user && ['developer', 'super_admin'].includes(user.role));
+  const isStaff = Boolean(user && ['developer', 'super_admin', 'admin', 'treasurer'].includes(user.role));
+
+  const canExportData = Boolean(
+    isDeveloper ||
+    isSuperAdmin ||
+    (user?.permissions && Array.isArray(user.permissions) && user.permissions.includes('can_export_data'))
+  );
+
+  const canViewLekhaJokha = Boolean(
+    isStaff ||
+    (user?.permissions && Array.isArray(user.permissions) && user.permissions.includes('can_view_lekha_jokha'))
+  );
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isAdmin, isSuperAdmin, checkAuth }}>
+    <AuthContext.Provider value={{ user, loading, login, googleLogin, updateUser, register, logout, isAdmin, isSuperAdmin, isDeveloper, canExportData, canViewLekhaJokha, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

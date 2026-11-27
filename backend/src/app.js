@@ -7,6 +7,7 @@ import compression from 'compression';
 
 import { setCacheHeaders, memoryCacheMiddleware } from './middleware/cache.js';
 import errorHandler from './middleware/errorHandler.js';
+import sanitizeInputs from './middleware/sanitize.js';
 
 // Route Imports
 import authRoutes from './routes/authRoutes.js';
@@ -29,6 +30,20 @@ import activityLogRoutes from './routes/activityLogRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import searchRoutes from './routes/searchRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import studentRoutes from './routes/studentRoutes.js';
+import businessRoutes from './routes/businessRoutes.js';
+import socialInfoRoutes from './routes/socialInfoRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
+import gramUnitRoutes from './routes/gramUnitRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
+import {
+  getGramUnitMembers,
+  getGramUnitMemberById,
+  createGramUnitMember,
+  updateGramUnitMember,
+  deleteGramUnitMember,
+} from './controllers/gramUnitController.js';
+import { protect, authorize, optionalAuth } from './middleware/auth.js';
 
 const app = express();
 
@@ -39,11 +54,10 @@ app.set('trust proxy', 1);
 
 const allowedOrigins = [
   process.env.CLIENT_URL,
-  'https://sirvi-samaj-konda.vercel.app',
-  'https://sirvi-samaj-konda-zhv7.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
 ].filter(Boolean);
 
 app.use(
@@ -78,6 +92,7 @@ app.use('/api', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+app.use(sanitizeInputs);
 
 // Auth Limiter
 const authLimiter = rateLimit({
@@ -86,6 +101,7 @@ const authLimiter = rateLimit({
   message: { success: false, message: 'Too many authentication attempts, please try again later.' },
 });
 app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/google-login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/forgot-password', authLimiter);
 
@@ -128,6 +144,21 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/upload', uploadRoutes);
+
+// Extended Directory & Administrative Modules
+app.use('/api/students', studentRoutes);
+app.use('/api/businesses', businessRoutes);
+app.use('/api/social-info', socialInfoRoutes);
+app.use('/api/contacts', contactRoutes);
+app.use('/api/gram-units', gramUnitRoutes);
+app.use('/api/settings', settingsRoutes);
+
+// Direct /api/gram-unit-members mounting
+app.get('/api/gram-unit-members', optionalAuth, getGramUnitMembers);
+app.get('/api/gram-unit-members/:id', optionalAuth, getGramUnitMemberById);
+app.post('/api/gram-unit-members', protect, authorize('developer', 'super_admin', 'admin'), createGramUnitMember);
+app.put('/api/gram-unit-members/:id', protect, authorize('developer', 'super_admin', 'admin'), updateGramUnitMember);
+app.delete('/api/gram-unit-members/:id', protect, authorize('developer', 'super_admin', 'admin'), deleteGramUnitMember);
 
 // Centralized Error Handler
 app.use(errorHandler);

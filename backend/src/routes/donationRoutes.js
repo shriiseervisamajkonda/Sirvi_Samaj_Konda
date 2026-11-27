@@ -2,6 +2,7 @@ import express from 'express';
 import {
   getDonations,
   getDonationStats,
+  getMyReceipts,
   getReceiptByNumber,
   recordDonation,
   updateDonation,
@@ -14,6 +15,7 @@ const router = express.Router();
 // Public receipt lookup
 router.get('/receipt/:receiptNumber', optionalAuth, getReceiptByNumber);
 router.get('/stats', optionalAuth, getDonationStats);
+router.get('/my-receipts', optionalAuth, getMyReceipts);
 
 // Protected Staff & Treasurer operations
 router.use(protect);

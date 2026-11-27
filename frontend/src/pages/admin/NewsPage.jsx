@@ -9,7 +9,7 @@ import Badge from '../../components/common/Badge';
 import ImageUpload from '../../components/common/ImageUpload';
 import toast from 'react-hot-toast';
 
-const categories = ['news', 'announcement', 'notice', 'emergency', 'update'];
+const categories = ['news', 'announcement', 'notice', 'emergency', 'update', 'obituary', 'social', 'general'];
 
 const NewsPage = () => {
   const [items, setItems] = useState([]);
@@ -43,12 +43,21 @@ const NewsPage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const payload = {
+      title: (data.title || '').trim(),
+      category: data.category || 'news',
+      status: data.status || 'published',
+      excerpt: (data.excerpt || '').trim() || null,
+      content: (data.content || '').trim(),
+      image_url: data.image || data.image_url || null,
+    };
     try {
-      if (editItem) {
-        await newsAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await newsAPI.update(targetId, payload);
         toast.success('Updated successfully!');
       } else {
-        await newsAPI.create(data);
+        await newsAPI.create(payload);
         toast.success('Published successfully!');
       }
       setModalOpen(false);
@@ -62,14 +71,15 @@ const NewsPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await newsAPI.delete(targetId);
-      setArticles((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('News article deleted successfully!');
       setDeleteItem(null);
-      if (articles.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -82,27 +92,70 @@ const NewsPage = () => {
   };
 
   const columns = [
-    { key: 'title', label: 'Title', sortable: true, render: (v) => <span className="font-medium line-clamp-1">{v}</span> },
-    { key: 'category', label: 'Category', render: (v) => <Badge variant="info">{v}</Badge> },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'published' ? 'success' : 'warning'}>{v}</Badge> },
-    { key: 'views', label: 'Views', sortable: true },
-    { key: 'createdAt', label: 'Date', sortable: true, render: (v) => new Date(v).toLocaleDateString('en-IN') },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'image',
+      label: 'Cover',
+      render: (_, r) => {
+        const src = r.image_url || r.image || r.photo_url || (Array.isArray(r.images) && r.images[0]) || '/hero_background.webp';
+        return (
+          <img
+            src={src}
+            alt="News"
+            className="w-14 h-14 object-cover rounded-xl border border-gray-100"
+            onError={(e) => { e.currentTarget.src = '/hero_background.webp'; }}
+          />
+        );
+      },
+    },
+    { key: 'title', label: 'Title', sortable: true, render: (v) => <span className="font-medium line-clamp-1">{v}</span> },
+    { key: 'category', label: 'Category', sortable: true, render: (v) => <Badge variant="info">{v}</Badge> },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'published' ? 'success' : 'warning'}>{v}</Badge> },
+    { key: 'views', label: 'Views', sortable: true, render: (v) => v ?? 0 },
+    {
+      key: 'createdAt',
+      label: 'Date',
+      sortable: true,
+      render: (_, r) => {
+        const d = r.created_at || r.createdAt;
+        return d ? new Date(d).toLocaleDateString('en-IN') : '—';
+      },
+    },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button
+            onClick={() => {
+              setEditItem(r);
+              reset({
+                ...r,
+                image: r.image_url || r.image || '',
+              });
+              setModalOpen(true);
+            }}
+            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"
+          >
+            <FiEdit2 className="w-4 h-4" />
+          </button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
   ];
 
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 ">News Management</h1>
-          <p className="text-gray-500 text-sm mt-1">Create and manage news articles</p>
+          <h1 className="text-2xl font-bold text-gray-900 ">News & Announcements</h1>
+          <p className="text-gray-500 text-sm mt-1">Publish community updates and articles</p>
         </div>
         <button onClick={() => { setEditItem(null); reset({ status: 'published', category: 'news' }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
           <FiPlus className="w-4 h-4" /> Add News
@@ -112,7 +165,7 @@ const NewsPage = () => {
         onPageChange={setPage} onSearchChange={(v) => { setSearch(v); setPage(1); }} serverSide emptyIcon={FiFileText} emptyText="No news articles found" />
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Article' : 'New Article'} size="xl">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
             <input {...register('title', { required: true })} placeholder="Article title" className="input-field" />

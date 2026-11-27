@@ -12,7 +12,7 @@ const translations = {
     nav_students: 'Students',
     nav_businesses: 'Businesses',
     nav_donors: 'Blood Donors',
-    nav_marriage: 'Marriage',
+    nav_marriage: 'Matrimonial',
     nav_events: 'Events',
     nav_news: 'News',
     nav_gallery: 'Gallery',
@@ -351,10 +351,6 @@ const translations = {
 
 export const LanguageProvider = ({ children }) => {
   const [language, setLanguageState] = useState('hi');
-
-  useEffect(() => {
-    localStorage.setItem('language', 'hi');
-  }, []);
 
   const toggleLanguage = () => {};
 

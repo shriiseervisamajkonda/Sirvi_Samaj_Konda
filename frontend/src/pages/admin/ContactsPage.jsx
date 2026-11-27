@@ -38,9 +38,10 @@ const ContactsPage = () => {
   const handleView = async (item) => {
     setViewItem(item);
     setModalOpen(true);
-    if (item.status === 'new') {
+    const targetId = item.id || item._id;
+    if (item.status === 'new' && targetId) {
       try {
-        await contactAPI.update(item._id, { status: 'read' });
+        await contactAPI.update(targetId, { status: 'read' });
         fetchData(); // Refresh to update status locally
       } catch (err) {
         console.error('Failed to mark as read', err);
@@ -50,11 +51,12 @@ const ContactsPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await contactAPI.delete(targetId);
-      setItems((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Message deleted successfully!');
       setDeleteItem(null);
       if (items.length === 1 && page > 1) {
@@ -75,18 +77,28 @@ const ContactsPage = () => {
       case 'read': return <Badge variant="info">Read</Badge>;
       case 'replied': return <Badge variant="success">Replied</Badge>;
       case 'archived': return <Badge variant="neutral">Archived</Badge>;
-      default: return <Badge variant="neutral">{status}</Badge>;
+      default: return <Badge variant="neutral">{status || 'New'}</Badge>;
     }
   };
 
   const columns = [
-    { key: 'name', label: 'Name', sortable: true, render: (v) => <span className="font-medium text-[#2B211B]">{v}</span> },
-    { key: 'email', label: 'Email', sortable: true },
-    { key: 'subject', label: 'Subject', render: (v) => <span className="line-clamp-1">{v}</span> },
-    { key: 'status', label: 'Status', render: (v) => getStatusBadge(v) },
-    { key: 'createdAt', label: 'Date', sortable: true, render: (v) => new Date(v).toLocaleDateString('hi-IN') },
+    { key: 'name', label: 'Name', sortable: true, render: (v) => <span className="font-medium text-[#2B211B]">{v || '—'}</span> },
+    { key: 'email', label: 'Email', sortable: true, render: (v) => v || '—' },
+    { key: 'subject', label: 'Subject', sortable: true, render: (v) => <span className="line-clamp-1">{v || '—'}</span> },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => getStatusBadge(v) },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'createdAt',
+      label: 'Date',
+      sortable: true,
+      render: (_, r) => {
+        const d = r.created_at || r.createdAt;
+        return d ? new Date(d).toLocaleDateString('hi-IN') : '—';
+      },
+    },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
           <button onClick={() => handleView(r)} className="p-1.5 text-[#C85A17] hover:bg-[#FFF8EC] rounded-lg transition-colors" title="View Message">
             <FiEye className="w-4 h-4" />

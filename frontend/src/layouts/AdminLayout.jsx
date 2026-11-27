@@ -28,6 +28,7 @@ import {
   FiMessageSquare,
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 const navigationGroups = [
   {
@@ -66,6 +67,7 @@ const navigationGroups = [
   {
     groupTitle: 'लेखा-जोखा एवं समाज कार्य',
     items: [
+      { label: 'दान एवं चंदा रसीदें (Donations)', path: '/admin/donations', icon: FiDollarSign },
       { label: 'आय-व्यय लेखा-जोखा', path: '/admin/lekha-jokha', icon: FiDollarSign },
       { label: 'पंच निर्णय (Settlements)', path: '/admin/panch-settlements', icon: FiBook },
       { label: 'सामाजिक नियम (Social Info)', path: '/admin/social-info', icon: FiCompass },
@@ -74,7 +76,9 @@ const navigationGroups = [
   {
     groupTitle: 'प्रशासन एवं सेटिंग्स',
     items: [
-      { label: 'उपयोगकर्ता व रोल्स (Users)', path: '/admin/users', icon: FiUser },
+      { label: 'मेरी प्रोफ़ाइल (My Profile)', path: '/admin/profile', icon: FiUser },
+      { label: 'उपयोगकर्ता व रोल्स (Users)', path: '/admin/users', icon: FiUsers },
+      { label: 'अधिकार प्रबंधन (Authority)', path: '/admin/authority', icon: FiShield },
       { label: 'ऑडिट लॉग्स (Activity)', path: '/admin/activity-logs', icon: FiActivity },
       { label: 'पोर्टल सेटिंग्स (Settings)', path: '/admin/settings', icon: FiSettings },
     ],
@@ -82,8 +86,9 @@ const navigationGroups = [
 ];
 
 const AdminLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { logoUrl } = useSiteSettings();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -114,7 +119,12 @@ const AdminLayout = () => {
             <Link to="/" className="flex items-center gap-3 group">
               <div className="w-10 h-10 rounded-2xl overflow-hidden bg-gradient-to-br from-[#7A2525] via-[#C85A17] to-[#C9A44C] p-0.5 shadow-md group-hover:scale-105 transition-transform">
                 <div className="w-full h-full bg-white rounded-2xl flex items-center justify-center">
-                  <img src="/Logo.webp" alt="Logo" className="w-8 h-8 object-contain" />
+                  <img
+                    src={logoUrl || '/Logo.webp'}
+                    alt="Logo"
+                    className="w-8 h-8 object-contain"
+                    onError={(e) => { e.currentTarget.src = '/Logo.webp'; }}
+                  />
                 </div>
               </div>
               <div>
@@ -168,17 +178,21 @@ const AdminLayout = () => {
 
           {/* User Profile & Logout Bottom Bar */}
           <div className="p-4 border-t border-[#E8DCC8] bg-gradient-to-b from-white to-[#FFF8EC]">
-            <div className="flex items-center gap-3 p-2 rounded-2xl bg-white border border-[#E8DCC8] shadow-sm mb-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white font-black text-sm shrink-0 shadow">
+            <Link
+              to="/admin/profile"
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-3 p-2 rounded-2xl bg-white border border-[#E8DCC8] shadow-sm mb-3 hover:border-[#C85A17]/40 hover:bg-[#FFF8EC] transition cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7A2525] to-[#C85A17] flex items-center justify-center text-white font-black text-sm shrink-0 shadow group-hover:scale-105 transition-transform">
                 {user?.name?.charAt(0) || 'A'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-black text-[#2B211B] truncate">{user?.name || 'Admin User'}</p>
+                <p className="text-xs font-black text-[#2B211B] truncate group-hover:text-[#C85A17]">{user?.name || 'Admin User'}</p>
                 <p className="text-[10px] font-extrabold text-[#C85A17] uppercase tracking-wider truncate">
                   {user?.role?.replace('_', ' ') || 'Administrator'}
                 </p>
               </div>
-            </div>
+            </Link>
 
             <button
               onClick={handleLogout}
@@ -220,15 +234,23 @@ const AdminLayout = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               to="/"
               target="_blank"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#FFF8EC] hover:bg-[#F5EADB] border border-[#E8DCC8] text-[#7A2525] text-xs font-extrabold rounded-2xl transition shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#FFF8EC] hover:bg-[#F5EADB] border border-[#E8DCC8] text-[#7A2525] text-xs font-extrabold rounded-2xl transition shadow-xs cursor-pointer"
             >
               <FiChevronLeft className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">वेबसाइट देखें</span>
             </Link>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-xs font-extrabold rounded-2xl transition shadow-xs cursor-pointer"
+              title="लॉगआउट करें (Logout)"
+            >
+              <FiLogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">लॉगआउट</span>
+            </button>
           </div>
         </header>
 

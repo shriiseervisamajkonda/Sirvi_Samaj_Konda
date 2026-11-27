@@ -1,0 +1,50 @@
+[
+  {
+    "id": "g-temple-1",
+    "photo_url": "/aai_mata_temple.webp",
+    "url": "/aai_mata_temple.webp",
+    "image_url": "/aai_mata_temple.webp",
+    "title": "श्री आई जी मंदिर (बडेर) कोणदा",
+    "caption": "श्री आई जी मंदिर (बडेर) कोणदा"
+  },
+  {
+    "id": "g-temple-2",
+    "photo_url": "/aai_mataji_portrait.jpg",
+    "url": "/aai_mataji_portrait.jpg",
+    "image_url": "/aai_mataji_portrait.jpg",
+    "title": "श्री आई माताजी पावन स्वरूप",
+    "caption": "श्री आई माताजी पावन स्वरूप"
+  },
+  {
+    "id": "g-temple-3",
+    "photo_url": "/hero_background.webp",
+    "url": "/hero_background.webp",
+    "image_url": "/hero_background.webp",
+    "title": "सिर्वी समाज कोणदा धरोहर",
+    "caption": "सिर्वी समाज कोणदा धरोहर"
+  },
+  {
+    "id": "g-temple-4",
+    "photo_url": "https://images.unsplash.com/photo-1545232979-fbf68fe9f1f8?w=800&auto=format&fit=crop&q=60",
+    "url": "https://images.unsplash.com/photo-1545232979-fbf68fe9f1f8?w=800&auto=format&fit=crop&q=60",
+    "image_url": "https://images.unsplash.com/photo-1545232979-fbf68fe9f1f8?w=800&auto=format&fit=crop&q=60",
+    "title": "वार्षिक धर्मसभा एवं समाज मिलन",
+    "caption": "सकल पंच एवं समाजजन"
+  },
+  {
+    "id": "g-temple-5",
+    "photo_url": "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=800&auto=format&fit=crop&q=60",
+    "url": "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=800&auto=format&fit=crop&q=60",
+    "image_url": "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=800&auto=format&fit=crop&q=60",
+    "title": "आई माताजी महाआरती एवं पूजा अर्चना",
+    "caption": "भव्य महाआरती दर्शन"
+  },
+  {
+    "id": "g-temple-6",
+    "photo_url": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=60",
+    "url": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=60",
+    "image_url": "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=60",
+    "title": "सामाजिक सम्मेलन एवं सम्मान समारोह",
+    "caption": "प्रतिभाशाली विद्यार्थियों व समाजसेवियों का सम्मान"
+  }
+]

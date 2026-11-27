@@ -19,7 +19,7 @@ const ActivityLogsPage = () => {
       setItems(res.data.data || []);
       setTotalPages(res.data.pagination?.pages || 1);
     } catch {
-      toast.error('Failed to load activity logs');
+      toast.error('गतिविधि लॉग लोड करने में त्रुटि');
     } finally {
       setLoading(false);
     }
@@ -30,21 +30,56 @@ const ActivityLogsPage = () => {
   }, [fetchData]);
 
   const columns = [
-    { key: 'user', label: 'User', render: (v) => <span className="font-medium">{v?.name || 'System'}</span> },
-    { key: 'action', label: 'Action', sortable: true, render: (v) => <Badge variant="info">{v}</Badge> },
+    {
+      key: 'user_name',
+      label: 'User',
+      render: (v, r) => (
+        <span className="font-medium text-gray-900">
+          {v || r.user_name || r.user?.name || 'System'}
+        </span>
+      ),
+    },
+    {
+      key: 'action',
+      label: 'Action',
+      sortable: true,
+      render: (v) => <Badge variant="info">{v}</Badge>,
+    },
     { key: 'module', label: 'Module', sortable: true },
-    { key: 'ipAddress', label: 'IP Address' },
-    { key: 'createdAt', label: 'Timestamp', sortable: true, render: (v) => new Date(v).toLocaleString('en-IN') },
+    {
+      key: 'ip_address',
+      label: 'IP Address',
+      render: (v, r) => <span className="font-mono text-xs">{v || r.ip_address || r.ipAddress || '—'}</span>,
+    },
+    {
+      key: 'created_at',
+      label: 'Timestamp',
+      sortable: true,
+      render: (v, r) => {
+        const val = v || r.created_at || r.createdAt;
+        return val ? new Date(val).toLocaleString('en-IN') : '—';
+      },
+    },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 ">Activity Logs</h1>
-        <p className="text-gray-500 text-sm mt-1">Audit log of all admin actions and system events</p>
+        <h1 className="text-2xl font-bold text-gray-900 ">गतिविधि लॉग (Activity Logs)</h1>
+        <p className="text-gray-500 text-sm mt-1">सिस्टम एवं प्रशासक गतिविधियों का ऑडिट लॉग</p>
       </div>
-      <DataTable columns={columns} data={items} loading={loading} totalPages={totalPages} currentPage={page}
-        onPageChange={setPage} onSearchChange={(v) => { setSearch(v); setPage(1); }} serverSide emptyIcon={FiActivity} emptyText="No activity logs found" />
+      <DataTable
+        columns={columns}
+        data={items}
+        loading={loading}
+        totalPages={totalPages}
+        currentPage={page}
+        onPageChange={setPage}
+        onSearchChange={(v) => { setSearch(v); setPage(1); }}
+        serverSide
+        emptyIcon={FiActivity}
+        emptyText="कोई गतिविधि लॉग उपलब्ध नहीं है"
+      />
     </div>
   );
 };

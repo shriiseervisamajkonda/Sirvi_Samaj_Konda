@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { FiPlus, FiEdit2, FiTrash2, FiUser, FiBriefcase, FiUsers, FiPhone, FiImage } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiUser, FiBriefcase, FiUsers, FiPhone } from 'react-icons/fi';
 import { memberAPI, familyAPI } from '../../services/api';
 import { useForm } from 'react-hook-form';
 import DataTable from '../../components/common/DataTable';
@@ -10,6 +9,7 @@ import Badge from '../../components/common/Badge';
 import ImageUpload from '../../components/common/ImageUpload';
 import SearchableSelect from '../../components/common/SearchableSelect';
 import { FormSection, FormField, FormActions } from '../../components/common/FormComponents';
+import FamilyMembersModal from '../../components/common/FamilyMembersModal';
 import toast from 'react-hot-toast';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -22,6 +22,7 @@ const MembersPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedFamilyForMembers, setSelectedFamilyForMembers] = useState(null);
   const [editItem, setEditItem] = useState(null);
   const [deleteItem, setDeleteItem] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -41,24 +42,90 @@ const MembersPage = () => {
 
   useEffect(() => {
     fetchMembers();
-    familyAPI.getAll({ limit: 200 }).then(res => setFamilies(res.data.data || [])).catch(() => {});
   }, [fetchMembers]);
 
-  const openCreate = () => { setEditItem(null); reset({ village: 'Konda', status: 'active', gender: 'male' }); setModalOpen(true); };
-  const openEdit = (member) => { setEditItem(member); reset(member); setModalOpen(true); };
+  useEffect(() => {
+    familyAPI.getAll({ limit: 200 }).then((res) => setFamilies(res.data.data || [])).catch(() => {});
+  }, []);
+
+  const openCreate = () => {
+    setEditItem(null);
+    reset({
+      village: 'Konda',
+      status: 'active',
+      gender: 'male',
+      firstName: '',
+      lastName: '',
+      guardianName: '',
+      phone: '',
+      bloodGroup: 'Unknown',
+      maritalStatus: 'single',
+      occupation: '',
+      education: '',
+      relation: '',
+    });
+    setModalOpen(true);
+  };
+
+  const openEdit = (member) => {
+    setEditItem(member);
+    reset({
+      ...member,
+      firstName: member.first_name || member.firstName || (member.full_name ? member.full_name.split(' ')[0] : ''),
+      lastName: member.last_name || member.lastName || (member.full_name ? member.full_name.split(' ').slice(1).join(' ') : ''),
+      guardianName: member.relative_name || member.guardianName || '',
+      phone: member.mobile_number || member.phone || '',
+      bloodGroup: member.blood_group || member.bloodGroup || 'Unknown',
+      maritalStatus: member.marital_status || member.maritalStatus || 'single',
+      gender: member.gender || 'male',
+      occupation: member.occupation || '',
+      education: member.education || '',
+      relation: member.relation_to_head || member.relation || '',
+      family: member.family_id || member.family?._id || member.family?.id || '',
+      village: member.village || 'Konda',
+      status: member.life_status || (member.status === 'inactive' ? 'deceased' : 'active'),
+    });
+    setModalOpen(true);
+  };
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
     
-    // Clean empty enum/reference values before submitting
-    const payload = { ...data };
-    if (!payload.bloodGroup) payload.bloodGroup = 'Unknown';
-    if (!payload.maritalStatus) payload.maritalStatus = 'single';
-    if (!payload.family) delete payload.family;
+    // Clean and map payload for both schemas
+    const fName = (data.firstName || data.first_name || '').trim();
+    const lName = (data.lastName || data.last_name || '').trim();
+    const guardian = (data.guardianName || data.relative_name || '').trim();
+    const fullName = fName && lName
+      ? `${fName} ${lName}`.trim()
+      : (data.full_name || fName || '');
+
+    const rawBg = data.bloodGroup || data.blood_group || 'unknown';
+    const cleanBg = rawBg.toLowerCase() === 'unknown' ? 'unknown' : rawBg;
+    const cleanStatus = ['active', 'deceased', 'married_out', 'moved_away'].includes(data.status)
+      ? data.status
+      : (data.status === 'inactive' ? 'deceased' : 'active');
+
+    const payload = {
+      first_name: fName,
+      last_name: lName,
+      full_name: fullName,
+      family_id: data.family || data.family_id || undefined,
+      mobile_number: data.phone || data.mobile_number || null,
+      relative_name: guardian || null,
+      blood_group: cleanBg,
+      relation_to_head: data.relation || data.relation_to_head || 'other',
+      marital_status: data.maritalStatus || data.marital_status || 'single',
+      gender: data.gender || 'male',
+      education: data.education || null,
+      occupation: data.occupation || null,
+      dob: data.dateOfBirth || data.dob || null,
+      life_status: cleanStatus,
+    };
 
     try {
-      if (editItem) {
-        await memberAPI.update(editItem._id, payload);
+      if (editItem && targetId) {
+        await memberAPI.update(targetId, payload);
         toast.success('सदस्य विवरण सफलतापूर्वक अपडेट हुआ!');
       } else {
         await memberAPI.create(payload);
@@ -73,11 +140,12 @@ const MembersPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await memberAPI.delete(targetId);
-      setMembers((prev) => prev.filter((item) => item._id !== targetId));
+      setMembers((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('सदस्य रिकॉर्ड हटा दिया गया!');
       setDeleteItem(null);
       if (members.length === 1 && page > 1) {
@@ -108,18 +176,91 @@ const MembersPage = () => {
         </div>
       ),
     },
-    { key: 'firstName', label: 'नाम', sortable: true, render: (_, r) => (
-      <div>
-        <div className="font-bold text-[#2B211B]">{r.firstName} {r.lastName}</div>
-        {r.guardianName && <div className="text-xs text-gray-500">S/O, W/O: {r.guardianName}</div>}
-      </div>
-    )},
-    { key: 'gender', label: 'लिंग', render: (v) => <Badge variant={v === 'male' ? 'info' : 'warning'}>{v === 'male' ? 'पुरुष' : v === 'female' ? 'महिला' : v}</Badge> },
-    { key: 'bloodGroup', label: 'रक्त समूह', render: (v) => v ? <span className="px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-md font-mono text-xs font-bold">{v}</span> : '—' },
-    { key: 'occupation', label: 'व्यवसाय', render: (v) => v || '—' },
-    { key: 'family', label: 'परिवार', render: (v) => v?.headOfFamily ? `${v.headOfFamily} (${v.familyId || ''})` : '—' },
-    { key: 'phone', label: 'फ़ोन', render: (v) => v ? <span className="font-mono text-xs">{v}</span> : '—' },
-    { key: 'status', label: 'स्थिति', render: (v) => <Badge variant={v === 'active' ? 'success' : 'danger'}>{v === 'active' ? 'सक्रिय' : 'निष्क्रिय'}</Badge> },
+    {
+      key: 'firstName',
+      label: 'नाम',
+      sortable: true,
+      render: (_, r) => {
+        const name = r.full_name || `${r.firstName || ''} ${r.lastName || ''}`.trim() || '—';
+        const guardian = r.relative_name || r.guardianName;
+        return (
+          <div>
+            <div className="font-bold text-[#2B211B]">{name}</div>
+            {guardian && <div className="text-xs text-gray-500">S/O, W/O: {guardian}</div>}
+          </div>
+        );
+      },
+    },
+    { key: 'gender', label: 'लिंग', sortable: true, render: (v) => <Badge variant={v === 'female' ? 'warning' : 'info'}>{v === 'female' ? 'महिला' : v === 'male' ? 'पुरुष' : v || '—'}</Badge> },
+    {
+      key: 'bloodGroup',
+      label: 'रक्त समूह',
+      sortable: true,
+      render: (_, r) => {
+        const bg = r.blood_group || r.bloodGroup;
+        return bg && bg !== 'Unknown' ? (
+          <span className="px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-md font-mono text-xs font-bold">{bg}</span>
+        ) : '—';
+      },
+    },
+    {
+      key: 'education',
+      label: 'शैक्षणिक योग्यता (Education)',
+      sortable: true,
+      render: (v, r) => {
+        const edu = v || r.qualification || r.education;
+        return edu ? (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-[#FFF8EC] text-[#7A2525] border border-[#E8DCC8]">
+            {edu}
+          </span>
+        ) : '—';
+      },
+    },
+    { key: 'occupation', label: 'व्यवसाय', sortable: true, render: (v) => v || '—' },
+    {
+      key: 'family',
+      label: 'परिवार',
+      sortable: true,
+      render: (_, r) => {
+        const headName = r.families?.head_name || r.family?.headOfFamily;
+        const famId = r.panchayat_family_id || r.families?.panchayat_family_id || r.family?.familyId || r.family_id;
+        if (!headName && !famId) return '—';
+
+        const familyObj = r.families || r.family || {
+          id: r.family_id,
+          panchayat_family_id: famId,
+          head_name: headName,
+          gotra: r.families?.gotra || r.last_name,
+        };
+
+        return (
+          <button
+            type="button"
+            onClick={() => setSelectedFamilyForMembers(familyObj)}
+            className="text-left font-bold text-[#2B211B] hover:text-[#7A2525] hover:underline transition cursor-pointer group flex items-center gap-1.5"
+            title="इस परिवार के सभी सदस्य देखें"
+          >
+            <span>{headName || `परिवार #${famId}`}</span>
+            {famId && (
+              <span className="font-mono text-[11px] text-[#7A2525] bg-[#FFF8EC] px-1.5 py-0.5 rounded border border-[#E8DCC8] group-hover:bg-[#7A2525] group-hover:text-white transition">
+                #{famId}
+              </span>
+            )}
+            <FiUsers className="w-3.5 h-3.5 text-[#C85A17] opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
+        );
+      },
+    },
+    {
+      key: 'phone',
+      label: 'फ़ोन',
+      sortable: true,
+      render: (_, r) => {
+        const num = r.mobile_number || r.phone;
+        return num ? <span className="font-mono text-xs">{num}</span> : '—';
+      },
+    },
+    { key: 'status', label: 'स्थिति', sortable: true, render: (v) => <Badge variant={v === 'inactive' ? 'danger' : 'success'}>{v === 'inactive' ? 'निष्क्रिय' : 'सक्रिय'}</Badge> },
     {
       key: '_actions',
       label: 'कार्यवाही',
@@ -135,6 +276,12 @@ const MembersPage = () => {
       ),
     },
   ];
+
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
 
   return (
     <div className="space-y-6 text-[#2B211B]">
@@ -164,6 +311,8 @@ const MembersPage = () => {
         onPageChange={setPage}
         onSearchChange={(v) => { setSearch(v); setPage(1); }}
         serverSide
+        downloadable={true}
+        title="सदस्य विवरण सूची (Members Directory)"
         emptyIcon={FiUser}
         emptyText="कोई सदस्य नहीं मिला"
       />
@@ -175,7 +324,7 @@ const MembersPage = () => {
         title={editItem ? 'सदस्य विवरण संपादित करें (Edit Member)' : 'नया सदस्य जोड़ें (Add Member)'}
         size="xl"
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-8 space-y-6">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 sm:p-8 space-y-6">
           <FormSection title="1. व्यक्तिगत जानकारी (Personal Information)" icon={FiUser}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="प्रथम नाम (First Name)" required error={errors.firstName}>
@@ -237,7 +386,10 @@ const MembersPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="संबंधित परिवार (Family)">
                 <SearchableSelect
-                  options={families.map(f => ({ value: f._id, label: `${f.headOfFamily} (${f.familyId})` }))}
+                  options={families.map(f => ({
+                    value: f.id || f._id,
+                    label: `${f.head_name || f.headOfFamily || 'परिवार'} (${f.panchayat_family_id || f.familyId || ''}) - ${f.gotra || ''}`
+                  }))}
                   value={watch('family')}
                   onChange={(val) => setValue('family', val, { shouldDirty: true })}
                   placeholder="परिवार चुनें (Select Family)"
@@ -249,10 +401,12 @@ const MembersPage = () => {
                 <input {...register('village')} defaultValue="Konda" className="input-field" />
               </FormField>
 
-              <FormField label="सक्रिय स्थिति (Status)">
+              <FormField label="सक्रिय स्थिति (Life Status)">
                 <select {...register('status')} className="input-field">
-                  <option value="active">सक्रिय (Active)</option>
-                  <option value="inactive">निष्क्रिय (Inactive)</option>
+                  <option value="active">सक्रिय / जीवित (Active)</option>
+                  <option value="deceased">स्वर्गवासी (Deceased)</option>
+                  <option value="married_out">विवाहित अन्यत्र (Married Out)</option>
+                  <option value="moved_away">अन्यत्र स्थानांतरित (Moved Away)</option>
                 </select>
               </FormField>
             </div>
@@ -294,6 +448,12 @@ const MembersPage = () => {
         title="सदस्य रिकॉर्ड हटाएँ"
         message={`क्या आप "${deleteItem?.firstName} ${deleteItem?.lastName || ''}" का सदस्य रिकॉर्ड हटाना चाहते हैं?`}
         isLoading={deleting}
+      />
+
+      <FamilyMembersModal
+        isOpen={Boolean(selectedFamilyForMembers)}
+        onClose={() => setSelectedFamilyForMembers(null)}
+        family={selectedFamilyForMembers}
       />
     </div>
   );

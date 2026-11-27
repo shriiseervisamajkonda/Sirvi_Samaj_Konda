@@ -41,12 +41,25 @@ const EventsPage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = editItem ? (editItem.id || editItem._id) : null;
+    const imgUrl = data.image || (Array.isArray(data.images) ? data.images[0] : '');
+    const payload = {
+      title: (data.title || '').trim(),
+      description: (data.description || '').trim(),
+      location: (data.location || '').trim(),
+      status: data.status || 'published',
+      event_type: data.eventType || data.event_type || 'upcoming',
+      start_date: data.startDate || data.start_date || new Date().toISOString(),
+      end_date: data.endDate || data.end_date || null,
+      images: imgUrl ? [imgUrl] : [],
+      image_url: imgUrl || null,
+    };
     try {
-      if (editItem) {
-        await eventAPI.update(editItem._id, data);
+      if (editItem && targetId) {
+        await eventAPI.update(targetId, payload);
         toast.success('Event updated!');
       } else {
-        await eventAPI.create(data);
+        await eventAPI.create(payload);
         toast.success('Event created!');
       }
       setModalOpen(false);
@@ -60,14 +73,15 @@ const EventsPage = () => {
 
   const handleDelete = async () => {
     if (!deleteItem) return;
-    const targetId = deleteItem._id;
+    const targetId = deleteItem.id || deleteItem._id;
+    if (!targetId) return;
     setDeleting(true);
     try {
       await eventAPI.delete(targetId);
-      setEvents((prev) => prev.filter((item) => item._id !== targetId));
+      setItems((prev) => prev.filter((item) => (item.id || item._id) !== targetId));
       toast.success('Event deleted successfully!');
       setDeleteItem(null);
-      if (events.length === 1 && page > 1) {
+      if (items.length === 1 && page > 1) {
         setPage((prev) => prev - 1);
       } else {
         fetchData();
@@ -80,20 +94,70 @@ const EventsPage = () => {
   };
 
   const columns = [
-    { key: 'title', label: 'Event Title', sortable: true, render: (v) => <span className="font-medium">{v}</span> },
-    { key: 'startDate', label: 'Date', sortable: true, render: (v, r) => new Date(v || r.date).toLocaleDateString('en-IN') },
-    { key: 'location', label: 'Location' },
-    { key: 'status', label: 'Status', render: (v) => <Badge variant={v === 'published' ? 'success' : 'warning'}>{v}</Badge> },
-    { key: 'registrationRequired', label: 'Registration', render: (v) => <Badge variant={v ? 'info' : 'default'}>{v ? 'Required' : 'Open'}</Badge> },
     {
-      key: '_id', label: 'Actions', render: (_, r) => (
+      key: 'image',
+      label: 'Image',
+      render: (_, r) => {
+        const src = r.image || r.image_url || (Array.isArray(r.images) && r.images[0]) || '/aai_mata_temple.webp';
+        return (
+          <img
+            src={src}
+            alt="Event"
+            className="w-14 h-14 object-cover rounded-xl border border-gray-100"
+            onError={(e) => { e.currentTarget.src = '/aai_mata_temple.webp'; }}
+          />
+        );
+      },
+    },
+    { key: 'title', label: 'Event Title', sortable: true, render: (v) => <span className="font-medium">{v}</span> },
+    {
+      key: 'startDate',
+      label: 'Date',
+      sortable: true,
+      render: (v, r) => {
+        const d = v || r.date || r.start_date || r.created_at;
+        return d ? new Date(d).toLocaleDateString('en-IN') : '—';
+      },
+    },
+    { key: 'location', label: 'Location', sortable: true, render: (v) => v || '—' },
+    { key: 'status', label: 'Status', sortable: true, render: (v) => <Badge variant={v === 'published' ? 'success' : 'warning'}>{v || 'published'}</Badge> },
+    { key: 'registrationRequired', label: 'Registration', sortable: true, render: (v) => <Badge variant={v ? 'info' : 'default'}>{v ? 'Required' : 'Open'}</Badge> },
+    {
+      key: '_actions',
+      label: 'Actions',
+      render: (_, r) => (
         <div className="flex gap-2">
-          <button onClick={() => { setEditItem(r); reset(r); setModalOpen(true); }} className="p-1.5 text-blue-500 hover:bg-blue-50 :bg-blue-500/10 rounded-lg"><FiEdit2 className="w-4 h-4" /></button>
-          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 :bg-red-500/10 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
+          <button
+            onClick={() => {
+              setEditItem(r);
+              reset({
+                ...r,
+                title: r.title || '',
+                description: r.description || '',
+                location: r.location || '',
+                status: r.status || 'published',
+                eventType: r.event_type || r.eventType || 'upcoming',
+                startDate: r.start_date ? r.start_date.slice(0, 16) : (r.startDate ? r.startDate.slice(0, 16) : ''),
+                endDate: r.end_date ? r.end_date.slice(0, 16) : (r.endDate ? r.endDate.slice(0, 16) : ''),
+                image: Array.isArray(r.images) && r.images[0] ? r.images[0] : (r.image || ''),
+              });
+              setModalOpen(true);
+            }}
+            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"
+          >
+            <FiEdit2 className="w-4 h-4" />
+          </button>
+          <button onClick={() => setDeleteItem(r)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><FiTrash2 className="w-4 h-4" /></button>
         </div>
       ),
     },
   ];
+
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -102,7 +166,23 @@ const EventsPage = () => {
           <h1 className="text-2xl font-bold text-gray-900 ">Events Management</h1>
           <p className="text-gray-500 text-sm mt-1">Manage all community events</p>
         </div>
-        <button onClick={() => { setEditItem(null); reset({ status: 'published', registrationRequired: false }); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30">
+        <button
+          onClick={() => {
+            setEditItem(null);
+            reset({
+              title: '',
+              description: '',
+              location: 'Sirvi Samaj Dharmshala, Konda',
+              eventType: 'upcoming',
+              status: 'published',
+              startDate: '',
+              endDate: '',
+              image: '',
+            });
+            setModalOpen(true);
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 shadow-md shadow-orange-500/30"
+        >
           <FiPlus className="w-4 h-4" /> Add Event
         </button>
       </div>
@@ -110,7 +190,7 @@ const EventsPage = () => {
         onPageChange={setPage} onSearchChange={(v) => { setSearch(v); setPage(1); }} serverSide emptyIcon={FiCalendar} emptyText="No events found" />
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editItem ? 'Edit Event' : 'New Event'} size="xl">
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Event Title *</label>
             <input {...register('title', { required: true })} placeholder="Event name" className="input-field" />

@@ -25,9 +25,10 @@ const VillagePage = () => {
 
   const onSubmit = async (data) => {
     setSaving(true);
+    const targetId = villageData?.id || villageData?._id;
     try {
-      if (villageData?._id) {
-        await villageAPI.update(villageData._id, data);
+      if (targetId) {
+        await villageAPI.update(targetId, data);
       } else {
         await villageAPI.create(data);
       }
@@ -36,6 +37,12 @@ const VillagePage = () => {
       toast.error('Failed to save village details');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const preventEnterSubmit = (e) => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
     }
   };
 
@@ -52,7 +59,7 @@ const VillagePage = () => {
         <h2 className="font-semibold text-gray-900 mb-5 flex items-center gap-2">
           <FiMapPin className="w-5 h-5 text-orange-500" /> Geography & Demographics
         </h2>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        <form onKeyDown={preventEnterSubmit} onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Village Name *</label>
