@@ -7,6 +7,12 @@
 
 ## 1. Git & Workflow Guidelines
 
+- **Autonomous Git Safety (STRICT)**:
+  - **NEVER execute `git add`, `git commit`, `git push`, `git merge`, `git rebase`, or `git checkout -b` autonomously.**
+  - Always request explicit user confirmation and review before performing any git mutation or branch operation.
+- **File System Safety (STRICT)**:
+  - **NEVER delete any file or directory autonomously.**
+  - Always explicitly ask the user for permission before removing or unlinking any file or directory.
 - **Git Author & Committer Email**:
   - Always use `shriseervisamajkonda@gmail.com` for all git commits.
   - Command: `git config user.email "shriseervisamajkonda@gmail.com"`

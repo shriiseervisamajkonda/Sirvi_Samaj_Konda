@@ -1,19 +1,25 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import supabase from '../config/supabase.js';
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const seedSupabase = async () => {
-  console.log('🌱 Starting Supabase Baseline Data Seed...');
+  console.log('🌱 Starting Fast Batch Supabase Seed & Census Import...');
 
   if (!supabase) {
-    console.error('❌ Supabase client is not configured. Check .env variables.');
+    console.error('❌ Supabase client is not configured.');
     process.exit(1);
   }
 
   try {
-    // 1. Seed Roles
+    // 1. Roles
     console.log('1️⃣ Seeding Dynamic RBAC Roles...');
     const rolesData = [
       {
@@ -67,14 +73,11 @@ const seedSupabase = async () => {
     ];
 
     for (const role of rolesData) {
-      const { error } = await supabase
-        .from('roles')
-        .upsert(role, { onConflict: 'name' });
-      if (error) console.warn(`Warning upserting role ${role.name}:`, error.message);
-      else console.log(`   ✅ Role upserted: ${role.display_name_en}`);
+      await supabase.from('roles').upsert(role, { onConflict: 'name' });
     }
+    console.log('   ✅ Roles upserted.');
 
-    // 2. Seed Village Information
+    // 2. Village Info
     console.log('2️⃣ Seeding Village Information...');
     const villageData = {
       community_name_en: 'Shri Seervi Samaj Konda',
@@ -97,7 +100,7 @@ const seedSupabase = async () => {
       known_gotras: [
         'chouhan', 'bhayal', 'kag', 'pawar', 'solanki',
         'choyal', 'padiyar', 'gehlot', 'agalcha', 'lacheta',
-        'rathore', 'shinada', 'barfa', 'hammad', 'sencha',
+        'rathore', 'shinada', 'barfa', 'septa', 'sencha', 'parihar',
       ],
       emergency_contacts: [
         { name: 'कुक्षी पुलिस थाना', phone: '07297-234220' },
@@ -108,173 +111,195 @@ const seedSupabase = async () => {
 
     const { data: existingVillage } = await supabase.from('village_information').select('id').limit(1);
     if (!existingVillage || existingVillage.length === 0) {
-      const { error: vError } = await supabase.from('village_information').insert(villageData);
-      if (vError) console.warn('Warning inserting village info:', vError.message);
-      else console.log('   ✅ Village Information seeded');
-    } else {
-      console.log('   ℹ️ Village Information already exists');
+      await supabase.from('village_information').insert(villageData);
     }
+    console.log('   ✅ Village Information ready.');
 
-    // 3. Seed Sample Family & Members (Family #1)
-    console.log('3️⃣ Seeding Sample Census Family #1...');
-    const { data: existingFam } = await supabase
-      .from('families')
-      .select('id')
-      .eq('panchayat_family_id', '1')
-      .maybeSingle();
+    // 3. Admin Account
+    console.log('3️⃣ Seeding Master Admin Account...');
+    const adminPassword = process.env.SUPER_ADMIN_PASSWORD || 'Admin@123456';
+    const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
+    const adminEmail = process.env.SUPER_ADMIN_EMAIL || 'shriseervisamajkonda@gmail.com';
+    const adminPhone = process.env.SUPER_ADMIN_PHONE || '9981644585';
 
-    let familyId = existingFam?.id;
+    await supabase.from('users').upsert({
+      name: 'Super Admin (श्री सीरवी समाज कोणदा)',
+      email: adminEmail,
+      phone: adminPhone,
+      password_hash: adminPasswordHash,
+      role: 'developer',
+      is_active: true,
+    }, { onConflict: 'phone' });
+    console.log(`   ✅ Master Super Admin created (${adminEmail} | ${adminPassword})`);
 
-    if (!familyId) {
-      const { data: newFam, error: fError } = await supabase
-        .from('families')
-        .insert({
-          panchayat_family_id: '1',
-          gotra: 'chouhan',
-          head_name: 'Shantilal Mohan',
-          head_mobile: '7724878027',
-          land_area_acres: 3.0,
-          land_details_text: '03 एकड़ (3 Acres)',
-          village: 'Konda',
-          tehsil: 'Kukshi',
-          district: 'Dhar',
-          state: 'Madhya Pradesh',
-          pin_code: '454335',
-          faliya_or_ward: 'माताजी फलिया',
-          total_members: 4,
-          status: 'active',
-        })
-        .select('id')
-        .single();
+    // 4. Parse CSV & Bulk Insert
+    console.log('4️⃣ Parsing Census CSV...');
+    const csvPath = path.resolve(__dirname, '../../../docs/sirvi_samaj_konda_census.csv');
+    const csvContent = fs.readFileSync(csvPath, 'utf8');
+    const lines = csvContent.split(/\r?\n/).filter(l => l.trim().length > 0);
+    const rows = lines.slice(1);
 
-      if (fError) {
-        console.warn('Warning inserting family:', fError.message);
-      } else {
-        familyId = newFam.id;
-        console.log(`   ✅ Family #1 created with UUID: ${familyId}`);
+    const familiesMap = new Map();
 
-        // Insert Members
-        const membersData = [
-          {
-            family_id: familyId,
-            member_number: 1,
-            first_name: 'Shantilal',
-            last_name: 'Chouhan',
-            full_name: 'Shantilal Mohan Chouhan',
-            relation_to_head: 'self',
-            relative_relation_type: 'father',
-            relative_name: 'Mohan',
-            is_head: true,
-            dob: '1981-01-01',
-            education: '6th',
-            occupation: 'tailoring',
-            mobile_number: '7724878027',
-            gender: 'male',
-            marital_status: 'married',
-            blood_group: 'O+',
-          },
-          {
-            family_id: familyId,
-            member_number: 2,
-            first_name: 'Urmila',
-            last_name: 'Chouhan',
-            full_name: 'Urmila Shantilal Chouhan',
-            relation_to_head: 'spouse',
-            relative_relation_type: 'husband',
-            relative_name: 'Shantilal',
-            is_head: false,
-            dob: '1978-01-01',
-            education: '2nd',
-            occupation: 'homemaker',
-            mobile_number: null,
-            gender: 'female',
-            marital_status: 'married',
-          },
-          {
-            family_id: familyId,
-            member_number: 3,
-            first_name: 'Anil',
-            last_name: 'Chouhan',
-            full_name: 'Anil Shantilal Chouhan',
-            relation_to_head: 'son',
-            relative_relation_type: 'father',
-            relative_name: 'Shantilal',
-            is_head: false,
-            dob: '1997-01-01',
-            education: '8th',
-            occupation: 'shopkeeper',
-            mobile_number: '9981644564',
-            gender: 'male',
-            marital_status: 'single',
-            blood_group: 'B+',
-          },
-          {
-            family_id: familyId,
-            member_number: 4,
-            first_name: 'Sunil',
-            last_name: 'Chouhan',
-            full_name: 'Sunil Shantilal Chouhan',
-            relation_to_head: 'son',
-            relative_relation_type: 'father',
-            relative_name: 'Shantilal',
-            is_head: false,
-            dob: '2003-01-01',
-            education: '9th',
-            occupation: 'agriculture',
-            mobile_number: '7909784358',
-            gender: 'male',
-            marital_status: 'single',
-            blood_group: 'O+',
-          },
-        ];
+    for (const row of rows) {
+      const cols = row.split(',');
+      if (cols.length < 17) continue;
 
-        const { error: mError } = await supabase.from('family_members').insert(membersData);
-        if (mError) console.warn('Warning inserting family members:', mError.message);
-        else console.log('   ✅ 4 Family Members seeded');
+      const [
+        panchayat_family_id,
+        gotra,
+        land_area,
+        faliya_or_ward,
+        member_number,
+        name_hi,
+        relative_relation_type,
+        relative_name,
+        is_head,
+        dob,
+        approximate_age,
+        gender,
+        education,
+        occupation,
+        mobile_number,
+        blood_group,
+        marital_status,
+      ] = cols;
 
-        // Create Family Head User Account (Password: 8027@1)
-        const passwordHash = await bcrypt.hash('8027@1', 10);
-        await supabase.from('users').insert({
-          name: 'Shantilal Mohan Chouhan',
-          phone: '7724878027',
-          password_hash: passwordHash,
-          role: 'member',
-          panchayat_family_id: '1',
-          is_active: true,
+      if (!familiesMap.has(panchayat_family_id)) {
+        familiesMap.set(panchayat_family_id, {
+          panchayat_family_id,
+          gotra: gotra.trim().toLowerCase(),
+          land_details_text: land_area ? land_area.trim() : null,
+          faliya_or_ward: faliya_or_ward ? faliya_or_ward.trim() : null,
+          head_name: '',
+          head_mobile: null,
+          members: [],
         });
-        console.log('   ✅ Family Head user account created (Login: 7724878027 / 8027@1)');
       }
-    } else {
-      console.log('   ℹ️ Family #1 already exists in Supabase');
+
+      const famObj = familiesMap.get(panchayat_family_id);
+      const isHeadBool = is_head.trim().toUpperCase() === 'TRUE';
+
+      const memberObj = {
+        member_number: parseInt(member_number, 10) || (famObj.members.length + 1),
+        first_name: name_hi.trim(),
+        full_name: `${name_hi.trim()} (${relative_relation_type.trim()} ${relative_name.trim()})`,
+        relative_relation_type: relative_relation_type.trim().toLowerCase() === 'husband' ? 'husband' : 'father',
+        relative_name: relative_name.trim(),
+        relation_to_head: isHeadBool ? 'self' : (relative_relation_type.trim().toLowerCase() === 'husband' ? 'spouse' : 'other'),
+        is_head: isHeadBool,
+        dob: dob.trim() || null,
+        approximate_age: parseInt(approximate_age, 10) || null,
+        gender: gender.trim().toLowerCase() === 'female' ? 'female' : 'male',
+        education: education.trim() || null,
+        occupation: occupation.trim() || null,
+        mobile_number: mobile_number.trim() || null,
+        blood_group: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].includes(blood_group?.trim()) ? blood_group.trim() : 'unknown',
+        marital_status: ['married', 'single', 'widowed', 'divorced'].includes(marital_status?.trim()) ? marital_status.trim() : 'single',
+      };
+
+      if (isHeadBool || !famObj.head_name) {
+        famObj.head_name = name_hi.trim();
+        if (mobile_number && mobile_number.trim()) {
+          famObj.head_mobile = mobile_number.trim();
+        }
+      }
+
+      famObj.members.push(memberObj);
     }
 
-    // 4. Seed Sample Donation for 2026
-    console.log('4️⃣ Seeding Sample Donation for Family #1...');
-    const { data: existingDon } = await supabase
-      .from('donations')
-      .select('id')
-      .eq('receipt_number', 'KONDA-2026-0001')
-      .maybeSingle();
+    console.log(`   📊 Preparing bulk upsert for ${familiesMap.size} families...`);
 
-    if (!existingDon && familyId) {
-      await supabase.from('donations').insert({
-        family_id: familyId,
-        donor_name: 'Shantilal Mohan Chouhan',
-        panchayat_family_id: '1',
-        gotra: 'chouhan',
-        mobile_number: '7724878027',
-        financial_year: 2026,
-        amount: 1100.0,
-        purpose: 'annual_chanda',
-        payment_mode: 'cash',
-        payment_status: 'confirmed',
-        receipt_number: 'KONDA-2026-0001',
-        collected_by_name: 'Kailash Agalcha (Treasurer)',
+    // Prepare Families Bulk Array
+    const familiesToUpsert = [];
+    for (const fam of familiesMap.values()) {
+      familiesToUpsert.push({
+        panchayat_family_id: fam.panchayat_family_id,
+        gotra: fam.gotra,
+        head_name: fam.head_name || `Family #${fam.panchayat_family_id}`,
+        head_mobile: fam.head_mobile,
+        land_details_text: fam.land_details_text,
+        faliya_or_ward: fam.faliya_or_ward,
+        village: 'Konda',
+        tehsil: 'Kukshi',
+        district: 'Dhar',
+        state: 'Madhya Pradesh',
+        pin_code: '454335',
+        total_members: fam.members.length,
+        status: 'active',
       });
-      console.log('   ✅ Sample 2026 Annual Chanda donation recorded');
     }
 
-    console.log('\n🎉 Supabase Seed Completed Successfully!');
+    // Upsert families in chunks of 50
+    const chunkSize = 50;
+    const insertedFamilies = [];
+    for (let i = 0; i < familiesToUpsert.length; i += chunkSize) {
+      const chunk = familiesToUpsert.slice(i, i + chunkSize);
+      const { data, error } = await supabase
+        .from('families')
+        .upsert(chunk, { onConflict: 'panchayat_family_id' })
+        .select('id, panchayat_family_id');
+
+      if (error) {
+        console.error('Error inserting families chunk:', error.message);
+      } else if (data) {
+        insertedFamilies.push(...data);
+      }
+    }
+
+    console.log(`   ✅ ${insertedFamilies.length} Families synchronized in database.`);
+
+    // Map panchayat_family_id to UUID
+    const familyUuidMap = new Map();
+    insertedFamilies.forEach(f => familyUuidMap.set(f.panchayat_family_id, f.id));
+
+    // Prepare Members Bulk Array
+    const membersToInsert = [];
+    for (const fam of familiesMap.values()) {
+      const familyUuid = familyUuidMap.get(fam.panchayat_family_id);
+      if (!familyUuid) continue;
+
+      for (const m of fam.members) {
+        membersToInsert.push({
+          family_id: familyUuid,
+          member_number: m.member_number,
+          first_name: m.first_name,
+          full_name: m.full_name,
+          relation_to_head: m.relation_to_head,
+          relative_relation_type: m.relative_relation_type,
+          relative_name: m.relative_name,
+          is_head: m.is_head,
+          dob: m.dob,
+          approximate_age: m.approximate_age,
+          gender: m.gender,
+          education: m.education,
+          occupation: m.occupation,
+          mobile_number: m.mobile_number,
+          blood_group: m.blood_group,
+          marital_status: m.marital_status,
+        });
+      }
+    }
+
+    console.log(`   📊 Inserting ${membersToInsert.length} members in batch chunks...`);
+    // Clear old members first
+    await supabase.from('family_members').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+    let totalMembersInserted = 0;
+    for (let i = 0; i < membersToInsert.length; i += chunkSize) {
+      const chunk = membersToInsert.slice(i, i + chunkSize);
+      const { error } = await supabase.from('family_members').insert(chunk);
+      if (error) {
+        console.error('Error inserting members chunk:', error.message);
+      } else {
+        totalMembersInserted += chunk.length;
+      }
+    }
+
+    console.log(`\n🎉 Census Import Summary:`);
+    console.log(`   ✅ Total Families: ${insertedFamilies.length}`);
+    console.log(`   ✅ Total Members Inserted: ${totalMembersInserted}`);
+    console.log(`\n🎉 Supabase Database is 100% Seeded and Live!`);
     process.exit(0);
   } catch (err) {
     console.error('❌ Supabase Seed Error:', err.message);

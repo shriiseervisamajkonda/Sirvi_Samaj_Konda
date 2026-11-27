@@ -291,7 +291,7 @@ const seed = async () => {
     const officeBearers = [
       { name: 'सुनिल/पन्नालाल जी भायल', designation: 'अध्यक्ष', category: 'office_bearer', order: 1 },
       { name: 'अजय/गोपाल जी शिनदडा', designation: 'महासचिव', category: 'office_bearer', order: 2 },
-      { name: 'कन्हैयालाल/रत्न जी चोहान', designation: 'उपाध्यक्ष', category: 'office_bearer', order: 3 },
+      { name: 'कमल चेनाजी काग', designation: 'उपाध्यक्ष', category: 'office_bearer', order: 3 },
       { name: 'दिनेश/गोविंद जी लछेटा', designation: 'सचिव', category: 'office_bearer', order: 4 },
       { name: 'कैलाश/रत्नजी अगल्चा', designation: 'कोषाध्यक्ष', category: 'office_bearer', order: 5 },
     ];
@@ -301,8 +301,8 @@ const seed = async () => {
       { name: 'दिलीप/मोतीलाल जी चोयल', designation: 'सदस्य', category: 'member', order: 2 },
       { name: 'कमल/लक्ष्मण जी पड़ियार', designation: 'सदस्य', category: 'member', order: 3 },
       { name: 'सुनिल/शंकर जी गेहलोत', designation: 'सदस्य', category: 'member', order: 4 },
-      { name: 'सुनील/मुन्नालाल पवार', designation: 'सदस्य', category: 'member', order: 5 },
-      { name: 'रवि/पारस जी लछेटा', designation: 'सदस्य', category: 'member', order: 6 },
+      { name: 'दिपक चनाजी चोहान', designation: 'सदस्य', category: 'member', order: 5 },
+      { name: 'पवन लाखनजी पंवार', designation: 'सदस्य', category: 'member', order: 6 },
     ];
 
     const tehsilReps = [
