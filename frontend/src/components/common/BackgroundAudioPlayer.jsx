@@ -61,7 +61,7 @@ const BackgroundAudioPlayer = () => {
   };
 
   return (
-    <div className="fixed bottom-5 left-5 z-50 flex items-center">
+    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] right-3 sm:bottom-5 sm:right-auto sm:left-5 z-50 flex items-center">
       {/* Audio element with preload="none" so no network requests are sent on page load */}
       <audio
         ref={audioRef}
@@ -85,7 +85,7 @@ const BackgroundAudioPlayer = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute bottom-full left-0 mb-3 p-3.5 bg-[#3B0A0A]/95 border border-[#F59E0B]/30 rounded-2xl shadow-2xl backdrop-blur-xl w-60 text-xs text-[#FFF8F0]"
+              className="absolute bottom-full right-0 sm:right-auto sm:left-0 mb-3 p-3.5 bg-[#3B0A0A]/95 border border-[#F59E0B]/30 rounded-2xl shadow-2xl backdrop-blur-xl w-[min(15rem,calc(100vw-1.5rem))] text-xs text-[#FFF8F0]"
             >
               <div className="flex items-center justify-between gap-2 mb-2.5 pb-2 border-b border-[#7F1D1D]/50">
                 <div className="flex items-center gap-1.5 min-w-0">
@@ -138,7 +138,7 @@ const BackgroundAudioPlayer = () => {
           onClick={togglePlay}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-full shadow-2xl transition-all duration-300 border cursor-pointer ${
+          className={`flex items-center gap-0 sm:gap-2.5 p-2 sm:px-3.5 sm:py-2.5 rounded-full shadow-2xl transition-all duration-300 border cursor-pointer ${
             isPlaying
               ? 'bg-[#3B0A0A]/90 border-[#F59E0B]/50 shadow-[#F59E0B]/20 text-[#FFF8F0]'
               : 'bg-[#230505]/90 border-[#7F1D1D]/60 text-[#CDBBA4] hover:border-[#F59E0B]/40'
@@ -154,7 +154,7 @@ const BackgroundAudioPlayer = () => {
             )}
           </div>
 
-          <div className="flex flex-col items-start text-left">
+          <div className="hidden sm:flex flex-col items-start text-left">
             <span className="text-xs font-bold text-[#FDE68A] leading-none flex items-center gap-1.5">
               <span>भजन संगीत</span>
               {isPlaying && (

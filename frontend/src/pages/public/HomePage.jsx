@@ -1086,19 +1086,19 @@ const HomePage = () => {
       </section>
 
       {/* Latest News & Upcoming Events */}
-      <section className="py-20 bg-[#FFF8EC] border-b border-[#E8DCC8]">
+      <section className="py-12 sm:py-16 lg:py-20 bg-[#FFF8EC] border-b border-[#E8DCC8]">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
             {/* News */}
             <div>
-              <div className="flex items-center justify-between mb-8">
-                <div>
+              <div className="flex items-end justify-between gap-3 mb-5 sm:mb-8">
+                <div className="min-w-0">
                   <span className="inline-block px-3 py-1 bg-white border border-[#E8DCC8] text-[#C85A17] text-xs font-bold rounded-full mb-2 uppercase tracking-wider shadow-sm">
                     {t('news_badge')}
                   </span>
-                  <h2 className="text-3xl font-extrabold text-[#2B211B]">{t('news_title')}</h2>
+                  <h2 className="text-2xl sm:text-3xl leading-tight font-extrabold text-[#2B211B]">{t('news_title')}</h2>
                 </div>
-                <Link to="/news" className="flex items-center gap-1 text-[#C85A17] text-sm font-bold hover:gap-2 transition-all">
+                <Link to="/news" className="flex shrink-0 items-center gap-0.5 sm:gap-1 pb-0.5 text-[#C85A17] text-xs sm:text-sm font-bold hover:gap-2 transition-all">
                   {t('news_view_all')} <FiChevronRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -1106,8 +1106,8 @@ const HomePage = () => {
               <div className="space-y-4">
                 {!dataLoaded ? (
                   Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="flex gap-4 p-5 bg-white rounded-3xl border border-[#E8DCC8] animate-pulse">
-                      <div className="w-14 h-14 bg-[#FAF1E0] border border-[#E8DCC8] rounded-2xl shrink-0" />
+                    <div key={i} className="flex gap-3 sm:gap-4 p-3.5 sm:p-5 bg-white rounded-2xl sm:rounded-3xl border border-[#E8DCC8] animate-pulse">
+                      <div className="w-11 h-11 sm:w-14 sm:h-14 bg-[#FAF1E0] border border-[#E8DCC8] rounded-xl sm:rounded-2xl shrink-0" />
                       <div className="flex-1 min-w-0 space-y-2 py-1">
                         <div className="h-4 bg-[#FAF1E0] rounded w-3/4" />
                         <div className="h-3 bg-[#FAF1E0] rounded w-full" />
@@ -1123,13 +1123,13 @@ const HomePage = () => {
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.1 }}
-                      className="flex gap-4 p-5 bg-white rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/50 hover:shadow-lg transition-all group"
+                      className="flex gap-3 sm:gap-4 p-3.5 sm:p-5 bg-white rounded-2xl sm:rounded-3xl border border-[#E8DCC8] hover:border-[#C9A44C]/50 hover:shadow-lg transition-all group"
                     >
-                      <div className="w-14 h-14 bg-gradient-to-br from-[#FFF8EC] to-[#FAF1E0] border border-[#E8DCC8] rounded-2xl flex items-center justify-center shrink-0 text-2xl shadow-sm">
+                      <div className="w-11 h-11 sm:w-14 sm:h-14 bg-gradient-to-br from-[#FFF8EC] to-[#FAF1E0] border border-[#E8DCC8] rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 text-lg sm:text-2xl shadow-sm">
                         📰
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-[#2B211B] text-base mb-1 truncate group-hover:text-[#C85A17] transition-colors">
+                        <h3 className="font-bold text-[#2B211B] text-sm sm:text-base leading-snug mb-1 line-clamp-2 sm:truncate group-hover:text-[#C85A17] transition-colors">
                           {item.title}
                         </h3>
                         <p className="text-[#766A60] text-xs line-clamp-2 leading-relaxed font-medium">
@@ -1152,14 +1152,14 @@ const HomePage = () => {
 
             {/* Events */}
             <div>
-              <div className="flex items-center justify-between mb-8">
-                <div>
+              <div className="flex items-end justify-between gap-3 mb-5 sm:mb-8">
+                <div className="min-w-0">
                   <span className="inline-block px-3 py-1 bg-white border border-[#E8DCC8] text-green-700 text-xs font-bold rounded-full mb-2 uppercase tracking-wider shadow-sm">
                     {t('events_badge')}
                   </span>
-                  <h2 className="text-3xl font-extrabold text-[#2B211B]">{t('events_title')}</h2>
+                  <h2 className="text-2xl sm:text-3xl leading-tight font-extrabold text-[#2B211B]">{t('events_title')}</h2>
                 </div>
-                <Link to="/events" className="flex items-center gap-1 text-[#C85A17] text-sm font-bold hover:gap-2 transition-all">
+                <Link to="/events" className="flex shrink-0 items-center gap-0.5 sm:gap-1 pb-0.5 text-[#C85A17] text-xs sm:text-sm font-bold hover:gap-2 transition-all">
                   {t('events_view_all')} <FiChevronRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -1167,8 +1167,8 @@ const HomePage = () => {
               <div className="space-y-4">
                 {!dataLoaded ? (
                   Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="flex gap-4 p-5 bg-white border border-[#E8DCC8] rounded-3xl animate-pulse">
-                      <div className="w-14 h-14 bg-[#FAF1E0] rounded-2xl shrink-0" />
+                    <div key={i} className="flex gap-3 sm:gap-4 p-3.5 sm:p-5 bg-white border border-[#E8DCC8] rounded-2xl sm:rounded-3xl animate-pulse">
+                      <div className="w-11 h-11 sm:w-14 sm:h-14 bg-[#FAF1E0] rounded-xl sm:rounded-2xl shrink-0" />
                       <div className="flex-1 min-w-0 space-y-2 py-1">
                         <div className="h-4 bg-[#FAF1E0] rounded w-3/4" />
                         <div className="h-3 bg-[#FAF1E0] rounded w-1/2" />
@@ -1183,11 +1183,11 @@ const HomePage = () => {
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.1 }}
-                      className="flex gap-4 p-5 bg-white border border-[#E8DCC8] rounded-3xl hover:border-[#C9A44C]/50 hover:shadow-lg transition-all"
+                      className="flex gap-3 sm:gap-4 p-3.5 sm:p-5 bg-white border border-[#E8DCC8] rounded-2xl sm:rounded-3xl hover:border-[#C9A44C]/50 hover:shadow-lg transition-all"
                     >
-                      <div className="w-14 h-14 bg-gradient-to-br from-[#7A2525] to-[#C85A17] rounded-2xl flex items-center justify-center shrink-0 shadow-md">
+                      <div className="w-11 h-11 sm:w-14 sm:h-14 bg-gradient-to-br from-[#7A2525] to-[#C85A17] rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 shadow-md">
                         <div className="text-center text-white">
-                          <p className="text-lg font-black leading-none">
+                          <p className="text-base sm:text-lg font-black leading-none">
                             {new Date(event.start_date || event.startDate || event.date || Date.now()).getDate()}
                           </p>
                           <p className="text-[10px] text-orange-200 font-bold uppercase mt-0.5">
@@ -1196,9 +1196,9 @@ const HomePage = () => {
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-[#2B211B] text-base mb-1 truncate">{event.title}</h3>
-                        <p className="text-[#766A60] text-xs flex items-center gap-1 font-semibold mt-1">
-                          <FiMapPin className="w-3.5 h-3.5 text-[#C85A17] shrink-0" /> {event.location || 'कोणदा'}
+                        <h3 className="font-bold text-[#2B211B] text-sm sm:text-base leading-snug mb-1 line-clamp-2 sm:truncate">{event.title}</h3>
+                        <p className="text-[#766A60] text-xs flex items-center gap-1 font-semibold mt-1 min-w-0">
+                          <FiMapPin className="w-3.5 h-3.5 text-[#C85A17] shrink-0" /> <span className="truncate">{event.location || 'कोणदा'}</span>
                         </p>
                       </div>
                     </motion.div>
